@@ -13,6 +13,8 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 - [Target Audience](#target-audience)
 - [User Stories](#user-stories)
 - [Strategy Table / Diagram](#strategy-table--diagram)
+- [Application Structure](#application-structure)
+- [Wireframe](#wireframe)
 
 <br>
 
@@ -25,7 +27,7 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 
 ## Target Audience
 
-- small business owners, supervisors and their employees
+small business owners, supervisors and their employees
 
 ## User Stories
 
@@ -49,11 +51,20 @@ __NOTE__: This application can only be operated properly on a desktop computer b
     - I want to be able to review worked hours so that I can flag it to the manager immediately if it's inaccurate.
     - I want to be able to check who's out of the office at a glance so that I can arrange meetings / events on a day when the relevant members are in.
 
-<br>
-
 ## Strategy Table / Diagram
 
-- The strategy table and diagram have been created to decide on what features should be implemented in this project. The listed features are based on the user stories. Each feature's importance and viability / feasibility were rated on a scale of 1 to 5 where 5 is the most important and the most viable / feasible.
+The strategy table and diagram have been created to decide on what features should be implemented in this project. The listed features are based on the user stories. Each feature's importance and viability / feasibility were rated on a scale of 1 to 5 where 5 is the most important and the most viable / feasible.
 
-    ![Strategy Table and Diagram](documentation/ux/strategy-plane.png)
+![Strategy Table and Diagram](documentation/ux/strategy-plane.png)
 
+## Application Structure
+
+Based on the strategy rating, I have decided to implement the following features: Log in(Feature ID 1), Clock in/out(3), Book/Cancel/Approve/Reject time-off(4), Review Clock in/out time(7), Review absence entitlements(8), Review group absence(9).
+
+The application will be structured as shown in the following diagram.
+
+![Application Structure](documentation/ux/structure.png)
+
+## Wireframe
+
+![Wireframe](documentation/ux/wireframe.png)
