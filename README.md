@@ -16,6 +16,8 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 - [Application Structure](#application-structure)
 - [Wireframe](#wireframe)
 
+[Data Model](#data-model)
+
 <br>
 
 # User Experience (UX)
@@ -68,3 +70,16 @@ The application will be structured as shown in the following diagram.
 ## Wireframe
 
 ![Wireframe](documentation/ux/wireframe.png)
+
+<br>
+
+# Data Model
+
+_Google Sheets_ was chosen to store and retrieve data as most small/start-up companies typically have this tool available and the volume of the data for this project will be small. The python implementation will be able to support a SQL or NoSQL database with minimal refactoring when the volume of data requires it.
+The spreadsheet has 5 main worksheets: login_credentials, employees, clockings, absences and entitlements and 1 supporting worksheet for reporting issues to the system administrator.
+ 
+Each employee’s login id will be stored in the login_credentials sheet and will be the key to link to other worksheets to CRUD(create, read, update, delete) data when the user interacts with the application.
+ 
+I have created a diagram to visualise each sheet and its columns.
+ 
+![Data model](documentation/data-model.png)
