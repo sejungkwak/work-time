@@ -1,7 +1,11 @@
 # External libraries
 from art import *
+from colorama import init, Fore, Style
 import gspread
 from google.oauth2.service_account import Credentials
+
+# colorama method to enable it on Windows
+init(autoreset=True)
 
 SCOPE = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -29,4 +33,34 @@ def welcome_message():
     print("")
     print("="*80)
 
+
+def validate_id():
+    """
+    Request Employee ID and validate it against Google sheet.
+    Or User can choose to contact the system administrator.
+    """
+    while True:
+        try:
+            print("\nPlease enter your employee ID.")
+            print("To contact the system administrator, enter ", end="")
+            print(f"{Fore.GREEN}C{Style.RESET_ALL} instead.")
+
+            ids = [id for id, password in login_credentials]
+            entered_id = input("\nEmployee ID:\n").upper()
+
+            if entered_id == "C":
+                break
+
+            if entered_id not in ids:
+                raise ValueError(
+                    print(f"\nYou have entered {entered_id}.")
+                )
+
+        except ValueError:
+            print("Please make sure to enter your employee ID.\n")
+
+        else:
+            break
+
 welcome_message()
+validate_id()
