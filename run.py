@@ -3,6 +3,8 @@ from art import *
 from colorama import init, Fore, Style
 import gspread
 from google.oauth2.service_account import Credentials
+from passlib.hash import pbkdf2_sha256
+import stdiomask
 
 # colorama method to enable it on Windows
 init(autoreset=True)
@@ -59,6 +61,30 @@ def validate_id():
         except ValueError:
             print("Please make sure to enter your employee ID.\n")
 
+        else:
+            return validate_pw(entered_id)
+            break
+
+
+def validate_pw(id):
+    """
+    Run when the user input a valid employee ID.
+    Request Password and validate it against Google sheet.
+    """
+    password_column = 2
+    id_index = cred_sheet.find(id).row
+    password = cred_sheet.cell(id_index, password_column).value
+
+    while True:
+        try:
+            entered_password = stdiomask.getpass(prompt="\nPassword:\n")
+            verify = pbkdf2_sha256.verify(entered_password, password)
+            if not verify:
+                raise ValueError(
+                    print("You have entered an incorrect password.")
+                )
+        except ValueError:
+            print("Please try again.")
         else:
             break
 
