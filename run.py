@@ -86,8 +86,8 @@ def validate_pw(id):
         ValueError: If the input password is incorrect.
     """
     password_col = 2
-    id_index = cred_sheet.find(id).row
-    password = cred_sheet.cell(id_index, password_col).value
+    row_index = cred_sheet.find(id).row
+    password = cred_sheet.cell(row_index, password_col).value
 
     while True:
         try:
@@ -127,8 +127,8 @@ def get_name(id):
     """
     employees_sheet = SHEET.worksheet("employees")
     fname_col = 2
-    id_index = employees_sheet.find(id).row
-    fname = employees_sheet.cell(id_index, fname_col).value
+    row_index = employees_sheet.find(id).row
+    fname = employees_sheet.cell(row_index, fname_col).value
     return fname
 
 
@@ -167,7 +167,7 @@ def employee_menu(id):
     elif choice == "3":
         return display_clock_card(id)
     elif choice == "4":
-        pass
+        return display_entitlements(id)
     elif choice == "5":
         pass
     elif choice == "6":
@@ -359,6 +359,22 @@ def validate_date_input():
             print("Please provide the date with the correct format.")
         else:
             return valid_date
+
+
+def display_entitlements(id):
+    this_year = time.strftime("%Y", time.localtime())
+    entitlement_sheet = SHEET.worksheet("entitlements")
+    row_index = entitlement_sheet.find(id).row
+    entitlements = entitlement_sheet.row_values(row_index)[1:]
+    table = [[entitlement for entitlement in entitlements]]
+    headers = ["Total Hours", "Taken", "Planned", "Pending", "Unallocated"]
+    print(f"\nYour absence entitlements for {this_year}.")
+    print(tabulate(table, headers, tablefmt="fancy_grid"))
+
+    time.sleep(2)
+    print("Going back to the menu...")
+    time.sleep(2)
+    employee_menu(id)
 
 welcome_message()
 validate_id()
