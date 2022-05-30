@@ -1,4 +1,5 @@
 # Built-in Modules
+import datetime
 from os import name, system
 import time
 
@@ -9,6 +10,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 from passlib.hash import pbkdf2_sha256
 import stdiomask
+from tabulate import tabulate
 
 # colorama method to enable it on Windows
 init(autoreset=True)
@@ -30,25 +32,19 @@ login_credentials = cred_sheet.get_all_values()
 
 # Source: https://www.geeksforgeeks.org/clear-screen-python/
 def clear():
-    """
-    Clear the screen.
-    """
+    """Clear the screen."""
     system("cls" if name == "nt" else "clear")
 
 
 def welcome_message():
-    """
-    Display the application name and welcome message
-    at the start of the system.
-    """
+    """Display the application name and welcome message."""
     tprint("Work Time".center(29), font="tarty7")
     print("\n" + "Welcome to Work Time - Time Management System".center(80))
     print("\n" + "="*80 + "\n")
 
 
 def validate_id():
-    """
-    Request Employee ID and validate it against Google sheet.
+    """Request Employee ID and validate it against Google sheet.
     Or User can choose to contact the system administrator.
 
     Raises:
@@ -80,8 +76,7 @@ def validate_id():
 
 
 def validate_pw(id):
-    """
-    Run when the user input a valid employee ID.
+    """Run when the user input a valid employee ID.
     Request Password and validate it against Google sheet.
 
     Args:
@@ -117,9 +112,7 @@ def validate_pw(id):
 
 
 def get_datetime():
-    """
-    Return the current date and time in dictionary.
-    """
+    """Return the current date and time in dictionary."""
     local_time = time.localtime()
     get_date = time.strftime("%d/%m/%Y", local_time)
     get_time = time.strftime("%H:%M:%S", local_time)
@@ -127,8 +120,7 @@ def get_datetime():
 
 
 def get_name(id):
-    """
-    Return the employee's first name from the worksheet.
+    """Return the employee's first name from the worksheet.
 
     Args:
         :id str: Employee Id that was used to log in.
@@ -141,8 +133,7 @@ def get_name(id):
 
 
 def run_employee_portal(id):
-    """
-    Display the title and welcome message for the employee portal.
+    """Display the title and welcome message for the employee portal.
 
     Args:
         :id str: Employee Id that was used to log in.
@@ -155,8 +146,10 @@ def run_employee_portal(id):
 
 
 def employee_menu(id):
-    """
-    Display the employee portal menu.
+    """Display the employee portal menu.
+
+    Args:
+        :id str: Employee Id that was used to log in.
     """
     print("\nPlease choose one of the following options.\n")
     print(f"{Fore.GREEN}1{Style.RESET_ALL} Clock In")
@@ -172,7 +165,7 @@ def employee_menu(id):
     elif choice == "2":
         return clock_out(id)
     elif choice == "3":
-        pass
+        return display_clock_card(id)
     elif choice == "4":
         pass
     elif choice == "5":
@@ -184,11 +177,7 @@ def employee_menu(id):
 
 
 def validate_menu_choice():
-    """
-    Return the user choice from the employee portal menu.
-
-    Args:
-        :id str: Employee Id that was used to log in.
+    """Return the user choice from the employee portal menu.
 
     Raises:
         ValueError: If the input type is not a digit,
@@ -216,8 +205,7 @@ def validate_menu_choice():
 
 
 def clock_in(id):
-    """
-    Run when the user chooses clock in option.
+    """Run when the user chooses the clock in option.
     Send the clock in data to the worksheet.
 
     Args:
@@ -259,11 +247,11 @@ def clock_in(id):
 
 
 def check_for_clockin_overwrite(clocked_in, message):
-    """
+    """Run when there is clock in data already.
     Return the user answer.
 
     Args:
-        :message str: Options that displays when the user answer is invalid.
+        :message str: Options that displays at first and when input is invalid.
     """
     print(f"You have already clocked in for today at {clocked_in}.")
     print(f"Would you like to overwrite it?")
@@ -283,8 +271,7 @@ def check_for_clockin_overwrite(clocked_in, message):
 
 
 def clock_out(id):
-    """
-    Run when the user chooses clock out option.
+    """Run when the user chooses the clock out option.
     Send the clock out data to the worksheet.
 
     Args:
@@ -301,9 +288,9 @@ def clock_out(id):
         user_id, date, clocked_in, clocked_out = clocking
         if id == user_id and today == date:
             if clocked_out:
-                print(f"{Fore.RED}You have already ",
+                print(f"{Fore.RED}You have already",
                       f"{Fore.RED}clocked out at {clocked_out}.")
-                print("Please contact your manager ",
+                print("Please contact your manager",
                       "to update your clock out time.")
                 break
             else:
@@ -323,6 +310,55 @@ def clock_out(id):
     print("Going back to the menu...")
     time.sleep(2)
     employee_menu(id)
+
+
+def display_clock_card(id):
+    """Run when the user chooses the view clock card option.
+    Retrieve data from the worksheet and display it.
+
+    Args:
+        :id str: Employee Id that was used to log in.
+    """
+    clock_sheet = SHEET.worksheet("clockings")
+    clockings = clock_sheet.get_all_values()
+
+    print("Please enter the date that you want to review.")
+    print("The date should be in the following format:",
+          f"{Fore.GREEN}Day/Month/Year.")
+    print(f"For example, {Fore.GREEN}1/12/2021",
+          "for the 1st of December 2021.")
+    review_date = validate_date_input()
+    for clocking in clockings:
+        user_id, date, clocked_in, clocked_out = clocking
+        if id == user_id and review_date == date:
+            table = [[date, clocked_in, clocked_out]]
+            headers = ["Date", "Clock In", "Clock Out"]
+            print(tabulate(table, headers, tablefmt="fancy_grid"))
+            break
+    else:
+        print(f"No data found for {review_date}.")
+
+    time.sleep(2)
+    print("Going back to the menu...")
+    time.sleep(2)
+    employee_menu(id)
+
+
+def validate_date_input():
+    """Request and Validate date input.
+    Return a formatted valid date.
+    """
+    while True:
+        try:
+            entered_date = input("Please enter the date here:\n").split("/")
+            year = int(entered_date[2])
+            month = int(entered_date[1])
+            date = int(entered_date[0])
+            valid_date = datetime.date(year, month, date).strftime("%d/%m/%Y")
+        except ValueError:
+            print("Please provide the date with the correct format.")
+        else:
+            return valid_date
 
 welcome_message()
 validate_id()
