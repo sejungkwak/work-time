@@ -170,7 +170,7 @@ def employee_menu(id):
     if choice == "1":
         return clock_in(id)
     elif choice == "2":
-        pass
+        return clock_out(id)
     elif choice == "3":
         pass
     elif choice == "4":
@@ -280,6 +280,49 @@ def check_for_clockin_overwrite(clocked_in, message):
             print(message)
         else:
             return answer
+
+
+def clock_out(id):
+    """
+    Run when the user chooses clock out option.
+    Send the clock out data to the worksheet.
+
+    Args:
+        :id str: Employee Id that was used to log in.
+    """
+    now = get_datetime()
+    today = now["date"]
+    clock_out_at = now["time"]
+
+    clock_sheet = SHEET.worksheet("clockings")
+    clockings = clock_sheet.get_all_values()
+
+    for clocking in clockings:
+        user_id, date, clocked_in, clocked_out = clocking
+        if id == user_id and today == date:
+            if clocked_out:
+                print(f"{Fore.RED}You have already ",
+                      f"{Fore.RED}clocked out at {clocked_out}.")
+                print("Please contact your manager ",
+                      "to update your clock out time.")
+                break
+            else:
+                row_index = clock_sheet.find(id).row
+                clock_out_col = 4
+                clock_sheet.update_cell(row_index, clock_out_col, clock_out_at)
+                print(f"You have successfully clocked out at {clock_out_at}.")
+                break
+    else:
+        data = [id, today, "", clock_out_at]
+        clock_sheet.append_row(data)
+        print(f"{Fore.RED}You did not clock in today.")
+        print("Please contact your manager to add your clock in time.")
+        print(f"You have successfully clocked out at {clock_out_at}.")
+
+    time.sleep(2)
+    print("Going back to the menu...")
+    time.sleep(2)
+    employee_menu(id)
 
 welcome_message()
 validate_id()
