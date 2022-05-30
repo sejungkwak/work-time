@@ -1,6 +1,6 @@
 # Built-in Modules
 from os import name, system
-from time import sleep
+import time
 
 # Third-party libraries
 from art import *
@@ -28,6 +28,7 @@ cred_sheet = SHEET.worksheet("login_credentials")
 login_credentials = cred_sheet.get_all_values()
 
 
+# Source: https://www.geeksforgeeks.org/clear-screen-python/
 def clear():
     """
     Clear the screen.
@@ -49,6 +50,9 @@ def validate_id():
     """
     Request Employee ID and validate it against Google sheet.
     Or User can choose to contact the system administrator.
+
+    Raises:
+        ValueError: If the input employee id is incorrect.
     """
     while True:
         try:
@@ -79,10 +83,16 @@ def validate_pw(id):
     """
     Run when the user input a valid employee ID.
     Request Password and validate it against Google sheet.
+
+    Args:
+        :id str: Employee Id that was used to log in.
+
+    Raises:
+        ValueError: If the input password is incorrect.
     """
-    password_column = 2
+    password_col = 2
     id_index = cred_sheet.find(id).row
-    password = cred_sheet.cell(id_index, password_column).value
+    password = cred_sheet.cell(id_index, password_col).value
 
     while True:
         try:
@@ -101,68 +111,175 @@ def validate_pw(id):
             if id == "ADMIN":
                 pass
             else:
+                run_employee_portal(id)
                 employee_menu(id)
             break
 
 
+def get_datetime():
+    """
+    Return the current date and time in dictionary.
+    """
+    local_time = time.localtime()
+    get_date = time.strftime("%d/%m/%Y", local_time)
+    get_time = time.strftime("%H:%M:%S", local_time)
+    return {"date": get_date, "time": get_time}
+
+
 def get_name(id):
     """
-    Get the employee's first name from the worksheet.
+    Return the employee's first name from the worksheet.
+
+    Args:
+        :id str: Employee Id that was used to log in.
     """
     employees_sheet = SHEET.worksheet("employees")
-    fname_column = 2
+    fname_col = 2
     id_index = employees_sheet.find(id).row
-    fname = employees_sheet.cell(id_index, fname_column).value
+    fname = employees_sheet.cell(id_index, fname_col).value
     return fname
+
+
+def run_employee_portal(id):
+    """
+    Display the title and welcome message for the employee portal.
+
+    Args:
+        :id str: Employee Id that was used to log in.
+    """
+    name = get_name(id)
+    clear()
+    tprint("Employee Portal".center(18), font="smshadow")
+    print("\n" + f"Welcome back, {name}!".center(80))
+    print("\n" + "="*80)
 
 
 def employee_menu(id):
     """
-    Create menu for employee.
+    Display the employee portal menu.
     """
-    name = get_name(id)
-    clear()
-    tprint("Employee Portal".center(25), font="tarty3")
-    print("\n" + f"Welcome back, {name}!".center(80))
-    print("\n" + "="*80)
+    print("\nPlease choose one of the following options.\n")
+    print(f"{Fore.GREEN}1{Style.RESET_ALL} Clock In")
+    print(f"{Fore.GREEN}2{Style.RESET_ALL} Clock Out")
+    print(f"{Fore.GREEN}3{Style.RESET_ALL} View Clock Card")
+    print(f"{Fore.GREEN}4{Style.RESET_ALL} View Absence Entitlements")
+    print(f"{Fore.GREEN}5{Style.RESET_ALL} Book Absence")
+    print(f"{Fore.GREEN}6{Style.RESET_ALL} Cancel Absence")
+    print(f"{Fore.GREEN}7{Style.RESET_ALL} Log Out")
+    choice = validate_menu_choice()
+    if choice == "1":
+        return clock_in(id)
+    elif choice == "2":
+        pass
+    elif choice == "3":
+        pass
+    elif choice == "4":
+        pass
+    elif choice == "5":
+        pass
+    elif choice == "6":
+        pass
+    else:
+        pass
 
+
+def validate_menu_choice():
+    """
+    Return the user choice from the employee portal menu.
+
+    Args:
+        :id str: Employee Id that was used to log in.
+
+    Raises:
+        ValueError: If the input type is not a digit,
+                    or the input value is out of range.
+    """
     while True:
         try:
-            print("\nPlease choose one of the following options.\n")
-            print(f"{Fore.GREEN}1{Style.RESET_ALL} Clock In")
-            print(f"{Fore.GREEN}2{Style.RESET_ALL} Clock Out")
-            print(f"{Fore.GREEN}3{Style.RESET_ALL} View Clock Card")
-            print(f"{Fore.GREEN}4{Style.RESET_ALL} View Absence Entitlements")
-            print(f"{Fore.GREEN}5{Style.RESET_ALL} Book Absence")
-            print(f"{Fore.GREEN}6{Style.RESET_ALL} Cancel Absence")
             choice = input("\nPlease enter a number to continue:\n")
 
             if not choice.isdigit():
                 raise ValueError(
                     print("Please enter a number.")
                 )
-            elif int(choice) not in range(1, 7):
+            elif int(choice) not in range(1, 8):
                 raise ValueError(
-                    print("Please enter a number between 1 and 6.")
+                    print("Please enter a number between 1 and 7.")
                 )
 
         except ValueError:
             print("Please try again.")
-            sleep(3)
-            clear()
 
         else:
-            if choice == "1":
-                pass
-            elif choice == "3":
-                pass
-            elif choice == "4":
-                pass
-            elif choice == "5":
-                pass
-            elif choice == "6":
-                pass
+            return choice
             break
+
+
+def clock_in(id):
+    """
+    Run when the user chooses clock in option.
+    Send the clock in data to the worksheet.
+
+    Args:
+        :id str: Employee Id that was used to log in.
+    """
+    now = get_datetime()
+    today = now["date"]
+    clock_in_at = now["time"]
+
+    clock_sheet = SHEET.worksheet("clockings")
+    clockings = clock_sheet.get_all_values()
+
+    option = (f"Enter {Fore.GREEN}Y {Style.RESET_ALL}to overwrite "
+              f"or {Fore.GREEN}N {Style.RESET_ALL}to go back to menu.")
+
+    for clocking in clockings:
+        user_id, date, clocked_in, clocked_out = clocking
+
+        if id == user_id and today == date and clocked_in:
+            is_overwrite = check_for_clockin_overwrite(clocked_in, option)
+            if is_overwrite == "Y":
+                row_index = clock_sheet.find(id).row
+                clock_in_col = 3
+                clock_sheet.update_cell(row_index, clock_in_col, clock_in_at)
+                print(f"Clock in time has been updated: {clock_in_at}")
+                break
+            else:
+                break
+    else:
+        data = [id, today, clock_in_at]
+        update_sheet = clock_sheet.append_row(data)
+        clear()
+        print(f"You have successfully clocked in at {clock_in_at}.")
+
+    print("Going back to the menu...")
+    time.sleep(2)
+    clear()
+    employee_menu(id)
+
+
+def check_for_clockin_overwrite(clocked_in, message):
+    """
+    Return the user answer.
+
+    Args:
+        :message str: Options that displays when the user answer is invalid.
+    """
+    print(f"You have already clocked in for today at {clocked_in}.")
+    print(f"Would you like to overwrite it?")
+    print(message)
+    while True:
+        try:
+            answer = input("Please enter your answer here:\n").upper()
+            answers = ["Y", "N"]
+            if answer not in answers:
+                raise ValueError(
+                    print(f"Your answer is invalid: {answer}.")
+                )
+        except ValueError:
+            print(message)
+        else:
+            return answer
 
 welcome_message()
 validate_id()
