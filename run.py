@@ -53,8 +53,8 @@ def validate_id():
     while True:
         try:
             print("Please enter your employee ID.")
-            print("To contact the system administrator, enter ", end="")
-            print(f"{Fore.GREEN}HELP{Style.RESET_ALL} instead.")
+            print("To contact the system administrator, enter",
+                  f"{Fore.GREEN}help{Style.RESET_ALL} instead.")
 
             ids = [id for id, password in login_credentials]
             entered_id = input("\nEmployee ID:\n").upper()
@@ -114,9 +114,10 @@ def validate_pw(id):
 def get_datetime():
     """Return the current date and time in dictionary."""
     local_time = time.localtime()
+    get_year = time.strftime("%Y", local_time)
     get_date = time.strftime("%d/%m/%Y", local_time)
     get_time = time.strftime("%H:%M:%S", local_time)
-    return {"date": get_date, "time": get_time}
+    return {"year": get_year, "date": get_date, "time": get_time}
 
 
 def get_name(id):
@@ -146,28 +147,32 @@ def run_employee_portal(id):
 
 
 def employee_menu(id):
-    """Display the employee portal menu.
+    """Run a while loop to get a valid input value from the user.
 
     Args:
         :id str: Employee Id that was used to log in.
     """
-    print("\nPlease choose one of the following options.\n")
-    print(f"{Fore.GREEN}1{Style.RESET_ALL} Clock In")
-    print(f"{Fore.GREEN}2{Style.RESET_ALL} Clock Out")
-    print(f"{Fore.GREEN}3{Style.RESET_ALL} View Clock Card")
-    print(f"{Fore.GREEN}4{Style.RESET_ALL} View Absence Entitlements")
-    print(f"{Fore.GREEN}5{Style.RESET_ALL} Book Absence")
-    print(f"{Fore.GREEN}6{Style.RESET_ALL} Cancel Absence")
-    print(f"{Fore.GREEN}7{Style.RESET_ALL} Log Out")
-    choice = validate_menu_choice()
+    while True:
+        print("\nPlease choose one of the following options.\n")
+        print(f"{Fore.GREEN}1{Style.RESET_ALL} Clock In")
+        print(f"{Fore.GREEN}2{Style.RESET_ALL} Clock Out")
+        print(f"{Fore.GREEN}3{Style.RESET_ALL} View Clock Card")
+        print(f"{Fore.GREEN}4{Style.RESET_ALL} View Absence Entitlements")
+        print(f"{Fore.GREEN}5{Style.RESET_ALL} Book Absence")
+        print(f"{Fore.GREEN}6{Style.RESET_ALL} Cancel Absence")
+        print(f"{Fore.GREEN}7{Style.RESET_ALL} Log Out")
+        choice = input("\nPlease enter a number to continue:\n")
+        if validate_choice(choice, 7):
+            break
+
     if choice == "1":
-        return clock_in(id)
+        clock_in(id)
     elif choice == "2":
-        return clock_out(id)
+        clock_out(id)
     elif choice == "3":
-        return display_clock_card(id)
+        display_clock_card(id)
     elif choice == "4":
-        return display_entitlements(id)
+        display_entitlements(id)
     elif choice == "5":
         pass
     elif choice == "6":
@@ -176,32 +181,28 @@ def employee_menu(id):
         pass
 
 
-def validate_menu_choice():
-    """Return the user choice from the employee portal menu.
+def validate_choice(number, options):
+    """Inside the try, convert string value into integer
+    and raise ValueError when the value is out of range.
+
+    Args:
+        :number str: The user input
+        :options int: The number of options
 
     Raises:
         ValueError: If the input type is not a digit,
                     or the input value is out of range.
     """
-    while True:
-        try:
-            choice = input("\nPlease enter a number to continue:\n")
-
-            if not choice.isdigit():
-                raise ValueError(
-                    print("Please enter a number.")
-                )
-            elif int(choice) not in range(1, 8):
-                raise ValueError(
-                    print("Please enter a number between 1 and 7.")
-                )
-
-        except ValueError:
-            print("Please try again.")
-
-        else:
-            return choice
-            break
+    try:
+        choice = int(number)
+        if choice < 1 or choice > options:
+            raise ValueError()
+    except ValueError:
+        print(f"You have entered {number}.")
+        print(f"Please enter a number between 1 and {options}.")
+        return False
+    else:
+        return True
 
 
 def clock_in(id):
@@ -218,9 +219,9 @@ def clock_in(id):
     clock_sheet = SHEET.worksheet("clockings")
     clockings = clock_sheet.get_all_values()
 
-    option = (f"Enter {Fore.GREEN}Y {Style.RESET_ALL}to overwrite "
+    option = (f"Enter {Fore.GREEN}Y {Style.RESET_ALL}to overwrite",
               f"or {Fore.GREEN}N {Style.RESET_ALL}to go back to menu.")
-
+    clear()
     for clocking in clockings:
         user_id, date, clocked_in, clocked_out = clocking
 
@@ -237,7 +238,6 @@ def clock_in(id):
     else:
         data = [id, today, clock_in_at]
         update_sheet = clock_sheet.append_row(data)
-        clear()
         print(f"You have successfully clocked in at {clock_in_at}.")
 
     print("Going back to the menu...")
@@ -283,7 +283,7 @@ def clock_out(id):
 
     clock_sheet = SHEET.worksheet("clockings")
     clockings = clock_sheet.get_all_values()
-
+    clear()
     for clocking in clockings:
         user_id, date, clocked_in, clocked_out = clocking
         if id == user_id and today == date:
@@ -322,21 +322,25 @@ def display_clock_card(id):
     clock_sheet = SHEET.worksheet("clockings")
     clockings = clock_sheet.get_all_values()
 
-    print("Please enter the date that you want to review.")
-    print("The date should be in the following format:",
-          f"{Fore.GREEN}Day/Month/Year.")
-    print(f"For example, {Fore.GREEN}1/12/2021",
-          "for the 1st of December 2021.")
-    review_date = validate_date_input()
+    while True:
+        print("Please enter the date that you want to review.")
+        print("The date should be in the following format:",
+              f"{Fore.GREEN}Day/Month/Year.")
+        print(f"For example, {Fore.GREEN}01/12/2021",
+              "for the 1st of December 2021.")
+        entered_date = input("Please enter the date here:\n")
+        if validate_date_input(entered_date):
+            break
+
     for clocking in clockings:
         user_id, date, clocked_in, clocked_out = clocking
-        if id == user_id and review_date == date:
+        if id == user_id and entered_date == date:
             table = [[date, clocked_in, clocked_out]]
             headers = ["Date", "Clock In", "Clock Out"]
             print(tabulate(table, headers, tablefmt="fancy_grid"))
             break
     else:
-        print(f"No data found for {review_date}.")
+        print(f"No data found for {entered_date}.")
 
     time.sleep(2)
     print("Going back to the menu...")
@@ -344,30 +348,35 @@ def display_clock_card(id):
     employee_menu(id)
 
 
-def validate_date_input():
-    """Request and Validate date input.
-    Return a formatted valid date.
+def validate_date_input(entered_date):
+    """Inside the try, split the values and convert them into integers
+    and validate against a datetime method.
+    
+    Args:
+        :entered_date str: the input date
     """
-    while True:
-        try:
-            entered_date = input("Please enter the date here:\n").split("/")
-            year = int(entered_date[2])
-            month = int(entered_date[1])
-            date = int(entered_date[0])
-            valid_date = datetime.date(year, month, date).strftime("%d/%m/%Y")
-        except ValueError:
-            print("Please provide the date with the correct format.")
-        else:
-            return valid_date
+    try:
+        date_to_list = entered_date.split("/")
+        year = int(date_to_list[2])
+        month = int(date_to_list[1])
+        date = int(date_to_list[0])
+        datetime.date(year, month, date)
+    except ValueError:
+        print("Please provide the date with the correct format.")
+        return False
+    else:
+        return True
 
 
 def display_entitlements(id):
-    this_year = time.strftime("%Y", time.localtime())
+    """Display absence entitlements for the logged in employee"""
+    this_year = get_datetime()["year"]
     entitlement_sheet = SHEET.worksheet("entitlements")
     row_index = entitlement_sheet.find(id).row
     entitlements = entitlement_sheet.row_values(row_index)[1:]
     table = [[entitlement for entitlement in entitlements]]
     headers = ["Total Hours", "Taken", "Planned", "Pending", "Unallocated"]
+    clear()
     print(f"\nYour absence entitlements for {this_year}.")
     print(tabulate(table, headers, tablefmt="fancy_grid"))
 
