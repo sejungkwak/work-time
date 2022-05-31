@@ -1,5 +1,5 @@
 # Built-in Modules
-import datetime
+from datetime import date
 from os import name, system
 import time
 
@@ -142,7 +142,7 @@ def run_employee_portal(id):
     name = get_name(id)
     clear()
     tprint("Employee Portal".center(18), font="smshadow")
-    print("\n" + f"Welcome back, {name}!".center(80))
+    print(f"Welcome back, {name}!".center(80))
     print("\n" + "="*80)
 
 
@@ -174,7 +174,7 @@ def employee_menu(id):
     elif choice == "4":
         display_entitlements(id)
     elif choice == "5":
-        pass
+        book_absence(id)
     elif choice == "6":
         pass
     else:
@@ -218,15 +218,12 @@ def clock_in(id):
 
     clock_sheet = SHEET.worksheet("clockings")
     clockings = clock_sheet.get_all_values()
-
-    option = (f"Enter {Fore.GREEN}Y {Style.RESET_ALL}to overwrite",
-              f"or {Fore.GREEN}N {Style.RESET_ALL}to go back to menu.")
     clear()
     for clocking in clockings:
         user_id, date, clocked_in, clocked_out = clocking
 
         if id == user_id and today == date and clocked_in:
-            is_overwrite = check_for_clockin_overwrite(clocked_in, option)
+            is_overwrite = check_for_clockin_overwrite(clocked_in)
             if is_overwrite == "Y":
                 row_index = clock_sheet.find(id).row
                 clock_in_col = 3
@@ -246,13 +243,15 @@ def clock_in(id):
     employee_menu(id)
 
 
-def check_for_clockin_overwrite(clocked_in, message):
+def check_for_clockin_overwrite(clocked_in):
     """Run when there is clock in data already.
     Return the user answer.
 
     Args:
-        :message str: Options that displays at first and when input is invalid.
+        :clocked_in str: The clocked in time
     """
+    message = f"Enter {Fore.GREEN}y {Style.RESET_ALL}to overwrite "
+    message += f"or {Fore.GREEN}n {Style.RESET_ALL}to go back to menu."
     print(f"You have already clocked in for today at {clocked_in}.")
     print(f"Would you like to overwrite it?")
     print(message)
@@ -325,7 +324,7 @@ def display_clock_card(id):
     while True:
         print("Please enter the date that you want to review.")
         print("The date should be in the following format:",
-              f"{Fore.GREEN}Day/Month/Year.")
+              f"{Fore.GREEN}Day/Month/Year")
         print(f"For example, {Fore.GREEN}01/12/2021",
               "for the 1st of December 2021.")
         entered_date = input("Please enter the date here:\n")
@@ -348,24 +347,31 @@ def display_clock_card(id):
     employee_menu(id)
 
 
-def validate_date_input(entered_date):
+def validate_date_input(input_date):
     """Inside the try, split the values and convert them into integers
     and validate against a datetime method.
-    
+
     Args:
-        :entered_date str: the input date
+        :input_date str: The input date
+
+    Raises:
+        ValueError: If the date is invalid.
+        IndexError: If "/" is not used to divide the year, month and date.
     """
     try:
-        date_to_list = entered_date.split("/")
-        year = int(date_to_list[2])
-        month = int(date_to_list[1])
-        date = int(date_to_list[0])
-        datetime.date(year, month, date)
+        date_to_list = input_date.split("/")
+        entered_year = int(date_to_list[2])
+        entered_month = int(date_to_list[1])
+        entered_date = int(date_to_list[0])
+        result = date(entered_year, entered_month, entered_date)
     except ValueError:
         print("Please provide the date with the correct format.")
         return False
+    except IndexError:
+        print("Please provide the date with the correct format.")
+        return False
     else:
-        return True
+        return result
 
 
 def display_entitlements(id):
@@ -384,6 +390,149 @@ def display_entitlements(id):
     print("Going back to the menu...")
     time.sleep(2)
     employee_menu(id)
+
+
+def book_absence(id):
+    """Run when the user select book absence menu"""
+    entitlement_sheet = SHEET.worksheet("entitlements")
+    row_index = entitlement_sheet.find(id).row
+    entitlements = entitlement_sheet.row_values(row_index)
+    unallocated = entitlements[-1]
+    morning = "9AM.-1PM."
+    afternoon = "2PM.-5:30PM."
+
+    if unallocated == "0":
+        print("You do not have paid time off available.")
+        print("Please contact your manager.")
+    else:
+        print(f"\nYou have {unallocated} hours available to book absence.")
+        absence_type = check_absence_type()
+        if ((absence_type == "4" and int(unallocated) < 16) or
+                (absence_type == "3" and int(unallocated) < 8)):
+            print("You have unsufficient paid time off available",
+                  "to complete the request.")
+            print("Please select a different option or",
+                  "contact your manager.")
+            absence_type = check_absence_type()
+        absence_start = check_absence_start_date(absence_type)
+        print("\nYour absence request: ", end="")
+        if absence_type == "4":
+            absence_end = check_absence_end_date(absence_start, unallocated)
+            print(f"{Fore.GREEN}from {absence_start} to {absence_end}")
+        elif absence_type == "3":
+            print(f"{Fore.GREEN}for {absence_start}")
+        else:
+            request_time = ""
+            if absence_type == "1":
+                request_time = morning
+            else:
+                request_time = afternoon
+            print(f"{Fore.GREEN}for {absence_start} at {request_time}")
+
+    time.sleep(2)
+    print("Going back to the menu...")
+    time.sleep(2)
+    employee_menu(id)
+
+
+def check_absence_type():
+    """Ask user to choose an option for the absence duration."""
+    morning = "9:30AM.-1:30PM."
+    afternoon = "1:30PM.-5:30PM."
+    while True:
+        print("\nPlease select an option that is the most suitable",
+              "for your absence duration.\n")
+        print(f"{Fore.GREEN}1{Style.RESET_ALL} {morning}")
+        print(f"{Fore.GREEN}2{Style.RESET_ALL} {afternoon}")
+        print(f"{Fore.GREEN}3{Style.RESET_ALL} Full day")
+        print(f"{Fore.GREEN}4{Style.RESET_ALL} More than 2 consecutive days")
+        absence_type = input("\nPlease enter a number to continue:\n")
+        if validate_choice(absence_type, 4):
+            return absence_type
+
+
+def check_absence_start_date(absence_type):
+    """Ask user to input the absence (start) date.
+
+    Args:
+        :absence_type str: Absence duration
+            1. morning, 2. afternoon, 3. full day, 4. 2+ days
+    """
+    while True:
+        if int(absence_type) in range(1, 4):
+            print("\nPlease enter a date that you want to book.")
+        else:
+            print("\nPlease enter the start date that you want to book.")
+        print("The date should be in the following format:",
+              f"{Fore.GREEN}Day/Month/Year")
+        print(f"For example, {Fore.GREEN}01/12/2021",
+              "for the 1st of December 2021.")
+        start_date = input("Please enter the date to continue:\n")
+        if validate_date_input(start_date):
+            request_date = validate_date_input(start_date)
+            today = date.today()
+            if (request_date - today).days <= 0:
+                print("\nPlease note holidays must be booked in advance.")
+                print("If you would like to submit absence in the past,",
+                      "please contact your manager.")
+            else:
+                return start_date
+
+
+def check_absence_end_date(start_date, unallocated):
+    """Ask user to input absence end date if they are booking 2+ days.
+
+    Args:
+        :start_date str: The absence start date.
+        :unallocated str: The number of available absence hours.
+    """
+    while True:
+        print("\nPlease enter the end date for your absence duration.")
+        print("The date should be in the following format:",
+              f"{Fore.GREEN}Day/Month/Year")
+        print(f"For example, {Fore.GREEN}01/12/2021",
+              "for the 1st of December 2021.")
+        end_date = input("Please enter the date to continue:\n")
+        if validate_date_input(end_date):
+            if validate_days(start_date, end_date, unallocated):
+                return end_date
+
+
+def validate_days(date1, date2, unallocated):
+    """Calculate the time off request hours.
+
+    Args:
+        :date1: The time off start date
+        :date2: The time off end date
+        :unallocated: Total available hours
+
+    Raises:
+        ValueError: If request hours are exceed the unallocated hours.
+    """
+    try:
+        start_date = validate_date_input(date1)
+        end_date = validate_date_input(date2)
+        num_of_days = (end_date - start_date).days
+        if num_of_days % 7:
+            weekend = (num_of_days / 7) * 2
+            num_of_days -= weekend
+        num_of_hours = 8 * num_of_days
+        if num_of_hours > int(unallocated):
+            raise ValueError(
+                print("Unable to complete the request.\n",
+                      "You have unsufficient paid time off available:",
+                      f"{unallocated}hours left.\n",
+                      "Please contact your manager.")
+            )
+        if num_of_hours < 0:
+            raise ValueError(
+                print("Please make sure to enter the start",
+                      "and end date correctly.")
+            )
+    except ValueError:
+        return False
+    else:
+        return {"days": num_of_days, "hours": num_of_hours}
 
 welcome_message()
 validate_id()
