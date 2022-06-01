@@ -38,6 +38,7 @@ def clear():
 
 def welcome_message():
     """Display the application name and welcome message."""
+    clear()
     tprint("Work Time".center(29), font="tarty7")
     print("\n" + "Welcome to Work Time - Time Management System".center(80))
     print("\n" + "="*80 + "\n")
@@ -141,7 +142,7 @@ def run_employee_portal(id):
     """
     name = get_name(id)
     clear()
-    tprint("Employee Portal".center(18), font="smshadow")
+    tprint("Employee Portal".center(18), font="rectangles")
     print(f"Welcome back, {name}!".center(80))
     print("\n" + "="*80)
 
@@ -234,7 +235,7 @@ def clock_in(id):
                 break
     else:
         data = [id, today, clock_in_at]
-        update_sheet = clock_sheet.append_row(data)
+        clock_sheet.append_row(data)
         print(f"You have successfully clocked in at {clock_in_at}.")
 
     print("Going back to the menu...")
@@ -375,7 +376,11 @@ def validate_date_input(input_date):
 
 
 def display_entitlements(id):
-    """Display absence entitlements for the logged in employee"""
+    """Display absence entitlements for the logged in employee
+
+    Args:
+        :id str: Employee Id that was used to log in.
+    """
     this_year = get_datetime()["year"]
     entitlement_sheet = SHEET.worksheet("entitlements")
     row_index = entitlement_sheet.find(id).row
@@ -393,13 +398,19 @@ def display_entitlements(id):
 
 
 def book_absence(id):
-    """Run when the user select book absence menu"""
+    """Run when the user select book absence menu
+
+    Args:
+        :id str: Employee Id that was used to log in.
+    """
+    clear()
     entitlement_sheet = SHEET.worksheet("entitlements")
+    absence_sheet = SHEET.worksheet("absences")
     row_index = entitlement_sheet.find(id).row
     entitlements = entitlement_sheet.row_values(row_index)
     unallocated = entitlements[-1]
-    morning = "9AM.-1PM."
-    afternoon = "2PM.-5:30PM."
+    morning = "9:30AM.-1:30PM."
+    afternoon = "1:30PM.-5:30PM."
 
     if unallocated == "0":
         print("You do not have paid time off available.")
@@ -415,20 +426,30 @@ def book_absence(id):
                   "contact your manager.")
             absence_type = check_absence_type()
         absence_start = check_absence_start_date(absence_type)
-        print("\nYour absence request: ", end="")
+        request_id = create_absence_request_id()
+        today = get_datetime()["date"]
+        data = [request_id, id, absence_start]
         if absence_type == "4":
             absence_end = check_absence_end_date(absence_start, unallocated)
+        print("\nYour absence request: ", end="")
+        if absence_type == "4":
+            days = validate_days(absence_start, absence_end, unallocated) + 1
+            data.extend([absence_end, "", "", days, today])
             print(f"{Fore.GREEN}from {absence_start} to {absence_end}")
         elif absence_type == "3":
+            data.extend(["", "", "", "1", today])
             print(f"{Fore.GREEN}for {absence_start}")
         else:
             request_time = ""
             if absence_type == "1":
+                data.extend(["", "9:30", "13:30", "0.5", today])
                 request_time = morning
             else:
+                data.extend(["", "13:30", "17:30", "0.5", today])
                 request_time = afternoon
             print(f"{Fore.GREEN}for {absence_start} at {request_time}")
 
+    absence_sheet.append_row(data)
     time.sleep(2)
     print("Going back to the menu...")
     time.sleep(2)
@@ -513,7 +534,7 @@ def validate_days(date1, date2, unallocated):
         start_date = validate_date_input(date1)
         end_date = validate_date_input(date2)
         num_of_days = (end_date - start_date).days
-        if num_of_days % 7:
+        if num_of_days % 7 == 0:
             weekend = (num_of_days / 7) * 2
             num_of_days -= weekend
         num_of_hours = 8 * num_of_days
@@ -532,7 +553,20 @@ def validate_days(date1, date2, unallocated):
     except ValueError:
         return False
     else:
-        return {"days": num_of_days, "hours": num_of_hours}
+        return num_of_days
+
+
+def create_absence_request_id():
+    """Increment the request id by 1.
+    If there hasn't been a request, assign 1 to it.
+    """
+    absence_sheet = SHEET.worksheet("absences")
+    request_id = absence_sheet.col_values(1)[-1]
+    if request_id == "request_id":
+        request_id = "1"
+    else:
+        request_id = int(request_id) + 1
+    return request_id
 
 welcome_message()
 validate_id()
