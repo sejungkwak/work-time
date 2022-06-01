@@ -220,13 +220,12 @@ def clock_in(id):
     clock_sheet = SHEET.worksheet("clockings")
     clockings = clock_sheet.get_all_values()
     clear()
-    for clocking in clockings:
+    for row_index, clocking in enumerate(clockings, start=1):
         user_id, date, clocked_in, clocked_out = clocking
 
         if id == user_id and today == date and clocked_in:
             is_overwrite = check_for_clockin_overwrite(clocked_in)
             if is_overwrite == "Y":
-                row_index = clock_sheet.find(id).row
                 clock_in_col = 3
                 clock_sheet.update_cell(row_index, clock_in_col, clock_in_at)
                 print(f"Clock in time has been updated: {clock_in_at}")
