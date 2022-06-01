@@ -434,7 +434,7 @@ def book_absence(id):
             absence_end = check_absence_end_date(absence_start, unallocated)
         print(f"\n{Fore.GREEN}Your request for absence ", end="")
         if absence_type == "4":
-            days = validate_days(absence_start, absence_end, unallocated) + 1
+            days = validate_days(absence_start, absence_end, unallocated)
             request_days = days
             data.extend([absence_end, "", "", days])
             print(f"{Fore.GREEN}from {absence_start} to {absence_end}", end="")
@@ -527,23 +527,28 @@ def check_absence_end_date(start_date, unallocated):
 
 
 def validate_days(date1, date2, unallocated):
-    """Calculate the time off request hours.
+    """Calculate the absence request days and hours.
 
     Args:
-        :date1: The time off start date
-        :date2: The time off end date
+        :date1: The absence start date
+        :date2: The absence end date
         :unallocated: Total available hours
 
     Raises:
-        ValueError: If request hours are exceed the unallocated hours.
+        ValueError: If request hours are exceed the unallocated hours
+                    or the end date is before start date.
     """
     try:
         start_date = validate_date_input(date1)
         end_date = validate_date_input(date2)
-        num_of_days = (end_date - start_date).days
-        if num_of_days % 7 == 0:
-            weekend = (num_of_days / 7) * 2
-            num_of_days -= weekend
+        num_of_days = (end_date - start_date).days + 1
+        weekend = 0
+        if num_of_days > 5:
+            if num_of_days % 7 == 6:
+                weekend = (num_of_days - num_of_days % 7) / 7 * 2 + 1
+            else:
+                weekend = (num_of_days - num_of_days % 7) / 7 * 2
+        num_of_days -= int(weekend)
         num_of_hours = 8 * num_of_days
         if num_of_hours > float(unallocated):
             raise ValueError(
