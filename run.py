@@ -49,11 +49,11 @@ def validate_id():
     Or User can choose to contact the system administrator.
 
     Raises:
-        ValueError: If the input employee id is incorrect.
+        ValueError: If the input Employee ID is incorrect.
     """
     while True:
         try:
-            print("Please enter your employee ID.")
+            print("Please enter your Employee ID.")
             print("To contact the system administrator, enter",
                   f"{Fore.GREEN}help{Style.RESET_ALL} instead.")
 
@@ -69,7 +69,7 @@ def validate_id():
                 )
 
         except ValueError:
-            print("Please make sure to enter your employee ID.\n")
+            print("Please make sure to enter your Employee ID.\n")
 
         else:
             return validate_pw(entered_id)
@@ -77,11 +77,11 @@ def validate_id():
 
 
 def validate_pw(id):
-    """Run when the user input a valid employee ID.
+    """Run when the user input a valid Employee ID.
     Request Password and validate it against Google sheet.
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
 
     Raises:
         ValueError: If the input password is incorrect.
@@ -125,7 +125,7 @@ def get_name(id):
     """Return the employee's first name from the worksheet.
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
     """
     employees_sheet = SHEET.worksheet("employees")
     fname_col = 2
@@ -138,7 +138,7 @@ def run_employee_portal(id):
     """Display the title and welcome message for the employee portal.
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
     """
     name = get_name(id)
     clear()
@@ -151,7 +151,7 @@ def employee_menu(id):
     """Run a while loop to get a valid input value from the user.
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
     """
     while True:
         print("\nPlease choose one of the following options.\n")
@@ -163,7 +163,7 @@ def employee_menu(id):
         print(f"{Fore.GREEN}6{Style.RESET_ALL} Cancel Absence")
         print(f"{Fore.GREEN}7{Style.RESET_ALL} Log Out")
         choice = input("\nPlease enter a number to continue:\n")
-        if validate_choice(choice, 7):
+        if validate_choice(choice, range(1, 8)):
             break
 
     if choice == "1":
@@ -188,7 +188,7 @@ def validate_choice(number, options):
 
     Args:
         :number str: The user input
-        :options int: The number of options
+        :options list: The number of options
 
     Raises:
         ValueError: If the input type is not a digit,
@@ -196,11 +196,11 @@ def validate_choice(number, options):
     """
     try:
         choice = int(number)
-        if choice < 1 or choice > options:
+        if choice not in options:
             raise ValueError()
     except ValueError:
         print(f"You have entered {number}.")
-        print(f"Please enter a number between 1 and {options}.")
+        print("Please enter a correct number.")
         return False
     else:
         return True
@@ -211,7 +211,7 @@ def clock_in(id):
     Send the clock in data to the worksheet.
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
     """
     now = get_datetime()
     today = now["date"]
@@ -274,7 +274,7 @@ def clock_out(id):
     Send the clock out data to the worksheet.
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
     """
     now = get_datetime()
     today = now["date"]
@@ -316,7 +316,7 @@ def display_clock_card(id):
     Retrieve data from the worksheet and display it.
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
     """
     clock_sheet = SHEET.worksheet("clockings")
     clockings = clock_sheet.get_all_values()
@@ -378,7 +378,7 @@ def display_entitlements(id):
     """Display absence entitlements for the logged in employee
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
     """
     this_year = get_datetime()["year"]
     entitlement_sheet = SHEET.worksheet("entitlements")
@@ -400,7 +400,7 @@ def book_absence(id):
     """Run when the user select book absence menu
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
     """
     clear()
     entitlement_sheet = SHEET.worksheet("entitlements")
@@ -452,7 +452,7 @@ def book_absence(id):
                 request_time = afternoon
             print(f"{Fore.GREEN}on {absence_start} at {request_time}", end="")
 
-    data.extend([today, "", "False"])
+    data.extend([today, "/", "False"])
     absence_sheet.append_row(data)
     add_pto_pending_hours(id, request_days)
     print(f"{Fore.GREEN} has been sent for review.")
@@ -474,7 +474,7 @@ def check_absence_type():
         print(f"{Fore.GREEN}3{Style.RESET_ALL} Full day")
         print(f"{Fore.GREEN}4{Style.RESET_ALL} More than 2 consecutive days")
         absence_type = input("\nPlease enter a number to continue:\n")
-        if validate_choice(absence_type, 4):
+        if validate_choice(absence_type, range(1, 5)):
             return absence_type
 
 
@@ -584,7 +584,7 @@ def add_pto_pending_hours(id, days):
     """Update pending value on the entitlements worksheet.
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
         :days str: The number of requested absence days.
     """
     entitlement_sheet = SHEET.worksheet("entitlements")
@@ -605,13 +605,44 @@ def cancel_absence(id):
     """Update absence_requests and entitlements worksheets.
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
     """
     can_cancel = check_cancellable(id)
     if can_cancel:
         print("Getting data...")
         allocated_absences = get_cancellable_absence(id)
         display_allocated_absences(allocated_absences)
+
+        while True:
+            id_list = [int(list[0]) for list in allocated_absences]
+            choice = input("\nPlease enter the ID you want to cancel:\n")
+            if validate_choice(choice, id_list):
+                break
+        print("Processing...")
+        absence_sheet = SHEET.worksheet("absence_requests")
+        entitlement_sheet = SHEET.worksheet("entitlements")
+        row_index = int(choice) + 1
+        duration_col = 7
+        approved_col = 9
+        cancelled_col = 10
+        absence_sheet.update_cell(row_index, cancelled_col, "True")
+        absence_days = absence_sheet.cell(row_index, duration_col).value
+        is_approved = absence_sheet.cell(row_index, approved_col).value
+        absence_hours = int(absence_days) * 8
+        id_row = entitlement_sheet.find(id).row
+        planned_col = 4
+        pending_col = 5
+        unallocated_col = 6
+        pending_hours = entitlement_sheet.cell(id_row, pending_col).value
+        pending_hours = int(pending_hours) - absence_hours
+        available_hours = entitlement_sheet.cell(id_row, unallocated_col).value
+        available_hours = int(available_hours) + absence_hours
+        if is_approved.capitalize() == "True":
+            entitlement_sheet.update_cell(id_row, planned_col, pending_hours)
+        else:
+            entitlement_sheet.update_cell(id_row, pending_col, pending_hours)
+        entitlement_sheet.update_cell(id_row, unallocated_col, available_hours)
+        print("Your absence has been successfully cancelled.")
 
     time.sleep(2)
     print("Going back to the menu...")
@@ -623,7 +654,7 @@ def check_cancellable(id):
     """Search if the user has planned/pending absence.
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
     """
     entitlement_sheet = SHEET.worksheet("entitlements")
     row_index = entitlement_sheet.find(id).row
@@ -642,7 +673,7 @@ def get_cancellable_absence(id):
     """Return a list of lists containing cancellable absence data.
 
     Args:
-        :id str: Employee Id that was used to log in.
+        :id str: Employee ID that was used to log in.
     """
     absence_sheet = SHEET.worksheet("absence_requests")
     get_cells = absence_sheet.findall(id)
@@ -658,12 +689,12 @@ def get_cancellable_absence(id):
         start_date = validate_date_input(start_date)
         today = get_datetime()["date"]
         today = validate_date_input(today)
-        is_approved = request[8]
-        is_cancelled = eval(request[9])
+        is_approved = request[8].capitalize()
+        is_cancelled = request[9].capitalize()
 
         if ((start_date - today).days > 0 and
-                (is_approved == "True" or is_approved == "") and
-                not is_cancelled):
+                (is_approved == "True" or is_approved == "/") and
+                is_cancelled == "False"):
             requests.append(request)
 
     return requests
