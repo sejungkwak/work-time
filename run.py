@@ -177,7 +177,7 @@ def employee_menu(id):
     elif choice == "5":
         book_absence(id)
     elif choice == "6":
-        pass
+        cancel_absence(id)
     else:
         pass
 
@@ -405,7 +405,7 @@ def book_absence(id):
     """
     clear()
     entitlement_sheet = SHEET.worksheet("entitlements")
-    absence_sheet = SHEET.worksheet("absences")
+    absence_sheet = SHEET.worksheet("absence_requests")
     row_index = entitlement_sheet.find(id).row
     entitlements = entitlement_sheet.row_values(row_index)
     unallocated = entitlements[-1]
@@ -566,7 +566,7 @@ def create_absence_request_id():
     """Increment the request id by 1.
     If there hasn't been a request, assign 1 to it.
     """
-    absence_sheet = SHEET.worksheet("absences")
+    absence_sheet = SHEET.worksheet("absence_requests")
     request_id = absence_sheet.col_values(1)[-1]
     if request_id == "request_id":
         request_id = "1"
@@ -594,6 +594,34 @@ def add_pto_pending_hours(id, days):
 
     entitlement_sheet.update_cell(row_index, pending_col, pending_hour)
     entitlement_sheet.update_cell(row_index, unallocated_col, unallocated_hour)
+
+
+def cancel_absence(id):
+    """Update absence_requests and entitlements worksheets.
+
+    Args:
+        :id str: Employee Id that was used to log in.
+    """
+    can_cancel = check_cancellable(id)
+
+
+def check_cancellable(id):
+    """Search if the user has planned/pending absence.
+
+    Args:
+        :id str: Employee Id that was used to log in.
+    """
+    entitlement_sheet = SHEET.worksheet("entitlements")
+    row_index = entitlement_sheet.find(id).row
+    planned_col = 4
+    pending_col = 5
+    planned = entitlement_sheet.cell(row_index, planned_col).value
+    pending = entitlement_sheet.cell(row_index, pending_col).value
+    if planned == "0" and pending == "0":
+        print("You do not have a planned/pending absence to cancel.")
+        return False
+    else:
+        return True
 
 welcome_message()
 validate_id()
