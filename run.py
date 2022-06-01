@@ -418,8 +418,8 @@ def book_absence(id):
     else:
         print(f"\nYou have {unallocated} hours available to book absence.")
         absence_type = check_absence_type()
-        if ((absence_type == "4" and int(unallocated) < 16) or
-                (absence_type == "3" and int(unallocated) < 8)):
+        if ((absence_type == "4" and float(unallocated) < 16) or
+                (absence_type == "3" and float(unallocated) < 8)):
             print("You have unsufficient paid time off available",
                   "to complete the request.")
             print("Please select a different option or",
@@ -429,27 +429,33 @@ def book_absence(id):
         request_id = create_absence_request_id()
         today = get_datetime()["date"]
         data = [request_id, id, absence_start]
+        request_days = ""
         if absence_type == "4":
             absence_end = check_absence_end_date(absence_start, unallocated)
         print("\nYour absence request: ", end="")
         if absence_type == "4":
             days = validate_days(absence_start, absence_end, unallocated) + 1
-            data.extend([absence_end, "", "", days, today])
+            request_days = days
+            data.extend([absence_end, "", "", days])
             print(f"{Fore.GREEN}from {absence_start} to {absence_end}")
         elif absence_type == "3":
-            data.extend(["", "", "", "1", today])
+            request_days = "1"
+            data.extend(["", "", "", request_days])
             print(f"{Fore.GREEN}for {absence_start}")
         else:
             request_time = ""
+            request_days = "0.5"
             if absence_type == "1":
-                data.extend(["", "9:30", "13:30", "0.5", today])
+                data.extend(["", "9:30", "13:30", request_days])
                 request_time = morning
             else:
-                data.extend(["", "13:30", "17:30", "0.5", today])
+                data.extend(["", "13:30", "17:30", request_days])
                 request_time = afternoon
             print(f"{Fore.GREEN}for {absence_start} at {request_time}")
 
+    data.extend([today, "", "False"])
     absence_sheet.append_row(data)
+    add_pto_pending_hours(id, request_days)
     time.sleep(2)
     print("Going back to the menu...")
     time.sleep(2)
@@ -538,7 +544,7 @@ def validate_days(date1, date2, unallocated):
             weekend = (num_of_days / 7) * 2
             num_of_days -= weekend
         num_of_hours = 8 * num_of_days
-        if num_of_hours > int(unallocated):
+        if num_of_hours > float(unallocated):
             raise ValueError(
                 print("Unable to complete the request.\n",
                       "You have unsufficient paid time off available:",
@@ -567,6 +573,27 @@ def create_absence_request_id():
     else:
         request_id = int(request_id) + 1
     return request_id
+
+
+def add_pto_pending_hours(id, days):
+    """Update pending value on the entitlements worksheet.
+
+    Args:
+        :id str: Employee Id that was used to log in.
+        :days str: The number of requested absence days.
+    """
+    entitlement_sheet = SHEET.worksheet("entitlements")
+    pending_col = 5
+    unallocated_col = 6
+    row_index = entitlement_sheet.find(id).row
+    pending = entitlement_sheet.cell(row_index, pending_col).value
+    unallocated = entitlement_sheet.cell(row_index, unallocated_col).value
+    hours = float(days) * 8
+    pending_hour = float(pending) + float(hours)
+    unallocated_hour = float(unallocated) - float(hours)
+
+    entitlement_sheet.update_cell(row_index, pending_col, pending_hour)
+    entitlement_sheet.update_cell(row_index, unallocated_col, unallocated_hour)
 
 welcome_message()
 validate_id()
