@@ -432,30 +432,31 @@ def book_absence(id):
         request_days = ""
         if absence_type == "4":
             absence_end = check_absence_end_date(absence_start, unallocated)
-        print("\nYour absence request: ", end="")
+        print(f"\n{Fore.GREEN}Your request for absence ", end="")
         if absence_type == "4":
             days = validate_days(absence_start, absence_end, unallocated) + 1
             request_days = days
             data.extend([absence_end, "", "", days])
-            print(f"{Fore.GREEN}from {absence_start} to {absence_end}")
+            print(f"{Fore.GREEN}from {absence_start} to {absence_end}", end="")
         elif absence_type == "3":
             request_days = "1"
-            data.extend(["", "", "", request_days])
-            print(f"{Fore.GREEN}for {absence_start}")
+            data.extend([absence_start, "", "", request_days])
+            print(f"{Fore.GREEN}on {absence_start}", end="")
         else:
             request_time = ""
             request_days = "0.5"
             if absence_type == "1":
-                data.extend(["", "9:30", "13:30", request_days])
+                data.extend([absence_start, "9:30", "13:30", request_days])
                 request_time = morning
             else:
-                data.extend(["", "13:30", "17:30", request_days])
+                data.extend([absence_start, "13:30", "17:30", request_days])
                 request_time = afternoon
-            print(f"{Fore.GREEN}for {absence_start} at {request_time}")
+            print(f"{Fore.GREEN}on {absence_start} at {request_time}", end="")
 
     data.extend([today, "", "False"])
     absence_sheet.append_row(data)
     add_pto_pending_hours(id, request_days)
+    print(f"{Fore.GREEN} has been sent for review.")
     time.sleep(2)
     print("Going back to the menu...")
     time.sleep(2)
@@ -606,6 +607,7 @@ def cancel_absence(id):
     if can_cancel:
         print("Getting data...")
         allocated_absences = get_cancellable_absence(id)
+        display_allocated_absences(allocated_absences)
 
     time.sleep(2)
     print("Going back to the menu...")
@@ -661,6 +663,23 @@ def get_cancellable_absence(id):
             requests.append(request)
 
     return requests
+
+
+def display_allocated_absences(data):
+    """Display absence requests that can be cancelled by the user.
+
+    Args:
+        :data list:
+    """
+    absence_lists = []
+    for list in data:
+        list = list[:7]
+        list[-1] = f"{list[-1]} Day(s)"
+        list.pop(1)
+        absence_lists.append(list)
+    headers = (["ID", "Start Date", "End Date",
+                "Start Time", "End Time", "Duration"])
+    print(tabulate(absence_lists, headers, tablefmt="fancy_grid"))
 
 welcome_message()
 validate_id()
