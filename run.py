@@ -357,7 +357,7 @@ def validate_date_input(input_date):
 
     Raises:
         ValueError: If the date is invalid.
-        IndexError: If "/" is not used to divide the year, month and date.
+        IndexError: If "/" is not used to separate the year, month and date.
     """
     try:
         date_to_list = input_date.split("/")
@@ -603,6 +603,14 @@ def cancel_absence(id):
         :id str: Employee Id that was used to log in.
     """
     can_cancel = check_cancellable(id)
+    if can_cancel:
+        print("Getting data...")
+        allocated_absences = get_cancellable_absence(id)
+
+    time.sleep(2)
+    print("Going back to the menu...")
+    time.sleep(2)
+    employee_menu(id)
 
 
 def check_cancellable(id):
@@ -618,10 +626,41 @@ def check_cancellable(id):
     planned = entitlement_sheet.cell(row_index, planned_col).value
     pending = entitlement_sheet.cell(row_index, pending_col).value
     if planned == "0" and pending == "0":
-        print("You do not have a planned/pending absence to cancel.")
+        print("You do not have any planned/pending absence to cancel.")
         return False
     else:
         return True
+
+
+def get_cancellable_absence(id):
+    """Return a list of lists containing cancellable absence data.
+
+    Args:
+        :id str: Employee Id that was used to log in.
+    """
+    absence_sheet = SHEET.worksheet("absence_requests")
+    get_cells = absence_sheet.findall(id)
+
+    row_indices = []
+    for cell in get_cells:
+        row_indices.append(cell.row)
+
+    requests = []
+    for index in row_indices:
+        request = absence_sheet.row_values(index)
+        start_date = request[2]
+        start_date = validate_date_input(start_date)
+        today = get_datetime()["date"]
+        today = validate_date_input(today)
+        is_approved = request[8]
+        is_cancelled = eval(request[9])
+
+        if ((start_date - today).days > 0 and
+                (is_approved == "True" or is_approved == "") and
+                not is_cancelled):
+            requests.append(request)
+
+    return requests
 
 welcome_message()
 validate_id()
