@@ -3,19 +3,18 @@ from worktime.worksheets import auth
 
 
 class Employees:
-    """Retrieves employee data from the employees sheet.
+    """Represents the employees worksheet.
 
     Args:
         :id str: Employee ID that was used to log in.
     """
 
-    worksheet = auth.SHEET.worksheet("employees")
-    id_col = "A"
-    fname_col = "B"
-    lname_col = "C"
-
     def __init__(self, id=None):
         self.id = id
+        self.worksheet = auth.SHEET.worksheet("employees")
+        self.id_col = "A"
+        self.fname_col = "B"
+        self.lname_col = "C"
 
     def get_fname(self):
         """Returns the employee's first name."""
