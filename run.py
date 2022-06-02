@@ -3,30 +3,20 @@ from datetime import date
 from os import name, system
 import time
 
-# Third-party libraries
+# Third-party Packages
 from art import *
 from colorama import init, Fore, Style
-import gspread
-from google.oauth2.service_account import Credentials
 from passlib.hash import pbkdf2_sha256
 import stdiomask
 from tabulate import tabulate
 
+# Custom Package
+from worktime.worksheets import auth
+
 # colorama method to enable it on Windows
 init(autoreset=True)
 
-SCOPE = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive.file",
-    "https://www.googleapis.com/auth/drive"
-    ]
-
-CREDS = Credentials.from_service_account_file("creds.json")
-SCOPED_CREDS = CREDS.with_scopes(SCOPE)
-GSPREAD_CLIENT = gspread.authorize(SCOPED_CREDS)
-SHEET = GSPREAD_CLIENT.open("work_time")
-
-cred_sheet = SHEET.worksheet("login_credentials")
+cred_sheet = auth.SHEET.worksheet("login_credentials")
 login_credentials = cred_sheet.get_all_values()
 
 
@@ -127,7 +117,7 @@ def get_name(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    employees_sheet = SHEET.worksheet("employees")
+    employees_sheet = auth.SHEET.worksheet("employees")
     fname_col = 2
     row_index = employees_sheet.find(id).row
     fname = employees_sheet.cell(row_index, fname_col).value
@@ -217,7 +207,7 @@ def clock_in(id):
     today = now["date"]
     clock_in_at = now["time"]
 
-    clock_sheet = SHEET.worksheet("clockings")
+    clock_sheet = auth.SHEET.worksheet("clockings")
     clockings = clock_sheet.get_all_values()
     clear()
     for row_index, clocking in enumerate(clockings, start=1):
@@ -280,7 +270,7 @@ def clock_out(id):
     today = now["date"]
     clock_out_at = now["time"]
 
-    clock_sheet = SHEET.worksheet("clockings")
+    clock_sheet = auth.SHEET.worksheet("clockings")
     clockings = clock_sheet.get_all_values()
     clear()
     for clocking in clockings:
@@ -318,7 +308,7 @@ def display_clock_card(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    clock_sheet = SHEET.worksheet("clockings")
+    clock_sheet = auth.SHEET.worksheet("clockings")
     clockings = clock_sheet.get_all_values()
 
     while True:
@@ -381,7 +371,7 @@ def display_entitlements(id):
         :id str: Employee ID that was used to log in.
     """
     this_year = get_datetime()["year"]
-    entitlement_sheet = SHEET.worksheet("entitlements")
+    entitlement_sheet = auth.SHEET.worksheet("entitlements")
     row_index = entitlement_sheet.find(id).row
     entitlements = entitlement_sheet.row_values(row_index)[1:]
     table = [[entitlement for entitlement in entitlements]]
@@ -403,8 +393,8 @@ def book_absence(id):
         :id str: Employee ID that was used to log in.
     """
     clear()
-    entitlement_sheet = SHEET.worksheet("entitlements")
-    absence_sheet = SHEET.worksheet("absence_requests")
+    entitlement_sheet = auth.SHEET.worksheet("entitlements")
+    absence_sheet = auth.SHEET.worksheet("absence_requests")
     row_index = entitlement_sheet.find(id).row
     entitlements = entitlement_sheet.row_values(row_index)
     unallocated = entitlements[-1]
@@ -571,7 +561,7 @@ def create_absence_request_id():
     """Increment the request id by 1.
     If there hasn't been a request, assign 1 to it.
     """
-    absence_sheet = SHEET.worksheet("absence_requests")
+    absence_sheet = auth.SHEET.worksheet("absence_requests")
     request_id = absence_sheet.col_values(1)[-1]
     if request_id == "request_id":
         request_id = "1"
@@ -587,7 +577,7 @@ def add_pto_pending_hours(id, days):
         :id str: Employee ID that was used to log in.
         :days str: The number of requested absence days.
     """
-    entitlement_sheet = SHEET.worksheet("entitlements")
+    entitlement_sheet = auth.SHEET.worksheet("entitlements")
     pending_col = 5
     unallocated_col = 6
     row_index = entitlement_sheet.find(id).row
@@ -619,13 +609,13 @@ def cancel_absence(id):
             if validate_choice(choice, id_list):
                 break
         print("Processing...")
-        absence_sheet = SHEET.worksheet("absence_requests")
-        entitlement_sheet = SHEET.worksheet("entitlements")
+        absence_sheet = auth.SHEET.worksheet("absence_requests")
+        entitlement_sheet = auth.SHEET.worksheet("entitlements")
         row_index = int(choice) + 1
         duration_col = 7
         approved_col = 9
-        cancelled_col = 10
-        absence_sheet.update_cell(row_index, cancelled_col, "True")
+        cancelled_col = "J"
+        absence_sheet.update(f"{cancelled_col}{row_index}", "True", raw=True)
         absence_days = absence_sheet.cell(row_index, duration_col).value
         is_approved = absence_sheet.cell(row_index, approved_col).value
         absence_hours = int(absence_days) * 8
@@ -656,7 +646,7 @@ def check_cancellable(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    entitlement_sheet = SHEET.worksheet("entitlements")
+    entitlement_sheet = auth.SHEET.worksheet("entitlements")
     row_index = entitlement_sheet.find(id).row
     planned_col = 4
     pending_col = 5
@@ -675,7 +665,7 @@ def get_cancellable_absence(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    absence_sheet = SHEET.worksheet("absence_requests")
+    absence_sheet = auth.SHEET.worksheet("absence_requests")
     get_cells = absence_sheet.findall(id)
 
     row_indices = []
@@ -690,11 +680,11 @@ def get_cancellable_absence(id):
         today = get_datetime()["date"]
         today = validate_date_input(today)
         is_approved = request[8].capitalize()
-        is_cancelled = request[9].capitalize()
+        is_cancelled = eval(request[9])
 
         if ((start_date - today).days > 0 and
                 (is_approved == "True" or is_approved == "/") and
-                is_cancelled == "False"):
+                not is_cancelled):
             requests.append(request)
 
     return requests
