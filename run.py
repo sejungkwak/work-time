@@ -4,14 +4,14 @@ from os import name, system
 import time
 
 # Third-party Packages
-from art import *
 from colorama import init, Fore, Style
 from passlib.hash import pbkdf2_sha256
 import stdiomask
 from tabulate import tabulate
 
-# Custom Package
+# Custom Packages
 from worktime.worksheets import auth, employees
+from worktime.app import menu, title
 
 # colorama method to enable it on Windows
 init(autoreset=True)
@@ -24,14 +24,6 @@ login_credentials = cred_sheet.get_all_values()
 def clear():
     """Clear the screen."""
     system("cls" if name == "nt" else "clear")
-
-
-def welcome_message():
-    """Display the application name and welcome message."""
-    clear()
-    tprint("Work Time".center(29), font="tarty7")
-    print("\n" + "Welcome to Work Time - Time Management System".center(80))
-    print("\n" + "="*80 + "\n")
 
 
 def validate_id():
@@ -97,7 +89,7 @@ def validate_pw(id):
             if id == "ADMIN":
                 pass
             else:
-                run_employee_portal(id)
+                title.Title().title_employee(id)
                 employee_menu(id)
             break
 
@@ -111,19 +103,6 @@ def get_datetime():
     return {"year": get_year, "date": get_date, "time": get_time}
 
 
-def run_employee_portal(id):
-    """Display the title and welcome message for the employee portal.
-
-    Args:
-        :id str: Employee ID that was used to log in.
-    """
-    name = employees.Employees(id).get_fname()
-    clear()
-    tprint("Employee Portal".center(18), font="rectangles")
-    print(f"Welcome back, {name}!".center(80))
-    print("\n" + "="*80)
-
-
 def employee_menu(id):
     """Run a while loop to get a valid input value from the user.
 
@@ -131,14 +110,7 @@ def employee_menu(id):
         :id str: Employee ID that was used to log in.
     """
     while True:
-        print("\nPlease choose one of the following options.\n")
-        print(f"{Fore.GREEN}1{Style.RESET_ALL} Clock In")
-        print(f"{Fore.GREEN}2{Style.RESET_ALL} Clock Out")
-        print(f"{Fore.GREEN}3{Style.RESET_ALL} View Clock Card")
-        print(f"{Fore.GREEN}4{Style.RESET_ALL} View Absence Entitlements")
-        print(f"{Fore.GREEN}5{Style.RESET_ALL} Book Absence")
-        print(f"{Fore.GREEN}6{Style.RESET_ALL} Cancel Absence")
-        print(f"{Fore.GREEN}7{Style.RESET_ALL} Log Out")
+        menu.Menu().employee_menu()
         choice = input("\nPlease enter a number to continue:\n")
         if validate_choice(choice, range(1, 8)):
             break
@@ -605,7 +577,7 @@ def cancel_absence(id):
         absence_sheet.update(f"{cancelled_col}{row_index}", "True", raw=True)
         absence_days = absence_sheet.cell(row_index, duration_col).value
         is_approved = absence_sheet.cell(row_index, approved_col).value
-        absence_hours = int(absence_days) * 8
+        absence_hours = float(absence_days) * 8
         id_row = entitlement_sheet.find(id).row
         planned_col = 4
         pending_col = 5
@@ -693,5 +665,5 @@ def display_allocated_absences(data):
                 "Start Time", "End Time", "Duration"])
     print(tabulate(absence_lists, headers, tablefmt="fancy_grid"))
 
-welcome_message()
+title.Title().title_main()
 validate_id()
