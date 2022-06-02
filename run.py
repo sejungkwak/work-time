@@ -11,7 +11,7 @@ import stdiomask
 from tabulate import tabulate
 
 # Custom Package
-from worktime.worksheets import auth
+from worktime.worksheets import auth, employees
 
 # colorama method to enable it on Windows
 init(autoreset=True)
@@ -111,26 +111,13 @@ def get_datetime():
     return {"year": get_year, "date": get_date, "time": get_time}
 
 
-def get_name(id):
-    """Return the employee's first name from the worksheet.
-
-    Args:
-        :id str: Employee ID that was used to log in.
-    """
-    employees_sheet = auth.SHEET.worksheet("employees")
-    fname_col = 2
-    row_index = employees_sheet.find(id).row
-    fname = employees_sheet.cell(row_index, fname_col).value
-    return fname
-
-
 def run_employee_portal(id):
     """Display the title and welcome message for the employee portal.
 
     Args:
         :id str: Employee ID that was used to log in.
     """
-    name = get_name(id)
+    name = employees.Employees(id).get_fname()
     clear()
     tprint("Employee Portal".center(18), font="rectangles")
     print(f"Welcome back, {name}!".center(80))
