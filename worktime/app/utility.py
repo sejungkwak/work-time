@@ -12,7 +12,7 @@ def clear():
     system("cls" if name == "nt" else "clear")
 
 
-def get_datetime():
+def get_current_datetime():
     """Return the current date and time in Dublin in a dictionary."""
     DUBLIN = pytz.timezone("Europe/Dublin")
     now = datetime.now(DUBLIN)
@@ -21,14 +21,30 @@ def get_datetime():
     return {"year": now.year, "date": date, "time": time}
 
 
-def get_week(year, month, day):
-    """Return a list of weekdays of the given date."""
+def get_week(data):
+    """Return a list of weekdays of the given date.
+
+    Args:
+        :data class: An instance of datetime.date.
+    """
     # Source: ALFAFA's answer on Stack Overflow
     # https://stackoverflow.com/questions/56163008
-    target_date = date(year, month, day)
-    week = target_date.isocalendar()[2]
-    start = target_date - timedelta(days=week)
+    week = data.isocalendar()[2]
+    start = data - timedelta(days=week)
     dates = []
     for day in range(1, 6):
         dates.append((start + timedelta(days=day)).strftime("%d/%m/%Y"))
     return dates
+
+
+def convert_date(data):
+    """Convert a date to an instance of datetime.date.
+
+    Args:
+        :data str: A day/month/year formatted date.
+    """
+    date_to_list = data.split("/")
+    year = int(date_to_list[2])
+    month = int(date_to_list[1])
+    day = int(date_to_list[0])
+    return date(year, month, day)
