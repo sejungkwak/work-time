@@ -9,7 +9,7 @@ import stdiomask
 from tabulate import tabulate
 
 # Custom Packages
-from worktime.worksheets import auth, clockings, credentials
+from worktime.worksheets import auth, clockings, credentials, requests
 from worktime.app import menu, title, utility
 
 # colorama method to enable it on Windows
@@ -140,14 +140,14 @@ def clock_in(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    now = utility.get_datetime()
+    now = utility.get_current_datetime()
     today = now["date"]
     clock_in_at = now["time"]
 
     utility.clear()
 
     clock_sheet = clockings.Clockings(id)
-    clocking = clock_sheet.get_today_clocking()
+    clocking = clock_sheet.get_one_clocking()
     if clocking:
         if clocking["end_time"]:
             clocked_out_at = clocking["end_time"]
@@ -205,14 +205,14 @@ def clock_out(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    now = utility.get_datetime()
+    now = utility.get_current_datetime()
     today = now["date"]
     clock_out_at = now["time"]
 
     utility.clear()
 
     clock_sheet = clockings.Clockings(id)
-    clocking = clock_sheet.get_today_clocking()
+    clocking = clock_sheet.get_one_clocking()
     if clocking:
         if clocking["end_time"]:
             clocked_out_at = clocking["end_time"]
@@ -283,11 +283,7 @@ def validate_date_input(input_date):
         IndexError: If "/" is not used to separate the year, month and date.
     """
     try:
-        date_to_list = input_date.split("/")
-        entered_year = int(date_to_list[2])
-        entered_month = int(date_to_list[1])
-        entered_date = int(date_to_list[0])
-        result = date(entered_year, entered_month, entered_date)
+        result = utility.convert_date(input_date)
     except ValueError:
         print("Please provide the date with the correct format.")
         return False
@@ -304,7 +300,7 @@ def display_entitlements(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    this_year = utility.get_datetime()["year"]
+    this_year = utility.get_current_datetime()["year"]
     entitlement_sheet = auth.SHEET.worksheet("entitlements")
     row_index = entitlement_sheet.find(id).row
     entitlements = entitlement_sheet.row_values(row_index)[1:]
@@ -328,7 +324,6 @@ def book_absence(id):
     """
     utility.clear()
     entitlement_sheet = auth.SHEET.worksheet("entitlements")
-    absence_sheet = auth.SHEET.worksheet("absence_requests")
     row_index = entitlement_sheet.find(id).row
     entitlements = entitlement_sheet.row_values(row_index)
     unallocated = entitlements[-1]
@@ -349,9 +344,9 @@ def book_absence(id):
                   "contact your manager.")
             absence_type = check_absence_type()
         absence_start = check_absence_start_date(absence_type)
-        request_id = create_absence_request_id()
-        today = utility.get_datetime()["date"]
-        data = [request_id, id, absence_start]
+        request_id = requests.Requests().generate_req_id()
+        today = utility.get_current_datetime()["date"]
+        data = [request_id, id, absence_start, today, "/", "False"]
         request_days = ""
         if absence_type == "4":
             absence_end = check_absence_end_date(absence_start, unallocated)
@@ -359,25 +354,24 @@ def book_absence(id):
         if absence_type == "4":
             days = validate_days(absence_start, absence_end, unallocated)
             request_days = days
-            data.extend([absence_end, "", "", days])
+            data[3:3] = [absence_end, "", "", days]
             print(f"{Fore.GREEN}from {absence_start} to {absence_end}", end="")
         elif absence_type == "3":
             request_days = "1"
-            data.extend([absence_start, "", "", request_days])
+            data[3:3] = [absence_start, "", "", request_days]
             print(f"{Fore.GREEN}on {absence_start}", end="")
         else:
             request_time = ""
             request_days = "0.5"
             if absence_type == "1":
-                data.extend([absence_start, "9:30", "13:30", request_days])
+                data[3:3] = [absence_start, "9:30", "13:30", request_days]
                 request_time = morning
             else:
-                data.extend([absence_start, "13:30", "17:30", request_days])
+                data[3:3] = [absence_start, "13:30", "17:30", request_days]
                 request_time = afternoon
             print(f"{Fore.GREEN}on {absence_start} at {request_time}", end="")
 
-    data.extend([today, "/", "False"])
-    absence_sheet.append_row(data)
+    requests.Requests().add_request(data)
     add_pto_pending_hours(id, request_days)
     print(f"{Fore.GREEN} has been sent for review.")
     time.sleep(2)
@@ -491,19 +485,6 @@ def validate_days(date1, date2, unallocated):
         return num_of_days
 
 
-def create_absence_request_id():
-    """Increment the request id by 1.
-    If there hasn't been a request, assign 1 to it.
-    """
-    absence_sheet = auth.SHEET.worksheet("absence_requests")
-    request_id = absence_sheet.col_values(1)[-1]
-    if request_id == "request_id":
-        request_id = "1"
-    else:
-        request_id = int(request_id) + 1
-    return request_id
-
-
 def add_pto_pending_hours(id, days):
     """Update pending value on the entitlements worksheet.
 
@@ -534,7 +515,7 @@ def cancel_absence(id):
     can_cancel = check_cancellable(id)
     if can_cancel:
         print("Getting data...")
-        allocated_absences = get_cancellable_absence(id)
+        allocated_absences = requests.Requests(id).get_cancellable_absence()
         display_allocated_absences(allocated_absences)
 
         while True:
@@ -543,15 +524,11 @@ def cancel_absence(id):
             if validate_choice(choice, id_list):
                 break
         print("Processing...")
-        absence_sheet = auth.SHEET.worksheet("absence_requests")
         entitlement_sheet = auth.SHEET.worksheet("entitlements")
         row_index = int(choice) + 1
-        duration_col = 7
-        approved_col = 9
-        cancelled_col = "J"
-        absence_sheet.update(f"{cancelled_col}{row_index}", "True", raw=True)
-        absence_days = absence_sheet.cell(row_index, duration_col).value
-        is_approved = absence_sheet.cell(row_index, approved_col).value
+        requests.Requests().update_cancelled(row_index)
+        absence_days = requests.Requests().get_duration(row_index)
+        is_approved = requests.Requests().get_approved(row_index)
         absence_hours = float(absence_days) * 8
         id_row = entitlement_sheet.find(id).row
         planned_col = 4
@@ -591,37 +568,6 @@ def check_cancellable(id):
         return False
     else:
         return True
-
-
-def get_cancellable_absence(id):
-    """Return a list of lists containing cancellable absence data.
-
-    Args:
-        :id str: Employee ID that was used to log in.
-    """
-    absence_sheet = auth.SHEET.worksheet("absence_requests")
-    get_cells = absence_sheet.findall(id)
-
-    row_indices = []
-    for cell in get_cells:
-        row_indices.append(cell.row)
-
-    requests = []
-    for index in row_indices:
-        request = absence_sheet.row_values(index)
-        start_date = request[2]
-        start_date = validate_date_input(start_date)
-        today = utility.get_datetime()["date"]
-        today = validate_date_input(today)
-        is_approved = request[8].capitalize()
-        is_cancelled = eval(request[9])
-
-        if ((start_date - today).days > 0 and
-                (is_approved == "True" or is_approved == "/") and
-                not is_cancelled):
-            requests.append(request)
-
-    return requests
 
 
 def display_allocated_absences(data):
