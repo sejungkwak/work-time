@@ -9,7 +9,8 @@ import stdiomask
 from tabulate import tabulate
 
 # Custom Packages
-from worktime.worksheets import auth, clockings, credentials, requests
+from worktime.worksheets import (auth, clockings, credentials,
+                                 entitlements, requests)
 from worktime.app import menu, title, utility
 
 # colorama method to enable it on Windows
@@ -301,9 +302,7 @@ def display_entitlements(id):
         :id str: Employee ID that was used to log in.
     """
     this_year = utility.get_current_datetime()["year"]
-    entitlement_sheet = auth.SHEET.worksheet("entitlements")
-    row_index = entitlement_sheet.find(id).row
-    entitlements = entitlement_sheet.row_values(row_index)[1:]
+    entitlements = entitlements.Entitlements(id).get_entitlements()
     table = [[entitlement for entitlement in entitlements]]
     headers = ["Total Hours", "Taken", "Planned", "Pending", "Unallocated"]
     utility.clear()
@@ -323,10 +322,7 @@ def book_absence(id):
         :id str: Employee ID that was used to log in.
     """
     utility.clear()
-    entitlement_sheet = auth.SHEET.worksheet("entitlements")
-    row_index = entitlement_sheet.find(id).row
-    entitlements = entitlement_sheet.row_values(row_index)
-    unallocated = entitlements[-1]
+    unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
     morning = "9:30AM-1:30PM"
     afternoon = "1:30PM-5:30PM"
 
@@ -492,18 +488,11 @@ def add_pto_pending_hours(id, days):
         :id str: Employee ID that was used to log in.
         :days str: The number of requested absence days.
     """
-    entitlement_sheet = auth.SHEET.worksheet("entitlements")
-    pending_col = 5
-    unallocated_col = 6
-    row_index = entitlement_sheet.find(id).row
-    pending = entitlement_sheet.cell(row_index, pending_col).value
-    unallocated = entitlement_sheet.cell(row_index, unallocated_col).value
-    hours = float(days) * 8
-    pending_hour = float(pending) + float(hours)
-    unallocated_hour = float(unallocated) - float(hours)
+    entitlement = entitlements.Entitlements(id)
+    hours = int(float(days) * 8)
 
-    entitlement_sheet.update_cell(row_index, pending_col, pending_hour)
-    entitlement_sheet.update_cell(row_index, unallocated_col, unallocated_hour)
+    entitlement.update_hours("pending", hours, "add")
+    entitlement.update_hours("unallocated", hours, "substract")
 
 
 def cancel_absence(id):
@@ -524,25 +513,17 @@ def cancel_absence(id):
             if validate_choice(choice, id_list):
                 break
         print("Processing...")
-        entitlement_sheet = auth.SHEET.worksheet("entitlements")
         row_index = int(choice) + 1
         requests.Requests().update_cancelled(row_index)
         absence_days = requests.Requests().get_duration(row_index)
         is_approved = requests.Requests().get_approved(row_index)
-        absence_hours = float(absence_days) * 8
-        id_row = entitlement_sheet.find(id).row
-        planned_col = 4
-        pending_col = 5
-        unallocated_col = 6
-        pending_hours = entitlement_sheet.cell(id_row, pending_col).value
-        pending_hours = int(pending_hours) - absence_hours
-        available_hours = entitlement_sheet.cell(id_row, unallocated_col).value
-        available_hours = int(available_hours) + absence_hours
-        if is_approved.capitalize() == "True":
-            entitlement_sheet.update_cell(id_row, planned_col, pending_hours)
+        absence_hours = int(float(absence_days) * 8)
+        entitlement = entitlements.Entitlements(id)
+        if is_approved == "True":
+            entitlement.update_hours("planned", absence_hours, "subtract")
         else:
-            entitlement_sheet.update_cell(id_row, pending_col, pending_hours)
-        entitlement_sheet.update_cell(id_row, unallocated_col, available_hours)
+            entitlement.update_hours("pending", absence_hours, "subtract")
+        entitlement.update_hours("unallocated", absence_hours, "add")
         print("Your absence has been successfully cancelled.")
 
     time.sleep(2)
@@ -557,13 +538,10 @@ def check_cancellable(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    entitlement_sheet = auth.SHEET.worksheet("entitlements")
-    row_index = entitlement_sheet.find(id).row
-    planned_col = 4
-    pending_col = 5
-    planned = entitlement_sheet.cell(row_index, planned_col).value
-    pending = entitlement_sheet.cell(row_index, pending_col).value
-    if planned == "0" and pending == "0":
+    entitlement = entitlements.Entitlements(id)
+    planned = entitlement.get_hours("planned")
+    pending = entitlement.get_hours("pending")
+    if not (planned and pending):
         print("You do not have any planned/pending absence to cancel.")
         return False
     else:
