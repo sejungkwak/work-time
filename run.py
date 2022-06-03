@@ -1,6 +1,5 @@
 # Built-in Modules
 from datetime import date
-from os import name, system
 import time
 
 # Third-party Packages
@@ -10,20 +9,11 @@ import stdiomask
 from tabulate import tabulate
 
 # Custom Packages
-from worktime.worksheets import auth, employees
-from worktime.app import menu, title
+from worktime.worksheets import auth, clockings, credentials
+from worktime.app import menu, title, utility
 
 # colorama method to enable it on Windows
 init(autoreset=True)
-
-cred_sheet = auth.SHEET.worksheet("login_credentials")
-login_credentials = cred_sheet.get_all_values()
-
-
-# Source: https://www.geeksforgeeks.org/clear-screen-python/
-def clear():
-    """Clear the screen."""
-    system("cls" if name == "nt" else "clear")
 
 
 def validate_id():
@@ -39,7 +29,7 @@ def validate_id():
             print("To contact the system administrator, enter",
                   f"{Fore.GREEN}help{Style.RESET_ALL} instead.")
 
-            ids = [id for id, password in login_credentials]
+            ids = credentials.Credentials().ids()
             entered_id = input("\nEmployee ID:\n").upper()
 
             if entered_id == "HELP":
@@ -68,10 +58,7 @@ def validate_pw(id):
     Raises:
         ValueError: If the input password is incorrect.
     """
-    password_col = 2
-    row_index = cred_sheet.find(id).row
-    password = cred_sheet.cell(row_index, password_col).value
-
+    password = credentials.Credentials().pw(id)
     while True:
         try:
             entered_password = stdiomask.getpass(prompt="\nPassword:\n")
@@ -89,18 +76,9 @@ def validate_pw(id):
             if id == "ADMIN":
                 pass
             else:
-                title.Title().title_employee(id)
+                title.title_employee(id)
                 employee_menu(id)
             break
-
-
-def get_datetime():
-    """Return the current date and time in dictionary."""
-    local_time = time.localtime()
-    get_year = time.strftime("%Y", local_time)
-    get_date = time.strftime("%d/%m/%Y", local_time)
-    get_time = time.strftime("%H:%M:%S", local_time)
-    return {"year": get_year, "date": get_date, "time": get_time}
 
 
 def employee_menu(id):
@@ -110,7 +88,7 @@ def employee_menu(id):
         :id str: Employee ID that was used to log in.
     """
     while True:
-        menu.Menu().employee_menu()
+        menu.employee_menu()
         choice = input("\nPlease enter a number to continue:\n")
         if validate_choice(choice, range(1, 8)):
             break
@@ -162,33 +140,35 @@ def clock_in(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    now = get_datetime()
+    now = utility.get_datetime()
     today = now["date"]
     clock_in_at = now["time"]
 
-    clock_sheet = auth.SHEET.worksheet("clockings")
-    clockings = clock_sheet.get_all_values()
-    clear()
-    for row_index, clocking in enumerate(clockings, start=1):
-        user_id, date, clocked_in, clocked_out = clocking
+    utility.clear()
 
-        if id == user_id and today == date and clocked_in:
-            is_overwrite = check_for_clockin_overwrite(clocked_in)
+    clock_sheet = clockings.Clockings(id)
+    clocking = clock_sheet.get_today_clocking()
+    if clocking:
+        if clocking["end_time"]:
+            clocked_out_at = clocking["end_time"]
+            print(f"You already clocked out at {clocked_out_at}.")
+            print(f"To update time, please contact your manager.")
+        else:
+            clocked_in_at = clocking["start_time"]
+            is_overwrite = check_for_clockin_overwrite(clocked_in_at)
             if is_overwrite == "Y":
-                clock_in_col = 3
-                clock_sheet.update_cell(row_index, clock_in_col, clock_in_at)
+                clock_sheet.update_clock_in(clock_in_at)
                 print(f"Clock in time has been updated: {clock_in_at}")
-                break
             else:
-                break
+                print(f"Your clock in time for today: {clocked_in_at}")
     else:
         data = [id, today, clock_in_at]
-        clock_sheet.append_row(data)
+        clock_sheet.add_clocking(data)
         print(f"You have successfully clocked in at {clock_in_at}.")
 
     print("Going back to the menu...")
     time.sleep(2)
-    clear()
+    utility.clear()
     employee_menu(id)
 
 
@@ -225,31 +205,26 @@ def clock_out(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    now = get_datetime()
+    now = utility.get_datetime()
     today = now["date"]
     clock_out_at = now["time"]
 
-    clock_sheet = auth.SHEET.worksheet("clockings")
-    clockings = clock_sheet.get_all_values()
-    clear()
-    for clocking in clockings:
-        user_id, date, clocked_in, clocked_out = clocking
-        if id == user_id and today == date:
-            if clocked_out:
-                print(f"{Fore.RED}You have already",
-                      f"{Fore.RED}clocked out at {clocked_out}.")
-                print("Please contact your manager",
-                      "to update your clock out time.")
-                break
-            else:
-                row_index = clock_sheet.find(id).row
-                clock_out_col = 4
-                clock_sheet.update_cell(row_index, clock_out_col, clock_out_at)
-                print(f"You have successfully clocked out at {clock_out_at}.")
-                break
+    utility.clear()
+
+    clock_sheet = clockings.Clockings(id)
+    clocking = clock_sheet.get_today_clocking()
+    if clocking:
+        if clocking["end_time"]:
+            clocked_out_at = clocking["end_time"]
+            print(f"{Fore.RED}You already clocked out at {clocked_out_at}.")
+            print("Please contact your manager",
+                  "to update your clock out time.")
+        else:
+            clock_sheet.update_clock_out(clock_out_at)
+            print(f"You have successfully clocked out at {clock_out_at}.")
     else:
         data = [id, today, "", clock_out_at]
-        clock_sheet.append_row(data)
+        clock_sheet.add_clocking(data)
         print(f"{Fore.RED}You did not clock in today.")
         print("Please contact your manager to add your clock in time.")
         print(f"You have successfully clocked out at {clock_out_at}.")
@@ -329,13 +304,13 @@ def display_entitlements(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    this_year = get_datetime()["year"]
+    this_year = utility.get_datetime()["year"]
     entitlement_sheet = auth.SHEET.worksheet("entitlements")
     row_index = entitlement_sheet.find(id).row
     entitlements = entitlement_sheet.row_values(row_index)[1:]
     table = [[entitlement for entitlement in entitlements]]
     headers = ["Total Hours", "Taken", "Planned", "Pending", "Unallocated"]
-    clear()
+    utility.clear()
     print(f"\nYour absence entitlements for {this_year}.")
     print(tabulate(table, headers, tablefmt="fancy_grid"))
 
@@ -351,14 +326,14 @@ def book_absence(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    clear()
+    utility.clear()
     entitlement_sheet = auth.SHEET.worksheet("entitlements")
     absence_sheet = auth.SHEET.worksheet("absence_requests")
     row_index = entitlement_sheet.find(id).row
     entitlements = entitlement_sheet.row_values(row_index)
     unallocated = entitlements[-1]
-    morning = "9:30AM.-1:30PM."
-    afternoon = "1:30PM.-5:30PM."
+    morning = "9:30AM-1:30PM"
+    afternoon = "1:30PM-5:30PM"
 
     if unallocated == "0":
         print("You do not have paid time off available.")
@@ -375,7 +350,7 @@ def book_absence(id):
             absence_type = check_absence_type()
         absence_start = check_absence_start_date(absence_type)
         request_id = create_absence_request_id()
-        today = get_datetime()["date"]
+        today = utility.get_datetime()["date"]
         data = [request_id, id, absence_start]
         request_days = ""
         if absence_type == "4":
@@ -413,8 +388,8 @@ def book_absence(id):
 
 def check_absence_type():
     """Ask user to choose an option for the absence duration."""
-    morning = "9:30AM.-1:30PM."
-    afternoon = "1:30PM.-5:30PM."
+    morning = "9:30AM-1:30PM"
+    afternoon = "1:30PM-5:30PM"
     while True:
         print("\nPlease select an option that is the most suitable",
               "for your absence duration.\n")
@@ -636,7 +611,7 @@ def get_cancellable_absence(id):
         request = absence_sheet.row_values(index)
         start_date = request[2]
         start_date = validate_date_input(start_date)
-        today = get_datetime()["date"]
+        today = utility.get_datetime()["date"]
         today = validate_date_input(today)
         is_approved = request[8].capitalize()
         is_cancelled = eval(request[9])
@@ -665,5 +640,5 @@ def display_allocated_absences(data):
                 "Start Time", "End Time", "Duration"])
     print(tabulate(absence_lists, headers, tablefmt="fancy_grid"))
 
-title.Title().title_main()
+title.title_main()
 validate_id()
