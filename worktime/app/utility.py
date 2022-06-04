@@ -21,19 +21,24 @@ def get_current_datetime():
     return {"year": now.year, "date": date, "time": time}
 
 
-def get_week(data):
-    """Return a list of weekdays of the given date.
+def get_week(data, result):
+    """Return a list of a week(inc./excl. weekend) of the given date.
 
     Args:
         :data class: An instance of datetime.date.
+        :result str: Including or excluding weekend
     """
     # Source: ALFAFA's answer on Stack Overflow
     # https://stackoverflow.com/questions/56163008
     week = data.isocalendar()[2]
     start = data - timedelta(days=week)
     dates = []
-    for day in range(1, 6):
-        dates.append((start + timedelta(days=day)).strftime("%d/%m/%Y"))
+    if result == "weekdays":
+        for day in range(1, 6):
+            dates.append((start + timedelta(days=day)).strftime("%d/%m/%Y"))
+    else:
+        for day in range(7):
+            dates.append((start + timedelta(days=day)).strftime("%d/%m/%Y"))
     return dates
 
 
