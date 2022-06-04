@@ -50,7 +50,22 @@ def review_requests():
         tables.display_new_requests()
         while True:
             id_list = [int(list[0]) for list in new_requests]
-            print("Enter the ID you want to approve or reject.")
+            print("\nEnter the ID you want to approve or reject.")
             choice = input("Please enter your answer here:\n").strip()
             if validations.validate_choice_number(choice, id_list):
                 break
+        action = get_action_type()
+
+
+def get_action_type():
+    """Run a while loop until the user types "approve" or "reject".
+
+    Returns:
+        str: User input value.
+    """
+    while True:
+        print(f"\nEnter {Fore.GREEN}approve {Style.RESET_ALL}to approve the request",
+              f"or {Fore.GREEN}reject {Style.RESET_ALL}to reject.")
+        choice = input("Please enter your answer here:\n").upper().strip()
+        if validations.validate_choice_letter(choice, ["APPROVE", "REJECT"]):
+            return choice
