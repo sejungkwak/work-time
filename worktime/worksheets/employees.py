@@ -6,18 +6,24 @@ class Employees:
     """Represents the employees worksheet.
 
     Args:
-        :id str: Employee ID that was used to log in.
+        :id str: An employee ID.
     """
 
     def __init__(self, id=None):
         self.id = id
         self.worksheet = auth.SHEET.worksheet("employees")
-        self.id_col = "A"
-        self.fname_col = "B"
-        self.lname_col = "C"
+        self.employees = self.worksheet.get_all_values()[1:]
 
     def get_fname(self):
         """Returns the employee's first name."""
-        row = self.worksheet.find(self.id).row
-        fname = self.worksheet.acell(f"{self.fname_col}{row}").value
-        return fname
+        for employee in self.employees:
+            if employee[0] == self.id:
+                fname = employee[1]
+                return fname
+
+    def get_lname(self):
+        """Returns the employee's last name."""
+        for employee in self.employees:
+            if employee[0] == self.id:
+                lname = employee[2]
+                return lname
