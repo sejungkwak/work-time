@@ -15,7 +15,7 @@ class Clockings:
     def __init__(self, id=None):
         self.id = id
         self.worksheet = auth.SHEET.worksheet("clockings")
-        self.clockings = self.worksheet.get_all_values()
+        self.clockings = self.worksheet.get_all_values()[1:]
         self.clock_in_col = "C"
         self.clock_out_col = "D"
 
@@ -35,24 +35,22 @@ class Clockings:
 
     def get_one_clocking(self, target_date=None):
         """Return clocking data with row number in a dictionary."""
-        if target_date is None:
-            target_date = self.today
-        for row, clocking in enumerate(self.clockings, start=1):
+        target_date = self.today if target_date is None else target_date
+        for row, clocking in enumerate(self.clockings, start=2):
             id, date, clock_in, clock_out = clocking
-            date = utility.convert_date(date)
             if id == self.id and date == target_date:
-                return ({"row": row, "id": id, "date": target_date,
+                return ({"row": row, "id": id, "date": date,
                         "start_time": clock_in, "end_time": clock_out})
 
-    def get_week_clockings(self, date=None):
+    def get_week_clockings(self, target_date=None):
         """Return a week's clocking data in a list of lists"""
-        if date is None:
-            date = self.today
-        target_date = utility.convert_date(date)
-        weekdays = utility.get_week(target_date)
+        target_date = self.today if target_date is None else target_date
+        target_date = utility.convert_date(target_date)
+        dates = utility.get_week(target_date, "week")
         result = []
-        for weekday in weekdays:
-            if self.get_one_clocking(weekday) is not None:
-                for keys, values in self.get_one_clocking(weekday).items():
-                    result.append([values])
+        for date in dates:
+            if self.get_one_clocking(date) is not None:
+                lists = self.get_one_clocking(date)
+                lists.pop("row")
+                result.append([values for keys, values in lists.items()])
         return result
