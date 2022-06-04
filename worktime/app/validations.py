@@ -79,20 +79,21 @@ def validate_choice_number(choice, numbers):
         return True
 
 
-def validate_choice_yesno(choice):
-    """Check if the user entered y or n.
+def validate_choice_letter(choice, choices):
+    """Check if the user entered a valid input.
 
     Args:
         :choice str: A letter the user has inputted.
+        :choices list: A list of options the user needs to choose from.
 
     Returns:
         bool: True if successful, False otherwise.
 
     Raises:
-        ValueError: If the input value is not y or n.
+        ValueError: If the input value is not in the list.
     """
     try:
-        if choice not in ["Y", "N"]:
+        if choice not in choices:
             raise ValueError()
     except ValueError:
         print(f"You have entered an invalid value: {choice}.",
