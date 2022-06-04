@@ -25,8 +25,9 @@ class Requests:
         """Increment the request ID by 1.
         If there hasn't been a request, assign 1 to it.
         """
-        request_id = [request[0] for request in self.requests][-1]
-        request_id = 1 if request_id == "request_id" else int(request_id) + 1
+        request_id = 1
+        if self.requests != []:
+            request_id = int([request[0] for request in self.requests][-1]) + 1
         return request_id
 
     def add_request(self, data):
