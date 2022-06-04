@@ -1,17 +1,15 @@
 # Built-in Modules
-from datetime import date
 import time
 
 # Third-party Packages
 from colorama import init, Fore, Style
 from passlib.hash import pbkdf2_sha256
 import stdiomask
-from tabulate import tabulate
 
 # Custom Packages
 from worktime.worksheets import (auth, clockings, credentials,
                                  entitlements, requests)
-from worktime.app import menu, title, utility
+from worktime.app import tables, menu, title, utility
 
 # colorama method to enable it on Windows
 init(autoreset=True)
@@ -243,11 +241,11 @@ def display_clock_card(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    clock_sheet = auth.SHEET.worksheet("clockings")
-    clockings = clock_sheet.get_all_values()
-
+    print("Clock cards display from Sunday to Saturday.")
+    tables.display_clock_card(id)
     while True:
-        print("Please enter the date that you want to review.")
+        print("If you would like to review other days,",
+              "Please enter the date that you want to review.")
         print("The date should be in the following format:",
               f"{Fore.GREEN}Day/Month/Year")
         print(f"For example, {Fore.GREEN}01/12/2021",
@@ -256,15 +254,10 @@ def display_clock_card(id):
         if validate_date_input(entered_date):
             break
 
-    for clocking in clockings:
-        user_id, date, clocked_in, clocked_out = clocking
-        if id == user_id and entered_date == date:
-            table = [[date, clocked_in, clocked_out]]
-            headers = ["Date", "Clock In", "Clock Out"]
-            print(tabulate(table, headers, tablefmt="fancy_grid"))
-            break
+    if clockings.Clockings(id).get_week_clockings(entered_date):
+        tables.display_clock_card(id, entered_date)
     else:
-        print(f"No data found for {entered_date}.")
+        print(f"No data found for the week of {entered_date}.")
 
     time.sleep(2)
     print("Going back to the menu...")
@@ -302,12 +295,9 @@ def display_entitlements(id):
         :id str: Employee ID that was used to log in.
     """
     this_year = utility.get_current_datetime()["year"]
-    entitlements = entitlements.Entitlements(id).get_entitlements()
-    table = [[entitlement for entitlement in entitlements]]
-    headers = ["Total Hours", "Taken", "Planned", "Pending", "Unallocated"]
     utility.clear()
     print(f"\nYour absence entitlements for {this_year}.")
-    print(tabulate(table, headers, tablefmt="fancy_grid"))
+    tables.display_entitlements(id)
 
     time.sleep(2)
     print("Going back to the menu...")
@@ -411,7 +401,7 @@ def check_absence_start_date(absence_type):
         start_date = input("Please enter the date to continue:\n")
         if validate_date_input(start_date):
             request_date = validate_date_input(start_date)
-            today = date.today()
+            today = utility.get_current_datetime()["date"]
             if (request_date - today).days <= 0:
                 print("\nPlease note holidays must be booked in advance.")
                 print("If you would like to submit absence in the past,",
@@ -505,8 +495,7 @@ def cancel_absence(id):
     if can_cancel:
         print("Getting data...")
         allocated_absences = requests.Requests(id).get_cancellable_absence()
-        display_allocated_absences(allocated_absences)
-
+        tables.display_allocated_absences(id)
         while True:
             id_list = [int(list[0]) for list in allocated_absences]
             choice = input("\nPlease enter the ID you want to cancel:\n")
@@ -541,28 +530,11 @@ def check_cancellable(id):
     entitlement = entitlements.Entitlements(id)
     planned = entitlement.get_hours("planned")
     pending = entitlement.get_hours("pending")
-    if not (planned and pending):
+    if planned == pending == 0:
         print("You do not have any planned/pending absence to cancel.")
         return False
     else:
         return True
-
-
-def display_allocated_absences(data):
-    """Display absence requests that can be cancelled by the user.
-
-    Args:
-        :data list:
-    """
-    absence_lists = []
-    for list in data:
-        list = list[:7]
-        list[-1] = f"{list[-1]} Day(s)"
-        list.pop(1)
-        absence_lists.append(list)
-    headers = (["ID", "Start Date", "End Date",
-                "Start Time", "End Time", "Duration"])
-    print(tabulate(absence_lists, headers, tablefmt="fancy_grid"))
 
 title.title_main()
 validate_id()
