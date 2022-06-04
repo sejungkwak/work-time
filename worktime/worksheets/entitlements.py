@@ -22,10 +22,9 @@ class Entitlements:
 
     def get_row(self):
         """Return the worksheet row index which is 1-based."""
-        for entitlement in self.entitlements:
+        for row, entitlement in enumerate(self.entitlements):
             if self.id == entitlement[0]:
-                row = self.entitlements.index(entitlement) + 2
-                return row
+                return row + 2
 
     def get_hours(self, code):
         """Return the current value of target cell.
