@@ -40,6 +40,15 @@ class Requests:
         """
         self.worksheet.append_row(data)
 
+    def update_approved(self, row, action):
+        """Replace False or True with "/" in a approved cell.
+
+        Args:
+            :row int: The index of the target row which starts with 1.
+        """
+        result = "True" if action == "APPROVE" else "False"
+        self.worksheet.update(f"{self.approved_col}{row}", f"{result}", raw=True)
+
     def update_cancelled(self, row):
         """Replace False with True in a cancelled cell.
 
