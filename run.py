@@ -133,7 +133,7 @@ def check_for_clockin_overwrite():
         print(f"Enter {Fore.GREEN}y {Style.RESET_ALL}to overwrite",
               f"or {Fore.GREEN}n {Style.RESET_ALL}to go back to the menu.")
         answer = input("\nPlease enter your answer here:\n").upper().strip()
-        if validations.validate_choice_yesno(answer):
+        if validations.validate_choice_letter(answer, ["Y", "N"]):
             return answer
 
 
