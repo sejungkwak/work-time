@@ -3,85 +3,57 @@ import time
 
 # Third-party Packages
 from colorama import init, Fore, Style
-from passlib.hash import pbkdf2_sha256
 import stdiomask
 
 # Custom Packages
 from worktime.worksheets import (auth, clockings, credentials,
                                  entitlements, requests)
-from worktime.app import tables, menu, title, utility
+from worktime.app import tables, menu, title, utility, validations
 
 # colorama method to enable it on Windows
 init(autoreset=True)
 
 
-def validate_id():
-    """Request Employee ID and validate it against Google sheet.
-    Or User can choose to contact the system administrator.
-
-    Raises:
-        ValueError: If the input Employee ID is incorrect.
+def get_employee_id():
+    """Request Employee ID and validate the user input.
+    Run a while loop until the user types "help" or a valid ID.
     """
     while True:
-        try:
-            print("Please enter your Employee ID.")
-            print("To contact the system administrator, enter",
-                  f"{Fore.GREEN}help{Style.RESET_ALL} instead.")
+        print("Please enter your Employee ID.")
+        print("To contact the system administrator, enter",
+              f"{Fore.GREEN}help{Style.RESET_ALL} instead.")
+        entered_id = input("\nEmployee ID:\n").upper()
 
-            ids = credentials.Credentials().ids()
-            entered_id = input("\nEmployee ID:\n").upper()
+        if entered_id == "HELP":
+            break
 
-            if entered_id == "HELP":
-                break
-
-            if entered_id not in ids:
-                raise ValueError(
-                    print("You have entered an invalid ID.")
-                )
-
-        except ValueError:
-            print("Please make sure to enter your Employee ID.\n")
-
-        else:
-            return validate_pw(entered_id)
+        if validations.validate_id(entered_id):
+            request_pw(entered_id)
             break
 
 
-def validate_pw(id):
-    """Run when the user input a valid Employee ID.
-    Request Password and validate it against Google sheet.
+def request_pw(id):
+    """Request Password and validate the user input.
+    Run a while loop until the user types a correct password.
 
     Args:
-        :id str: Employee ID that was used to log in.
-
-    Raises:
-        ValueError: If the input password is incorrect.
+        :id str: Employee ID that was entered to log in.
     """
-    password = credentials.Credentials().pw(id)
     while True:
-        try:
-            entered_password = stdiomask.getpass(prompt="\nPassword:\n")
-            verify = pbkdf2_sha256.verify(entered_password, password)
-
-            if not verify:
-                raise ValueError(
-                    print("You have entered an incorrect password.")
-                )
-
-        except ValueError:
-            print("Please try again.")
-
-        else:
+        password = stdiomask.getpass(prompt="\nPassword:\n")
+        is_valid = validations.validate_pw(id, password)
+        if is_valid:
             if id == "ADMIN":
                 pass
             else:
                 title.title_employee(id)
                 employee_menu(id)
-            break
+                break
 
 
 def employee_menu(id):
-    """Run a while loop to get a valid input value from the user.
+    """Request a number between 1 and 7, the numbered options.
+    Run a while loop until the user inputs a valid number.
 
     Args:
         :id str: Employee ID that was used to log in.
@@ -89,7 +61,7 @@ def employee_menu(id):
     while True:
         menu.employee_menu()
         choice = input("\nPlease enter a number to continue:\n")
-        if validate_choice(choice, range(1, 8)):
+        if validations.validate_choice_number(choice, range(1, 8)):
             break
 
     if choice == "1":
@@ -106,30 +78,6 @@ def employee_menu(id):
         cancel_absence(id)
     else:
         pass
-
-
-def validate_choice(number, options):
-    """Inside the try, convert string value into integer
-    and raise ValueError when the value is out of range.
-
-    Args:
-        :number str: The user input
-        :options list: The number of options
-
-    Raises:
-        ValueError: If the input type is not a digit,
-                    or the input value is out of range.
-    """
-    try:
-        choice = int(number)
-        if choice not in options:
-            raise ValueError()
-    except ValueError:
-        print(f"You have entered {number}.")
-        print("Please enter a correct number.")
-        return False
-    else:
-        return True
 
 
 def clock_in(id):
@@ -154,6 +102,8 @@ def clock_in(id):
             print(f"To update time, please contact your manager.")
         else:
             clocked_in_at = clocking["start_time"]
+            print(f"\nYou already clocked in for today at {clocked_in_at}.")
+            print(f"Would you like to overwrite it?")
             is_overwrite = check_for_clockin_overwrite(clocked_in_at)
             if is_overwrite == "Y":
                 clock_sheet.update_clock_in(clock_in_at)
@@ -171,29 +121,15 @@ def clock_in(id):
     employee_menu(id)
 
 
-def check_for_clockin_overwrite(clocked_in):
+def check_for_clockin_overwrite():
     """Run when there is clock in data already.
     Return the user answer.
-
-    Args:
-        :clocked_in str: The clocked in time
     """
-    message = f"Enter {Fore.GREEN}y {Style.RESET_ALL}to overwrite "
-    message += f"or {Fore.GREEN}n {Style.RESET_ALL}to go back to menu."
-    print(f"You have already clocked in for today at {clocked_in}.")
-    print(f"Would you like to overwrite it?")
-    print(message)
     while True:
-        try:
-            answer = input("Please enter your answer here:\n").upper()
-            answers = ["Y", "N"]
-            if answer not in answers:
-                raise ValueError(
-                    print(f"Your answer is invalid: {answer}.")
-                )
-        except ValueError:
-            print(message)
-        else:
+        print(f"Enter {Fore.GREEN}y {Style.RESET_ALL}to overwrite",
+              f"or {Fore.GREEN}n {Style.RESET_ALL}to go back to the menu.")
+        answer = input("\nPlease enter your answer here:\n").upper()
+        if validations.validate_choice_yesno(answer):
             return answer
 
 
@@ -241,20 +177,25 @@ def display_clock_card(id):
     Args:
         :id str: Employee ID that was used to log in.
     """
-    print("Clock cards display from Sunday to Saturday.")
-    tables.display_clock_card(id)
+    clock_sheet = clockings.Clockings(id)
+    if clock_sheet.get_week_clockings():
+        print("Your Clock card for this week.")
+        print("Clock cards display from Sunday to Saturday.")
+        tables.display_clock_card(id)
+    else:
+        print("No data found for this week.")
     while True:
-        print("If you would like to review other days,",
-              "Please enter the date that you want to review.")
+        print("\nIf you would like to review other days,",
+              "please enter the date that you want to review.")
         print("The date should be in the following format:",
               f"{Fore.GREEN}Day/Month/Year")
         print(f"For example, {Fore.GREEN}01/12/2021",
               "for the 1st of December 2021.")
         entered_date = input("Please enter the date here:\n")
-        if validate_date_input(entered_date):
+        if validations.validate_date(entered_date):
             break
 
-    if clockings.Clockings(id).get_week_clockings(entered_date):
+    if clock_sheet.get_week_clockings(entered_date):
         tables.display_clock_card(id, entered_date)
     else:
         print(f"No data found for the week of {entered_date}.")
@@ -263,29 +204,6 @@ def display_clock_card(id):
     print("Going back to the menu...")
     time.sleep(2)
     employee_menu(id)
-
-
-def validate_date_input(input_date):
-    """Inside the try, split the values and convert them into integers
-    and validate against a datetime method.
-
-    Args:
-        :input_date str: The input date
-
-    Raises:
-        ValueError: If the date is invalid.
-        IndexError: If "/" is not used to separate the year, month and date.
-    """
-    try:
-        result = utility.convert_date(input_date)
-    except ValueError:
-        print("Please provide the date with the correct format.")
-        return False
-    except IndexError:
-        print("Please provide the date with the correct format.")
-        return False
-    else:
-        return result
 
 
 def display_entitlements(id):
@@ -328,34 +246,33 @@ def book_absence(id):
                   "to complete the request.")
             print("Please select a different option or",
                   "contact your manager.")
-            absence_type = check_absence_type()
-        absence_start = check_absence_start_date(absence_type)
+        fromdate = check_absence_start_date(absence_type)
         request_id = requests.Requests().generate_req_id()
         today = utility.get_current_datetime()["date"]
-        data = [request_id, id, absence_start, today, "/", "False"]
+        data = [request_id, id, fromdate, today, "/", "False"]
         request_days = ""
         if absence_type == "4":
-            absence_end = check_absence_end_date(absence_start, unallocated)
+            todate = check_absence_end_date(fromdate, unallocated)
         print(f"\n{Fore.GREEN}Your request for absence ", end="")
         if absence_type == "4":
-            days = validate_days(absence_start, absence_end, unallocated)
+            days = validations.validate_days(fromdate, todate, unallocated)
             request_days = days
-            data[3:3] = [absence_end, "", "", days]
-            print(f"{Fore.GREEN}from {absence_start} to {absence_end}", end="")
+            data[3:3] = [todate, "", "", days]
+            print(f"{Fore.GREEN}from {fromdate} to {todate}", end="")
         elif absence_type == "3":
             request_days = "1"
-            data[3:3] = [absence_start, "", "", request_days]
-            print(f"{Fore.GREEN}on {absence_start}", end="")
+            data[3:3] = [fromdate, "", "", request_days]
+            print(f"{Fore.GREEN}on {fromdate}", end="")
         else:
             request_time = ""
             request_days = "0.5"
             if absence_type == "1":
-                data[3:3] = [absence_start, "9:30", "13:30", request_days]
+                data[3:3] = [fromdate, "9:30", "13:30", request_days]
                 request_time = morning
             else:
-                data[3:3] = [absence_start, "13:30", "17:30", request_days]
+                data[3:3] = [fromdate, "13:30", "17:30", request_days]
                 request_time = afternoon
-            print(f"{Fore.GREEN}on {absence_start} at {request_time}", end="")
+            print(f"{Fore.GREEN}on {fromdate} at {request_time}", end="")
 
     requests.Requests().add_request(data)
     add_pto_pending_hours(id, request_days)
@@ -378,7 +295,7 @@ def check_absence_type():
         print(f"{Fore.GREEN}3{Style.RESET_ALL} Full day")
         print(f"{Fore.GREEN}4{Style.RESET_ALL} More than 2 consecutive days")
         absence_type = input("\nPlease enter a number to continue:\n")
-        if validate_choice(absence_type, range(1, 5)):
+        if validations.validate_choice_number(absence_type, range(1, 5)):
             return absence_type
 
 
@@ -399,9 +316,10 @@ def check_absence_start_date(absence_type):
         print(f"For example, {Fore.GREEN}01/12/2021",
               "for the 1st of December 2021.")
         start_date = input("Please enter the date to continue:\n")
-        if validate_date_input(start_date):
-            request_date = validate_date_input(start_date)
+        if validations.validate_date(start_date):
+            request_date = validations.validate_date(start_date)
             today = utility.get_current_datetime()["date"]
+            today = utility.convert_date(today)
             if (request_date - today).days <= 0:
                 print("\nPlease note holidays must be booked in advance.")
                 print("If you would like to submit absence in the past,",
@@ -424,51 +342,9 @@ def check_absence_end_date(start_date, unallocated):
         print(f"For example, {Fore.GREEN}01/12/2021",
               "for the 1st of December 2021.")
         end_date = input("Please enter the date to continue:\n")
-        if validate_date_input(end_date):
-            if validate_days(start_date, end_date, unallocated):
+        if validations.validate_date(end_date):
+            if validations.validate_days(start_date, end_date, unallocated):
                 return end_date
-
-
-def validate_days(date1, date2, unallocated):
-    """Calculate the absence request days and hours.
-
-    Args:
-        :date1: The absence start date
-        :date2: The absence end date
-        :unallocated: Total available hours
-
-    Raises:
-        ValueError: If request hours are exceed the unallocated hours
-                    or the end date is before start date.
-    """
-    try:
-        start_date = validate_date_input(date1)
-        end_date = validate_date_input(date2)
-        num_of_days = (end_date - start_date).days + 1
-        weekend = 0
-        if num_of_days > 5:
-            if num_of_days % 7 == 6:
-                weekend = (num_of_days - num_of_days % 7) / 7 * 2 + 1
-            else:
-                weekend = (num_of_days - num_of_days % 7) / 7 * 2
-        num_of_days -= int(weekend)
-        num_of_hours = 8 * num_of_days
-        if num_of_hours > float(unallocated):
-            raise ValueError(
-                print("Unable to complete the request.\n",
-                      "You have unsufficient paid time off available:",
-                      f"{unallocated}hours left.\n",
-                      "Please contact your manager.")
-            )
-        if num_of_hours < 0:
-            raise ValueError(
-                print("Please make sure to enter the start",
-                      "and end date correctly.")
-            )
-    except ValueError:
-        return False
-    else:
-        return num_of_days
 
 
 def add_pto_pending_hours(id, days):
@@ -499,7 +375,7 @@ def cancel_absence(id):
         while True:
             id_list = [int(list[0]) for list in allocated_absences]
             choice = input("\nPlease enter the ID you want to cancel:\n")
-            if validate_choice(choice, id_list):
+            if validations.validate_choice_number(choice, id_list):
                 break
         print("Processing...")
         row_index = int(choice) + 1
@@ -537,4 +413,4 @@ def check_cancellable(id):
         return True
 
 title.title_main()
-validate_id()
+get_employee_id()
