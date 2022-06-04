@@ -2,7 +2,7 @@
 from tabulate import tabulate
 
 # Custom Package
-from worktime.worksheets import clockings, entitlements, requests
+from worktime.worksheets import clockings, employees, entitlements, requests
 
 
 def display_table(headers, table):
@@ -56,4 +56,22 @@ def display_entitlements(id):
     data = entitlements.Entitlements(id).get_entitlements()
     table = [[item for item in data]]
     headers = ["Total Hours", "Taken", "Planned", "Pending", "Unallocated"]
+    display_table(headers, table)
+
+
+def display_new_requests():
+    """Display new absence requests that were not yet approved, nor cancelled."""
+    lists = requests.Requests().get_new_requests()
+    table = []
+    for list in lists:
+        list = list[:7]
+        employee_id = list[1]
+        fname = employees.Employees(employee_id).get_fname()
+        lname = employees.Employees(employee_id).get_lname()
+        fullname = f"{fname} {lname}"
+        list[1] = fullname
+        list[-1] = f"{list[-1]} Day(s)"
+        table.append(list)
+    headers = (["ID", "Name", "Start Date", "End Date",
+                "Start\nTime", "End\nTime", "Duration"])
     display_table(headers, table)
