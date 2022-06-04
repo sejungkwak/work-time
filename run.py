@@ -8,7 +8,7 @@ import stdiomask
 # Custom Packages
 from worktime.worksheets import (auth, clockings, credentials,
                                  entitlements, requests)
-from worktime.app import tables, menu, title, utility, validations
+from worktime.app import admin, tables, menu, title, utility, validations
 
 # colorama method to enable it on Windows
 init(autoreset=True)
@@ -22,7 +22,7 @@ def get_employee_id():
         print("Please enter your Employee ID.")
         print("To contact the system administrator, enter",
               f"{Fore.GREEN}help{Style.RESET_ALL} instead.")
-        entered_id = input("\nEmployee ID:\n").upper()
+        entered_id = input("\nEmployee ID:\n").upper().strip()
 
         if entered_id == "HELP":
             break
@@ -34,17 +34,21 @@ def get_employee_id():
 
 def request_pw(id):
     """Request Password and validate the user input.
-    Run a while loop until the user types a correct password.
+    Run a while loop until the user types "help" or a correct password.
 
     Args:
         :id str: Employee ID that was entered to log in.
     """
     while True:
         password = stdiomask.getpass(prompt="\nPassword:\n")
+        if password.upper() == "HELP":
+            break
+
         is_valid = validations.validate_pw(id, password)
         if is_valid:
             if id == "ADMIN":
-                pass
+                admin.admin_main()
+                break
             else:
                 title.title_employee(id)
                 employee_menu(id)
@@ -60,7 +64,7 @@ def employee_menu(id):
     """
     while True:
         menu.employee_menu()
-        choice = input("\nPlease enter a number to continue:\n")
+        choice = input("\nPlease enter a number to continue:\n").strip()
         if validations.validate_choice_number(choice, range(1, 8)):
             break
 
@@ -128,7 +132,7 @@ def check_for_clockin_overwrite():
     while True:
         print(f"Enter {Fore.GREEN}y {Style.RESET_ALL}to overwrite",
               f"or {Fore.GREEN}n {Style.RESET_ALL}to go back to the menu.")
-        answer = input("\nPlease enter your answer here:\n").upper()
+        answer = input("\nPlease enter your answer here:\n").upper().strip()
         if validations.validate_choice_yesno(answer):
             return answer
 
@@ -191,7 +195,7 @@ def display_clock_card(id):
               f"{Fore.GREEN}Day/Month/Year")
         print(f"For example, {Fore.GREEN}01/12/2021",
               "for the 1st of December 2021.")
-        entered_date = input("Please enter the date here:\n")
+        entered_date = input("Please enter the date here:\n").strip()
         if validations.validate_date(entered_date):
             break
 
@@ -246,13 +250,13 @@ def book_absence(id):
                   "to complete the request.")
             print("Please select a different option or",
                   "contact your manager.")
-        fromdate = check_absence_start_date(absence_type)
+        fromdate = get_absence_start_date(absence_type)
         request_id = requests.Requests().generate_req_id()
         today = utility.get_current_datetime()["date"]
         data = [request_id, id, fromdate, today, "/", "False"]
         request_days = ""
         if absence_type == "4":
-            todate = check_absence_end_date(fromdate, unallocated)
+            todate = get_absence_end_date(fromdate, unallocated)
         print(f"\n{Fore.GREEN}Your request for absence ", end="")
         if absence_type == "4":
             days = validations.validate_days(fromdate, todate, unallocated)
@@ -294,12 +298,12 @@ def check_absence_type():
         print(f"{Fore.GREEN}2{Style.RESET_ALL} {afternoon}")
         print(f"{Fore.GREEN}3{Style.RESET_ALL} Full day")
         print(f"{Fore.GREEN}4{Style.RESET_ALL} More than 2 consecutive days")
-        absence_type = input("\nPlease enter a number to continue:\n")
+        absence_type = input("\nPlease enter a number to continue:\n").strip()
         if validations.validate_choice_number(absence_type, range(1, 5)):
             return absence_type
 
 
-def check_absence_start_date(absence_type):
+def get_absence_start_date(absence_type):
     """Ask user to input the absence (start) date.
 
     Args:
@@ -315,20 +319,27 @@ def check_absence_start_date(absence_type):
               f"{Fore.GREEN}Day/Month/Year")
         print(f"For example, {Fore.GREEN}01/12/2021",
               "for the 1st of December 2021.")
-        start_date = input("Please enter the date to continue:\n")
+        start_date = input("Please enter the date to continue:\n").strip()
         if validations.validate_date(start_date):
             request_date = validations.validate_date(start_date)
             today = utility.get_current_datetime()["date"]
             today = utility.convert_date(today)
+            request_year = request_date.year
+            this_year = int(utility.get_current_datetime()["year"])
             if (request_date - today).days <= 0:
-                print("\nPlease note holidays must be booked in advance.")
-                print("If you would like to submit absence in the past,",
-                      "please contact your manager.")
+                print(f"{Fore.YELLOW}\nPlease note holidays must be",
+                      f"{Fore.YELLOW}booked in advance.")
+                print(f"{Fore.YELLOW}If you would like to submit absence in",
+                      f"{Fore.YELLOW}the past, please contact your manager.")
+            elif request_year != this_year:
+                print(f"{Fore.YELLOW}\nUnable to process your request.")
+                print(f"{Fore.YELLOW}Absence entitlements must be",
+                      f"{Fore.YELLOW}taken within the leave year.")
             else:
                 return start_date
 
 
-def check_absence_end_date(start_date, unallocated):
+def get_absence_end_date(start_date, unallocated):
     """Ask user to input absence end date if they are booking 2+ days.
 
     Args:
@@ -341,7 +352,7 @@ def check_absence_end_date(start_date, unallocated):
               f"{Fore.GREEN}Day/Month/Year")
         print(f"For example, {Fore.GREEN}01/12/2021",
               "for the 1st of December 2021.")
-        end_date = input("Please enter the date to continue:\n")
+        end_date = input("Please enter the date to continue:\n").strip()
         if validations.validate_date(end_date):
             if validations.validate_days(start_date, end_date, unallocated):
                 return end_date
@@ -374,7 +385,8 @@ def cancel_absence(id):
         tables.display_allocated_absences(id)
         while True:
             id_list = [int(list[0]) for list in allocated_absences]
-            choice = input("\nPlease enter the ID you want to cancel:\n")
+            print("\n")
+            choice = input("Please enter the ID you want to cancel:\n").strip()
             if validations.validate_choice_number(choice, id_list):
                 break
         print("Processing...")
