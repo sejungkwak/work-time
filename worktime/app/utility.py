@@ -38,7 +38,7 @@ def get_week(xdate, result):
     # Source: ALFAFA's answer on Stack Overflow
     # https://stackoverflow.com/questions/56163008
     week = xdate.isocalendar()[2]
-    start = xdate - timedelta(days=week)
+    start = xdate - timedelta(days=week-1)
     dates = []
     if result == "weekdays":
         for day in range(1, 6):
