@@ -25,14 +25,15 @@ def admin_main():
             break
 
     if choice == "1":
-        render_requests()
+        display_requests()
     elif choice == "2":
-        render_attendance()
+        display_attendance()
     elif choice == "3":
         pass
     else:
         title.title_end()
         sys.exit()
+
 
 def requests_notification_message():
     """Check if there are new requests and display the result."""
@@ -44,7 +45,7 @@ def requests_notification_message():
         print("\nThere are no more requests to review right now.")
 
 
-def render_requests():
+def display_requests():
     """Display new requests and ask the user to choose a number."""
     requests_notification_message()
     new_requests = requests.Requests().get_new_requests()
@@ -115,19 +116,61 @@ def get_employee_id(request_id):
             return employee_id
 
 
-def render_attendance():
-    """Check if there is any clock in/out data from the worksheet and 
-    call display_clock_card to display the data.
+def display_attendance():
+    """Display the current week's clock cards and then ask if they want to
+    review other weeks. Run a while loop until they input a valid answer.
     """
+
+    print("Getting this week's clock cards data...")
+    if get_clock_cards():
+        print("Clock cards display from Monday to Sunday.")
+
+    while True:
+        print("\nIf you would like to review other weeks,",
+              "please enter the date that you want to review.")
+        print("The date should be in the following format:",
+              f"{Fore.GREEN}Day/Month/Year")
+        print(f"For example, {Fore.GREEN}01/12/2021",
+              "for the 1st of December 2021.")
+        print(f"To go back to the menu, type {Fore.GREEN}menu",
+              f"and to quite the system, type {Fore.GREEN}quit.")
+        answer = input("Please enter the date here:\n").strip()
+        utility.clear()
+        if answer.upper() == "MENU":
+            admin_main()
+            break
+        elif answer.upper() == "QUIT":
+            title.title_end()
+            sys.exit()
+        else:
+            if validations.validate_date(answer):
+                get_clock_cards(answer)
+
+
+def get_clock_cards(date=None):
+    """Check if there is any clock in/out data for the week of
+    the passed date and display it.
+
+    Args:
+        :date str: A DD/MM/YYYY formatted date.
+
+    Retruns:
+        bool: True if there are clock cards, False otherwise.
+    """
+    today = utility.get_current_datetime()["date"]
+    date = today if date is None else date
+
     all_ees = employees.Employees()
     ee_ids = [ee[0] for ee in all_ees.employees]
-    print("Clock cards display from Monday to Sunday.")
+    data = False
     for ee_id in ee_ids:
         clock_sheet = clockings.Clockings(ee_id)
-        if clock_sheet.get_week_clockings():
-            tables.display_clock_card(ee_id)
+        if clock_sheet.get_week_clockings(date):
+            tables.display_clock_card(ee_id, date)
+            data = True
         else:
-            print(f"No data found for this week for {ee_id}.")
+            print(f"No data found for {ee_id}.")
+    return data
 
 
 def next_move():
