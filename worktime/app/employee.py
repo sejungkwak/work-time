@@ -141,8 +141,8 @@ def display_clock_card(id):
     """
     clock_sheet = clockings.Clockings(id)
     if clock_sheet.get_week_clockings():
-        print("Your Clock card for this week.")
-        print("Clock cards display from Sunday to Saturday.")
+        print("Your clock card for this week.")
+        print("Clock cards display from Monday to Sunday.")
         tables.display_clock_card(id)
     else:
         print("No data found for this week.")
