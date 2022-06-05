@@ -29,7 +29,7 @@ def admin_main():
     elif choice == "2":
         display_attendance()
     elif choice == "3":
-        pass
+        add_absence()
     else:
         title.title_end()
         sys.exit()
@@ -120,7 +120,6 @@ def display_attendance():
     """Display the current week's clock cards and then ask if they want to
     review other weeks. Run a while loop until they input a valid answer.
     """
-
     print("Getting this week's clock cards data...")
     if get_clock_cards():
         print("Clock cards display from Monday to Sunday.")
@@ -171,6 +170,89 @@ def get_clock_cards(date=None):
         else:
             print(f"No data found for {ee_id}.")
     return data
+
+
+def add_absence():
+    """Get an employee ID, duration, start date and end date from the user
+    and update data to worksheet.
+    """
+    ee_id = get_ee_id()
+    pto_hours = check_pto_hours()
+    absence_type = get_absence_type()
+    if absence_type == "1":
+        pass
+    absence_duration = get_absence_duration()
+    start_date = get_absence_start_date()
+    if absence_duration == "4":
+        end_date = get_absence_end_date()
+
+
+def get_ee_id():
+    """Run a while loop until the user inputs a valid employee ID,
+    "menu" or "quit".
+
+    Returns:
+        str: A valid employee ID.
+    """
+    while True:
+        print("Enter an employee ID that you want to add absence.")
+        ee_id = input("Please enter here:\n").upper().strip()
+        if ee_id == "MENU":
+            admin_main()
+            break
+        elif ee_id == "QUIT":
+            title.title_end()
+            sys.exit()
+        elif validations.validate_id(ee_id):
+            return ee_id
+
+
+def get_absence_type():
+    """Run a while loop until the user inputs a valid digit,
+    "menu" or "quit".
+
+    Returns:
+        str: A digit - 1. paid time off 2. unpaid
+    """
+
+
+def get_absence_duration():
+    """Run a while loop until the user inputs a valid digit,
+    "menu" or "quit".
+
+    Returns:
+        str: A digit - 1. morning, 2. afternoon, 3. full day, 4. 2+ days
+    """
+    pass
+
+
+def get_absence_start_date():
+    """Run while loop until the user inputs a valid date,
+    "menu" or "quit".
+
+    Returns:
+        str: A date.
+    """
+    pass
+
+
+def get_absence_end_date():
+    """Run a while loop until the user inputs a valid data,
+    "menu" or "quit".
+
+    Returns:
+        str: A date.
+    """
+    pass
+
+
+def check_pto_hours():
+    """Check unallocated hours from entitlements worksheet.
+
+    Returns:
+        str: A digit - unallocated absence entitlements.
+    """
+    pass
 
 
 def next_move():
