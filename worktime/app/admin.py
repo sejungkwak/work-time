@@ -6,7 +6,7 @@ from colorama import init, Fore, Style
 
 # Custom Package
 from worktime.app import menu, tables, title, utility, validations
-from worktime.worksheets import employees, entitlements, requests
+from worktime.worksheets import clockings, employees, entitlements, requests
 
 # colorama method to enable it on Windows
 init(autoreset=True)
@@ -25,14 +25,14 @@ def admin_main():
             break
 
     if choice == "1":
-        review_requests()
+        render_requests()
     elif choice == "2":
-        pass
+        render_attendance()
     elif choice == "3":
         pass
     else:
-        pass
-
+        title.title_end()
+        sys.exit()
 
 def requests_notification_message():
     """Check if there are new requests and display the result."""
@@ -44,7 +44,7 @@ def requests_notification_message():
         print("\nThere are no more requests to review right now.")
 
 
-def review_requests():
+def render_requests():
     """Display new requests and ask the user to choose a number."""
     requests_notification_message()
     new_requests = requests.Requests().get_new_requests()
@@ -113,6 +113,21 @@ def get_employee_id(request_id):
         if request_id == request[0]:
             employee_id = request[1]
             return employee_id
+
+
+def render_attendance():
+    """Check if there is any clock in/out data from the worksheet and 
+    call display_clock_card to display the data.
+    """
+    all_ees = employees.Employees()
+    ee_ids = [ee[0] for ee in all_ees.employees]
+    print("Clock cards display from Monday to Sunday.")
+    for ee_id in ee_ids:
+        clock_sheet = clockings.Clockings(ee_id)
+        if clock_sheet.get_week_clockings():
+            tables.display_clock_card(ee_id)
+        else:
+            print(f"No data found for this week for {ee_id}.")
 
 
 def next_move():
