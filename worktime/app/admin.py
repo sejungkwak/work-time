@@ -203,6 +203,9 @@ def get_ee_id():
         elif ee_id == "QUIT":
             title.title_end()
             sys.exit()
+        elif ee_id == "ADMIN":
+            print("Unable to amend ADMIN data.\n")
+            continue
         elif validations.validate_id(ee_id):
             return ee_id
 
@@ -236,7 +239,17 @@ def get_absence_duration():
     Returns:
         str: A digit - 1. morning, 2. afternoon, 3. full day, 4. 2+ days
     """
-    pass
+    morning = "9:30AM-1:30PM"
+    afternoon = "1:30PM-5:30PM"
+    while True:
+        print("\nPlease select a duration of the absence.\n")
+        print(f"{Fore.GREEN}1{Style.RESET_ALL} {morning}")
+        print(f"{Fore.GREEN}2{Style.RESET_ALL} {afternoon}")
+        print(f"{Fore.GREEN}3{Style.RESET_ALL} Full day")
+        print(f"{Fore.GREEN}4{Style.RESET_ALL} More than 2 consecutive days")
+        choice = input("\nPlease enter a number to continue:\n").strip()
+        if validations.validate_choice_number(choice, range(1, 5)):
+            return choice
 
 
 def get_absence_start_date():
