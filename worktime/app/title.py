@@ -1,15 +1,30 @@
-# Third-party Package
-from art import *
+# Built-in Modules
+import time
 
 # Custom Package
 from worktime.app import utility
 from worktime.worksheets.employees import Employees
 
+portal = """
+                ██████   ██████  ██████  ████████  █████  ██
+                ██   ██ ██    ██ ██   ██    ██    ██   ██ ██
+                ██████  ██    ██ ██████     ██    ███████ ██
+                ██      ██    ██ ██   ██    ██    ██   ██ ██
+                ██       ██████  ██   ██    ██    ██   ██ ███████
+"""
+
 
 def title_main():
     """Display the application name at the start of the system."""
     utility.clear()
-    tprint("Work Time".center(29), font="tarty7")
+    print("""
+ ██████████████████████████████████████████████████████████████████████████████
+ ███  █████  ██      ██      ██  ███  █████        █  █   ████   █       ██████
+ ███  █████  █  ████  █  ███  █  ██  █████████  ████  █    ██    █  ███████████
+ ███  ██ ██  █  ████  █      ██     ██████████  ████  █  █    █  █     ████████
+ ███  █   █  █  ████  █  ███  █  ██  █████████  ████  █  ██  ██  █  ███████████
+ ▀▀▀▀▄▄▄▀▄▄▄▀▀▀▄▄▄▄▄▄▀▀▄▄▀▀▀▄▄▀▄▄▀▀▀▄▄▀▀▀▀▀▀▀▀▄▄▀▀▀▀▄▄▀▄▄▀▀▀▀▀▀▄▄▀▄▄▄▄▄▄▄▀▀▀▀▀▀
+    """)
     print("\n" + "Time Management System".center(80))
     print("\n" + "="*80 + "\n")
 
@@ -22,21 +37,43 @@ def title_employee(id):
     """
     utility.clear()
     fname = Employees(id).get_fname()
-    tprint("Employee Portal".center(18), font="rectangles")
+    print("""
+      ███████ ███    ███ ██████  ██       ██████  ██    ██ ███████ ███████
+      ██      ████  ████ ██   ██ ██      ██    ██  ██  ██  ██      ██
+      █████   ██ ████ ██ ██████  ██      ██    ██   ████   █████   █████
+      ██      ██  ██  ██ ██      ██      ██    ██    ██    ██      ██
+      ███████ ██      ██ ██      ███████  ██████     ██    ███████ ███████
+    """)
+    print(portal)
     print(f"Welcome back, {fname}!".center(80))
     print("\n" + "="*80)
+    time.sleep(2)
 
 
 def title_admin():
     """Display the title and welcome message for the admin portal."""
     utility.clear()
-    tprint("Admin Portal".center(24), font="rectangles")
+    print("""
+                     █████  ██████  ███    ███ ██ ███    ██
+                    ██   ██ ██   ██ ████  ████ ██ ████   ██
+                    ███████ ██   ██ ██ ████ ██ ██ ██ ██  ██
+                    ██   ██ ██   ██ ██  ██  ██ ██ ██  ██ ██
+                    ██   ██ ██████  ██      ██ ██ ██   ████
+    """)
+    print(portal)
     print("Welcome back!".center(80))
     print("\n" + "="*80)
+    time.sleep(2)
 
 
 def title_end():
     """Display an end of the system title."""
     utility.clear()
-    print("\n"*5)
-    tprint("Thank You!".center(25), font="rectangles")
+    print("\n"*8)
+    print("""
+        ██████   ██████   ██████  ██████      ██████  ██    ██ ███████ ██
+       ██       ██    ██ ██    ██ ██   ██     ██   ██  ██  ██  ██      ██
+       ██   ███ ██    ██ ██    ██ ██   ██     ██████    ████   █████   ██
+       ██    ██ ██    ██ ██    ██ ██   ██     ██   ██    ██    ██
+        ██████   ██████   ██████  ██████      ██████     ██    ███████ ██
+    """)
