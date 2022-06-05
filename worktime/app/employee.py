@@ -12,7 +12,7 @@ from worktime.app import menu, tables, title, utility, validations
 init(autoreset=True)
 
 
-def employee_menu(id):
+def employee_main(id):
     """Request a number between 1 and 7, the numbered options.
     Run a while loop until the user inputs a valid number.
 
@@ -77,7 +77,7 @@ def clock_in(id):
     sequence = next_move()
     utility.clear()
     if sequence == "MENU":
-        employee_menu(id)
+        employee_main(id)
     else:
         title.title_end()
         sys.exit()
@@ -89,7 +89,7 @@ def check_for_clockin_overwrite():
     """
     while True:
         print(f"Enter {Fore.GREEN}y {Style.RESET_ALL}to overwrite",
-              f"or {Fore.GREEN}n {Style.RESET_ALL}to go back to the menu.")
+              f"or {Fore.GREEN}n {Style.RESET_ALL}to not overwrite.")
         answer = input("\nPlease enter your answer here:\n").upper().strip()
         if validations.validate_choice_letter(answer, ["Y", "N"]):
             return answer
@@ -126,7 +126,7 @@ def clock_out(id):
     sequence = next_move()
     utility.clear()
     if sequence == "MENU":
-        employee_menu(id)
+        employee_main(id)
     else:
         title.title_end()
         sys.exit()
@@ -164,7 +164,7 @@ def display_clock_card(id):
     sequence = next_move()
     utility.clear()
     if sequence == "MENU":
-        employee_menu(id)
+        employee_main(id)
     else:
         title.title_end()
         sys.exit()
@@ -183,7 +183,7 @@ def display_entitlements(id):
     sequence = next_move()
     utility.clear()
     if sequence == "MENU":
-        employee_menu(id)
+        employee_main(id)
     else:
         title.title_end()
         sys.exit()
@@ -246,7 +246,7 @@ def book_absence(id):
     sequence = next_move()
     utility.clear()
     if sequence == "MENU":
-        employee_menu(id)
+        employee_main(id)
     else:
         title.title_end()
         sys.exit()
@@ -370,7 +370,7 @@ def cancel_absence(id):
     sequence = next_move()
     utility.clear()
     if sequence == "MENU":
-        employee_menu(id)
+        employee_main(id)
     else:
         title.title_end()
         sys.exit()

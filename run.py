@@ -49,7 +49,7 @@ def request_pw(id):
                 break
             else:
                 title.title_employee(id)
-                employee.employee_menu(id)
+                employee.employee_main(id)
                 break
 
 if __name__ == "__main__":
