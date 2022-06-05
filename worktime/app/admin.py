@@ -1,8 +1,11 @@
+# Built-in Modules
+import sys
+
 # Third-party Packages
 from colorama import init, Fore, Style
 
 # Custom Package
-from worktime.app import menu, tables, title, validations
+from worktime.app import menu, tables, title, utility, validations
 from worktime.worksheets import employees, entitlements, requests
 
 # colorama method to enable it on Windows
@@ -38,7 +41,7 @@ def requests_notification_message():
         print(f"\n{Fore.GREEN}You have",
               f"{Fore.GREEN}{len(new_requests)} request(s) to review.")
     else:
-        print("\nThere is no requests to review at the moment.")
+        print("\nThere are no more requests to review right now.")
 
 
 def review_requests():
@@ -71,6 +74,14 @@ def review_requests():
             entitlements_sheet.update_hours("planned", hours, "add")
         else:
             entitlements_sheet.update_hours("unallocated", hours, "add")
+        print("Data has been updated successfully.")
+    sequence = next_move()
+    utility.clear()
+    if sequence == "MENU":
+        admin_main()
+    else:
+        title.title_end()
+        sys.exit()
 
 
 def get_action_type():
@@ -102,3 +113,15 @@ def get_employee_id(request_id):
         if request_id == request[0]:
             employee_id = request[1]
             return employee_id
+
+
+def next_move():
+    """Ask the user if they want to go back to the menu or quit.
+    Run a while loop until the user inputs a valid answer.
+    """
+    while True:
+        print(f"Type {Fore.GREEN}menu{Style.RESET_ALL} to go back to the menu",
+              f"or {Fore.GREEN}quit{Style.RESET_ALL} to quite the system.")
+        choice = input("\nPlease enter your answer here:\n").upper().strip()
+        if validations.validate_choice_letter(choice, ["MENU", "QUIT"]):
+            return choice
