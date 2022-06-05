@@ -214,6 +214,19 @@ def get_absence_type():
     Returns:
         str: A digit - 1. paid time off 2. unpaid
     """
+    while True:
+        print("\nPlease select an absence type.\n")
+        print(f"{Fore.GREEN}1{Style.RESET_ALL} Paid Time OFF")
+        print(f"{Fore.GREEN}2{Style.RESET_ALL} Unpaid Time OFF")
+        absence_type = input("\nPlease enter here:\n").strip()
+        if absence_type.upper() == "MENU":
+            admin_main()
+            break
+        elif absence_type.upper() == "QUIT":
+            title.title_end()
+            sys.exit()
+        elif validations.validate_choice_number(absence_type, range(1, 3)):
+            return absence_type
 
 
 def get_absence_duration():
