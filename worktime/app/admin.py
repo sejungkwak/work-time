@@ -87,6 +87,7 @@ def get_request_id():
     Returns:
         str: User input value - Request ID.
     """
+    new_request = requests.Requests().get_new_requests()
     while True:
         id_list = [int(list[0]) for list in new_request]
         print(f"\nEnter the {Fore.GREEN}request ID",
