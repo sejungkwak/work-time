@@ -48,13 +48,13 @@ def get_week(xdate, result):
     # Source: ALFAFA's answer on Stack Overflow
     # https://stackoverflow.com/questions/56163008
     week = xdate.isocalendar()[2]
-    start = xdate - timedelta(days=week-1)
+    start = xdate - timedelta(days=week)
     dates = []
     if result == "weekdays":
         for day in range(1, 6):
             dates.append((start + timedelta(days=day)).strftime("%d/%m/%Y"))
     else:
-        for day in range(7):
+        for day in range(1, 8):
             dates.append((start + timedelta(days=day)).strftime("%d/%m/%Y"))
     return dates
 
@@ -64,7 +64,7 @@ def convert_date(xdate):
     year, month and date, and then pass them to date() object.
 
     Args:
-        xdate str: A day/month/year formatted date.
+        xdate str: A date - DD/MM/YYYY.
 
     Returns:
         date: An instans of datetime.date().
@@ -80,14 +80,16 @@ def get_num_of_weekdays(date1, date2):
     """Calculate total number of weekdays between two dates.
 
     Args:
-        date1 date: Start date - An instance of datetime.date().
-        date2 date: End date - An instance of datetime.date().
+        date1 str: Start date - DD/MM/YYYY.
+        date2 str: End date - DD/MM/YYYY.
 
     Returns:
         int: Total number of weekdays.
     """
     # Source: Dave Webb's answer on Stack Overflow
     # https://stackoverflow.com/questions/3615375
+    date1 = convert_date(date1)
+    date2 = convert_date(date2)
     days = (date1 + timedelta(n) for n in range((date2 - date1).days + 1))
     total_weekdays = sum(1 for day in days if day.weekday() < 5)
     return total_weekdays

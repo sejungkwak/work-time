@@ -7,10 +7,11 @@ from worktime.worksheets import credentials
 
 
 def validate_id(id):
-    """Retrieve a list of IDs and check if the given ID is on the list.
+    """In the try block, retrieve a list of IDs and
+    check if the given ID is on the list.
 
     Args:
-        :id str: An employee ID.
+        id str: An employee ID.
 
     Returns:
         bool: True if successful, False otherwise.
@@ -30,11 +31,12 @@ def validate_id(id):
 
 
 def validate_pw(id, entered_pw):
-    """Retrieve the password for the id and check if the given password is correct.
+    """In the try block, retrieve the password for the ID and
+    check if the given password is correct.
 
     Args:
-        :id str: An employee ID.
-        :entered_pw str: A password the user has inputted.
+        id str: An employee ID.
+        entered_pw str: A password the user has inputted.
 
     Returns:
         bool: True if successful, False otherwise.
@@ -55,11 +57,11 @@ def validate_pw(id, entered_pw):
 
 
 def validate_choice_number(choice, numbers):
-    """Convert a string value into an integer.
+    """In the try block, convert a string value into an integer.
 
     Args:
-        :choice str: A number the user has inputted.
-        :numbers list: Numbered options.
+        choice str: A number the user has inputted.
+        numbers list: Numbered options.
 
     Returns:
         bool: True if successful, False otherwise.
@@ -80,11 +82,11 @@ def validate_choice_number(choice, numbers):
 
 
 def validate_choice_letter(choice, choices):
-    """Check if the user entered a valid input.
+    """In the try block, check if the user entered a valid input.
 
     Args:
-        :choice str: A letter the user has inputted.
-        :choices list: A list of options the user needs to choose from.
+        choice str: A letter the user has inputted.
+        choices list: A list of options the user needs to choose from.
 
     Returns:
         bool: True if successful, False otherwise.
@@ -104,15 +106,13 @@ def validate_choice_letter(choice, choices):
 
 
 def validate_date(date):
-    """Pass the argument to the convert_date function.
-    Convert_date splits a string into a list of integers that represent
-    year, month and date, and then pass them to the datetime.date() object.
+    """In the try block, pass the argument to the convert_date function.
 
     Args:
-        :date str: A value the user has entered for the date.
+        date str: A value the user has entered for the date.
 
     Returns:
-        class: A ISO format date if successful.
+        date: A ISO format date if successful.
         bool: False if exceptions raised.
 
     Raises:
@@ -129,13 +129,12 @@ def validate_date(date):
 
 
 def validate_days(date1, date2, unallocated):
-    """Calculate total number of weekdays and check if it is a positive number
-    and greater than unallocated.
+    """In the try block, calculate total number of weekdays between 2 given dates.
 
     Args:
-        :date1: Absence start date
-        :date2: Absence end date
-        :unallocated: Total available hours
+        date1 str: Start date
+        date2 str: End date
+        unallocated: Total available absence hours
 
     Returns:
         int: Total number of weekdays between date1 and date2.
@@ -146,9 +145,7 @@ def validate_days(date1, date2, unallocated):
                     or the end date is before start date.
     """
     try:
-        start_date = utility.convert_date(date1)
-        end_date = utility.convert_date(date2)
-        num_of_days = utility.get_num_of_weekdays(start_date, end_date)
+        num_of_days = utility.get_num_of_weekdays(date1, date2)
         num_of_hours = num_of_days * 8
         if num_of_hours > int(unallocated):
             raise ValueError(
@@ -165,11 +162,11 @@ def validate_days(date1, date2, unallocated):
 
 
 def validate_unpaid_days(date1, date2):
-    """Calculate total number of weekdays.
+    """In the try block, calculate total number of weekdays.
 
     Args:
-        :date1: Absence start date
-        :date2: Absence end date
+        date1 str: Start date
+        date2 str: End date
 
     Returns:
         int: Total number of weekdays between date1 and date2.
@@ -179,9 +176,7 @@ def validate_unpaid_days(date1, date2):
         ValueError: If the end date is before start date.
     """
     try:
-        start_date = utility.convert_date(date1)
-        end_date = utility.convert_date(date2)
-        num_of_days = utility.get_num_of_weekdays(start_date, end_date)
+        num_of_days = utility.get_num_of_weekdays(date1, date2)
         if num_of_days < 0:
             raise ValueError(
                 print("Please make sure to enter the date correctly.")

@@ -320,7 +320,7 @@ def get_absence_end_date(id, start_date):
             sys.exit()
         elif (validations.validate_date(answer) and
               validations.validate_days(start_date, answer, unallocated)):
-            hours = get_num_of_weekdays(start_date, answer) * 8
+            hours = utility.get_num_of_weekdays(start_date, answer) * 8
             add_absence_request(id, start_date, answer, "4")
             add_pending_hours(id, hours)
             break
@@ -347,7 +347,7 @@ def add_absence_request(id, start_date, end_date, duration):
     elif duration == "3":
         data[3:3] = [start_date, "", "", "1"]
     else:
-        days = str(get_num_of_weekdays(start_date, end_date))
+        days = str(utility.get_num_of_weekdays(start_date, end_date))
         data[3:3] = [end_date, "", "", days]
     requests.Requests().add_request(data)
     print("\nYour absence request has been successfully submitted.")
