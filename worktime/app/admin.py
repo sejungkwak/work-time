@@ -20,8 +20,6 @@ def admin_main():
         4. Log Out
     Run a while loop until the user inputs a valid number.
     """
-    title.title_admin()
-    new_request_notification()
     while True:
         menu.admin_menu()
         answer = input("\nPlease enter a number here to continue:\n").strip()

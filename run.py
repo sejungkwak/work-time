@@ -26,16 +26,16 @@ def get_employee_id():
             break
 
         if validations.validate_id(entered_id):
-            request_pw(entered_id)
+            get_pw(entered_id)
             break
 
 
-def request_pw(id):
+def get_pw(id):
     """Request Password and validate the user input.
     Run a while loop until the user types "help" or a correct password.
 
     Args:
-        :id str: Employee ID that was entered to log in.
+        id str: Employee ID that was entered to log in.
     """
     while True:
         password = stdiomask.getpass(prompt="\nPassword:\n")
@@ -45,6 +45,8 @@ def request_pw(id):
         is_valid = validations.validate_pw(id, password)
         if is_valid:
             if id == "ADMIN":
+                title.title_admin()
+                admin.new_request_notification()
                 admin.admin_main()
                 break
             else:
@@ -52,10 +54,11 @@ def request_pw(id):
                 employee.employee_main(id)
                 break
 
+
 if __name__ == "__main__":
     try:
         title.title_main()
         get_employee_id()
     except KeyboardInterrupt:
-        utility.clear()
-        sys.exit("Shutting down the system...")
+        title.title_end()
+        sys.exit()
