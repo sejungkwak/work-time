@@ -25,12 +25,22 @@ def get_current_datetime():
     return {"year": now.year, "date": date, "time": time}
 
 
+def get_today():
+    """Get the current date of Dublin.
+
+    Returns:
+        date: A instans of datetime.date().
+    """
+    DUBLIN = pytz.timezone("Europe/Dublin")
+    return datetime.now(DUBLIN).date()
+
+
 def get_week(xdate, result):
     """Return a list of a week(inc./excl. weekend) of the given date.
 
     Args:
-        :xdate class: An instance of datetime.date().
-        :result str: Including or excluding weekend.
+        xdate date: An instance of datetime.date().
+        result str: Including or excluding weekend.
 
     Returns
         list: Dates of a week.
@@ -51,13 +61,13 @@ def get_week(xdate, result):
 
 def convert_date(xdate):
     """Split a string into a list of integers that represet
-    year, month and date, and then pass them to date().
+    year, month and date, and then pass them to date() object.
 
     Args:
-        :xdate str: A day/month/year formatted date.
+        xdate str: A day/month/year formatted date.
 
     Returns:
-        class: A instans of datetime.date().
+        date: An instans of datetime.date().
     """
     date_to_list = xdate.split("/")
     year = int(date_to_list[2])
@@ -70,8 +80,8 @@ def get_num_of_weekdays(date1, date2):
     """Calculate total number of weekdays between two dates.
 
     Args:
-        :date1: Start date.
-        :date2: End date.
+        date1 date: Start date - An instance of datetime.date().
+        date2 date: End date - An instance of datetime.date().
 
     Returns:
         int: Total number of weekdays.
