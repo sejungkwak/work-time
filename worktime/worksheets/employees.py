@@ -27,3 +27,8 @@ class Employees:
             if employee[0] == self.id:
                 lname = employee[2]
                 return lname
+
+    def get_fullname(self):
+        """Returns the employee's full name."""
+        fullname = f"{self.get_fname()} {self.get_lname()}"
+        return fullname
