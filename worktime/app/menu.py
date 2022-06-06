@@ -20,7 +20,7 @@ def admin_menu():
     """Displays the menu for a logged in user as an admin."""
     numbers = range(1, 5)
     options = (["Review Requests", "Review Attendance",
-                "Update Employee Absence", "Log Out"])
+                "Add Employee Absence", "Log Out"])
     print("\nPlease choose one of the following options.\n")
     format_menu(numbers, options)
 
@@ -29,8 +29,8 @@ def format_menu(numbers, options):
     """Displays the option number in green font.
 
     Args:
-        :numbers function: A sequence of numbers.
-        :options list: A list of menu options.
+        numbers object: A sequence of numbers.
+        options list: A list of menu options.
     """
     for number, option in zip(numbers, options):
         print(f"{Fore.GREEN}{number}{Style.RESET_ALL} {option}")
