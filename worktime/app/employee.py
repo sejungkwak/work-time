@@ -17,7 +17,7 @@ def employee_main(id):
     Run a while loop until the user inputs a valid number.
 
     Args:
-        :id str: Employee ID that was used to log in.
+        id str: Employee ID that was used to log in.
     """
     while True:
         menu.employee_menu()
@@ -34,9 +34,9 @@ def employee_main(id):
     elif choice == "4":
         display_entitlements(id)
     elif choice == "5":
-        book_absence(id)
+        check_avail_hours(id)
     elif choice == "6":
-        cancel_absence(id)
+        check_cancellable(id)
     else:
         title.title_end()
         sys.exit()
@@ -47,7 +47,7 @@ def clock_in(id):
     Send the clock in data to the worksheet.
 
     Args:
-        :id str: Employee ID that was used to log in.
+        id str: Employee ID that was used to log in.
     """
     utility.clear()
     now = utility.get_current_datetime()
@@ -64,7 +64,7 @@ def clock_in(id):
             clocked_in_at = clocking["start_time"]
             print(f"\nYou already clocked in for today at {clocked_in_at}.")
             print(f"Would you like to overwrite it?")
-            is_overwrite = check_for_clockin_overwrite()
+            is_overwrite = check_for_overwrite()
             if is_overwrite == "Y":
                 clock_sheet.update_clock_in(clock_in_at)
                 print(f"Clock in time has been updated: {clock_in_at}")
@@ -74,18 +74,20 @@ def clock_in(id):
         data = [id, today, clock_in_at]
         clock_sheet.add_clocking(data)
         print(f"You have successfully clocked in at {clock_in_at}.")
-    sequence = next_move()
-    utility.clear()
-    if sequence == "MENU":
+    menu_quit = menu_or_quit()
+    if menu_quit == "MENU":
+        utility.clear()
         employee_main(id)
     else:
         title.title_end()
         sys.exit()
 
 
-def check_for_clockin_overwrite():
-    """Run when there is clock in data already.
-    Return the user answer.
+def check_for_overwrite():
+    """Run a while loop until the user inputs a valid value.
+
+    Returns:
+        str: The user input - Y or N
     """
     while True:
         print(f"Enter {Fore.GREEN}y {Style.RESET_ALL}to overwrite",
@@ -96,11 +98,10 @@ def check_for_clockin_overwrite():
 
 
 def clock_out(id):
-    """Run when the user chooses the clock out option.
-    Send the clock out data to the worksheet.
+    """Check if there is clocking data for today already and update worksheet.
 
     Args:
-        :id str: Employee ID that was used to log in.
+        id str: Employee ID that was used to log in.
     """
     utility.clear()
     now = utility.get_current_datetime()
@@ -123,9 +124,9 @@ def clock_out(id):
         print(f"{Fore.RED}You did not clock in today.")
         print("Please contact your manager to add your clock in time.")
         print(f"You have successfully clocked out at {clock_out_at}.")
-    sequence = next_move()
-    utility.clear()
-    if sequence == "MENU":
+    menu_quit = menu_or_quit()
+    if menu_quit == "MENU":
+        utility.clear()
         employee_main(id)
     else:
         title.title_end()
@@ -133,11 +134,10 @@ def clock_out(id):
 
 
 def display_clock_card(id):
-    """Run when the user chooses the view clock card option.
-    Retrieve data from the worksheet and display it.
+    """Retrieve clock in/out data from the worksheet and display it.
 
     Args:
-        :id str: Employee ID that was used to log in.
+        id str: Employee ID that was used to log in.
     """
     clock_sheet = clockings.Clockings(id)
     if clock_sheet.get_week_clockings():
@@ -151,144 +151,125 @@ def display_clock_card(id):
               "please enter the date that you want to review.")
         print("The date should be in the following format:",
               f"{Fore.GREEN}Day/Month/Year")
-        print(f"For example, {Fore.GREEN}01/12/2021",
-              "for the 1st of December 2021.")
-        entered_date = input("Please enter the date here:\n").strip()
-        if validations.validate_date(entered_date):
+        print(f"For example, 01/12/2021 is the 1st of December 2021.")
+        print(f"To go back to the menu, type {Fore.GREEN}menu",
+              f"or to exit the system, type {Fore.GREEN}quit.")
+        answer = input("Please enter the date here:\n").strip()
+        if answer.upper() == "MENU":
+            utility.clear()
+            employee_main(id)
             break
-
-    if clock_sheet.get_week_clockings(entered_date):
-        tables.display_clock_card(id, entered_date)
-    else:
-        print(f"No data found for the week of {entered_date}.")
-    sequence = next_move()
-    utility.clear()
-    if sequence == "MENU":
-        employee_main(id)
-    else:
-        title.title_end()
-        sys.exit()
+        elif answer.upper() == "QUIT":
+            title.title_end()
+            sys.exit()
+        elif validations.validate_date(answer):
+            if clock_sheet.get_week_clockings(answer):
+                tables.display_clock_card(id, answer)
+            else:
+                print(f"No data found for the week of {answer}.")
 
 
 def display_entitlements(id):
     """Display absence entitlements for the logged in employee
 
     Args:
-        :id str: Employee ID that was used to log in.
+        id str: Employee ID that was used to log in.
     """
     utility.clear()
     this_year = utility.get_current_datetime()["year"]
     print(f"\nYour absence entitlements for {this_year}.")
     tables.display_entitlements(id)
-    sequence = next_move()
-    utility.clear()
-    if sequence == "MENU":
+    menu_quit = menu_or_quit()
+    if menu_quit == "MENU":
+        utility.clear()
         employee_main(id)
     else:
         title.title_end()
         sys.exit()
 
 
-def book_absence(id):
-    """Run when the user select book absence menu
+def check_avail_hours(id):
+    """Check if the employee has available paid time off hours left.
 
     Args:
-        :id str: Employee ID that was used to log in.
+        id str: Employee ID that was used to log in.
     """
     utility.clear()
     unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
-    morning = "9:30AM-1:30PM"
-    afternoon = "1:30PM-5:30PM"
 
     if unallocated == "0":
         print("You do not have paid time off available.")
         print("Please contact your manager.")
     else:
         print(f"\nYou have {unallocated} hours available to book absence.")
-        absence_type = check_absence_type()
-        if ((absence_type == "4" and float(unallocated) < 16) or
-                (absence_type == "3" and float(unallocated) < 8)):
-            print("You have unsufficient paid time off available",
-                  "to complete the request.")
-            print("Please select a different option or",
-                  "contact your manager.")
-        fromdate = get_absence_start_date(absence_type)
-        request_id = requests.Requests().generate_req_id()
-        today = utility.get_current_datetime()["date"]
-        data = [request_id, id, fromdate, today, "/", "False"]
-        request_days = ""
-        if absence_type == "4":
-            todate = get_absence_end_date(fromdate, unallocated)
-        print(f"\n{Fore.GREEN}Your request for absence ", end="")
-        if absence_type == "4":
-            days = validations.validate_days(fromdate, todate, unallocated)
-            request_days = days
-            data[3:3] = [todate, "", "", days]
-            print(f"{Fore.GREEN}from {fromdate} to {todate}", end="")
-        elif absence_type == "3":
-            request_days = "1"
-            data[3:3] = [fromdate, "", "", request_days]
-            print(f"{Fore.GREEN}on {fromdate}", end="")
-        else:
-            request_time = ""
-            request_days = "0.5"
-            if absence_type == "1":
-                data[3:3] = [fromdate, "9:30", "13:30", request_days]
-                request_time = morning
-            else:
-                data[3:3] = [fromdate, "13:30", "17:30", request_days]
-                request_time = afternoon
-            print(f"{Fore.GREEN}on {fromdate} at {request_time}", end="")
-    print(f"{Fore.GREEN} is being submitted...")
-    requests.Requests().add_request(data)
-    add_pto_pending_hours(id, request_days)
-    print(f"{Fore.GREEN}Your request has been sent for review.")
-    sequence = next_move()
-    utility.clear()
-    if sequence == "MENU":
-        employee_main(id)
-    else:
-        title.title_end()
-        sys.exit()
+        get_absence_duration(id)
 
 
-def check_absence_type():
-    """Ask user to choose an option for the absence duration."""
-    morning = "9:30AM-1:30PM"
-    afternoon = "1:30PM-5:30PM"
+def get_absence_duration(id):
+    """Ask user to choose an option for the absence duration.
+
+    Args:
+        id str: Employee ID that was used to log in.
+    """
+    unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
     while True:
         print("\nPlease select an option that is the most suitable",
               "for your absence duration.\n")
-        print(f"{Fore.GREEN}1{Style.RESET_ALL} {morning}")
-        print(f"{Fore.GREEN}2{Style.RESET_ALL} {afternoon}")
+        print(f"{Fore.GREEN}1{Style.RESET_ALL} 9:30AM-1:30PM")
+        print(f"{Fore.GREEN}2{Style.RESET_ALL} 1:30PM-5:30PM")
         print(f"{Fore.GREEN}3{Style.RESET_ALL} Full day")
         print(f"{Fore.GREEN}4{Style.RESET_ALL} More than 2 consecutive days")
-        absence_type = input("\nPlease enter a number to continue:\n").strip()
-        if validations.validate_choice_number(absence_type, range(1, 5)):
-            return absence_type
+        print(f"To go back to the menu, type {Fore.GREEN}menu",
+              f"or to exit the system, type {Fore.GREEN}quit.")
+        answer = input("\nPlease enter a number to continue:\n").strip()
+        if answer.upper() == "MENU":
+            utility.clear()
+            employee_main(id)
+            break
+        elif answer.upper() == "QUIT":
+            title.title_end()
+            sys.exit()
+        elif validations.validate_choice_number(answer, range(1, 5)):
+            if ((answer == "4" and float(unallocated) < 16) or
+                    (answer == "3" and float(unallocated) < 8)):
+                print("Unsufficient paid time off available",
+                      "to complete the request.")
+                print("Please select a different option or",
+                      "contact your manager.")
+            else:
+                get_absence_start_date(id, answer)
+                break
 
 
-def get_absence_start_date(absence_type):
+def get_absence_start_date(id, duration):
     """Ask user to input the absence (start) date.
 
     Args:
-        :absence_type str: Absence duration
+        id str: Employee ID that was used to log in.
+        duration str: Absence duration.
             1. morning, 2. afternoon, 3. full day, 4. 2+ days
     """
     while True:
-        if int(absence_type) in range(1, 4):
+        if int(duration) in range(1, 4):
             print("\nPlease enter a date that you want to book.")
         else:
             print("\nPlease enter the start date that you want to book.")
         print("The date should be in the following format:",
               f"{Fore.GREEN}Day/Month/Year")
-        print(f"For example, {Fore.GREEN}01/12/2021",
-              "for the 1st of December 2021.")
-        start_date = input("Please enter the date to continue:\n").strip()
-        if validations.validate_date(start_date):
-            request_date = validations.validate_date(start_date)
-            today = utility.get_current_datetime()["date"]
-            today = utility.convert_date(today)
+        print(f"For example, 01/12/2021 is the 1st of December 2021.")
+        print(f"To go back to the menu, type {Fore.GREEN}menu",
+              f"or to exit the system, type {Fore.GREEN}quit.")
+        answer = input("Please enter the date to continue:\n").strip()
+        if answer.upper() == "MENU":
+            utility.clear()
+            employee_main(id)
+            break
+        elif answer.upper() == "QUIT":
+            title.title_end()
+            sys.exit()
+        else:
+            request_date = validations.validate_date(answer)
+            today = utility.get_today()
             request_year = request_date.year
             this_year = int(utility.get_current_datetime()["year"])
             if (request_date - today).days <= 0:
@@ -301,75 +282,92 @@ def get_absence_start_date(absence_type):
                 print(f"{Fore.YELLOW}Absence entitlements must be",
                       f"{Fore.YELLOW}taken within the leave year.")
             else:
-                return start_date
+                if duration == "4":
+                    get_absence_end_date(id, answer)
+                    break
+                else:
+                    add_absence_request(id, answer, answer, duration)
+                    if duration == "3":
+                        hours = 8
+                    else:
+                        hours = 4
+                    add_pending_hours(id, hours)
+                    break
 
 
-def get_absence_end_date(start_date, unallocated):
+def get_absence_end_date(id, start_date):
     """Ask user to input absence end date if they are booking 2+ days.
 
     Args:
-        :start_date str: The absence start date.
-        :unallocated str: The number of available absence hours.
+        id str: Employee ID that was used to log in.
+        start_date str: The absence start date.
     """
+    unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
     while True:
-        print("\nPlease enter the end date for your absence duration.")
+        print("\nPlease enter the last day for your absence duration.")
         print("The date should be in the following format:",
               f"{Fore.GREEN}Day/Month/Year")
-        print(f"For example, {Fore.GREEN}01/12/2021",
-              "for the 1st of December 2021.")
-        end_date = input("Please enter the date to continue:\n").strip()
-        if validations.validate_date(end_date):
-            if validations.validate_days(start_date, end_date, unallocated):
-                return end_date
+        print(f"For example, 01/12/2021 is the 1st of December 2021.")
+        print(f"To go back to the menu, type {Fore.GREEN}menu",
+              f"or to exit the system, type {Fore.GREEN}quit.")
+        answer = input("Please enter the date to continue:\n").strip()
+        if answer.upper() == "MENU":
+            utility.clear()
+            employee_main(id)
+            break
+        elif answer.upper() == "QUIT":
+            title.title_end()
+            sys.exit()
+        elif (validations.validate_date(answer) and
+              validations.validate_days(start_date, answer, unallocated)):
+            hours = get_num_of_weekdays(start_date, answer) * 8
+            add_absence_request(id, start_date, answer, "4")
+            add_pending_hours(id, hours)
+            break
 
 
-def add_pto_pending_hours(id, days):
+def add_absence_request(id, start_date, end_date, duration):
+    """Update the absence_requests worksheet.
+
+    Args:
+        id str: Employee ID that was used to log in.
+        start_date str: The absence start date.
+        end_date str: The absence end date.
+        duration str: Absence duration.
+            1. morning, 2. afternoon, 3. full day, 4. 2+ days
+    """
+    print("\nSubmitting your absence request...")
+    request_id = requests.Requests().generate_req_id()
+    today = utility.get_current_datetime()["date"]
+    data = [request_id, id, start_date, today, "/", "False"]
+    if duration == "1":
+        data[3:3] = [start_date, "9:30", "13:30", "0.5"]
+    elif duration == "2":
+        data[3:3] = [start_date, "13:30", "17:30", "0.5"]
+    elif duration == "3":
+        data[3:3] = [start_date, "", "", "1"]
+    else:
+        days = str(get_num_of_weekdays(start_date, end_date))
+        data[3:3] = [end_date, "", "", days]
+    requests.Requests().add_request(data)
+    print("\nYour absence request has been successfully submitted.")
+
+
+def add_pending_hours(id, hours):
     """Update pending value on the entitlements worksheet.
 
     Args:
-        :id str: Employee ID that was used to log in.
-        :days str: The number of requested absence days.
+        id str: Employee ID that was used to log in.
+        hours int: The number of requested absence hours.
     """
-    entitlement = entitlements.Entitlements(id)
-    hours = int(float(days) * 8)
-
-    entitlement.update_hours("pending", hours, "add")
-    entitlement.update_hours("unallocated", hours, "substract")
-
-
-def cancel_absence(id):
-    """Update absence_requests and entitlements worksheets.
-
-    Args:
-        :id str: Employee ID that was used to log in.
-    """
-    utility.clear()
-    can_cancel = check_cancellable(id)
-    if can_cancel:
-        print("Getting data...")
-        allocated_absences = requests.Requests(id).get_cancellable_absence()
-        tables.display_allocated_absences(id)
-        while True:
-            id_list = [int(list[0]) for list in allocated_absences]
-            choice = input("Please enter the ID you want to cancel:\n").strip()
-            if validations.validate_choice_number(choice, id_list):
-                break
-        print("Processing...")
-        row_index = int(choice) + 1
-        requests.Requests().update_cancelled(row_index)
-        absence_days = requests.Requests().get_duration(row_index)
-        is_approved = requests.Requests().get_approved(row_index)
-        absence_hours = int(float(absence_days) * 8)
-        entitlement = entitlements.Entitlements(id)
-        if is_approved == "True":
-            entitlement.update_hours("planned", absence_hours, "subtract")
-        else:
-            entitlement.update_hours("pending", absence_hours, "subtract")
-        entitlement.update_hours("unallocated", absence_hours, "add")
-        print("Your absence has been successfully cancelled.")
-    sequence = next_move()
-    utility.clear()
-    if sequence == "MENU":
+    print("\nUpdating your absence entitlements...")
+    entitle_sheet = entitlements.Entitlements(id)
+    entitle_sheet.update_hours("pending", hours, "add")
+    entitle_sheet.update_hours("unallocated", hours, "substract")
+    print("\nYour absence entitlements has been successfully updated.\n")
+    menu_quit = menu_or_quit()
+    if menu_quit == "MENU":
+        utility.clear()
         employee_main(id)
     else:
         title.title_end()
@@ -377,28 +375,91 @@ def cancel_absence(id):
 
 
 def check_cancellable(id):
-    """Search if the user has planned/pending absence.
+    """Check if the user has planned/pending absence.
 
     Args:
-        :id str: Employee ID that was used to log in.
+        id str: Employee ID that was used to log in.
     """
-    entitlement = entitlements.Entitlements(id)
-    planned = entitlement.get_hours("planned")
-    pending = entitlement.get_hours("pending")
+    utility.clear()
+    entitle_sheet = entitlements.Entitlements(id)
+    planned = entitle_sheet.get_hours("planned")
+    pending = entitle_sheet.get_hours("pending")
     if planned == pending == 0:
         print("You do not have any planned/pending absence to cancel.")
-        return False
+        menu_quit = menu_or_quit()
+        if menu_quit == "MENU":
+            utility.clear()
+            employee_main(id)
+        else:
+            title.title_end()
+            sys.exit()
     else:
-        return True
+        get_cancel_number(id)
 
 
-def next_move():
+def get_cancel_number(id):
+    """Ask the user to input absence request ID to cancel.
+
+    Args:
+        id str: Employee ID that was used to log in.
+    """
+    print("Loading data...")
+    allocated_absences = requests.Requests(id).get_cancellable_absence()
+    tables.display_allocated_absences(id)
+    while True:
+        id_list = [int(list[0]) for list in allocated_absences]
+        print(f"To go back to the menu, type {Fore.GREEN}menu",
+              f"or to exit the system, type {Fore.GREEN}quit.")
+        answer = input("Please enter the ID you want to cancel:\n").strip()
+        if answer.upper() == "MENU":
+            utility.clear()
+            employee_main(id)
+        elif answer.upper() == "QUIT":
+            title.title_end()
+            sys.exit()
+        elif validations.validate_choice_number(answer, id_list):
+            update_cancel_absence(id, answer)
+
+
+def update_cancel_absence(id, req_id):
+    """Update absence_requests and entitlements worksheets.
+
+    Args:
+        id str: Employee ID that was used to log in.
+        req_id str: Absence request ID to cancel.
+    """
+    print("\nProcessing your request...")
+    row_index = int(req_id) + 1
+    requests.Requests().update_cancelled(row_index)
+    absence_days = requests.Requests().get_duration(row_index)
+    absence_hours = int(float(absence_days) * 8)
+    is_approved = requests.Requests().get_approved(row_index)
+    entitle_sheet = entitlements.Entitlements(id)
+    entitle_sheet.update_hours("unallocated", absence_hours, "add")
+    if is_approved == "True":
+        entitle_sheet.update_hours("planned", absence_hours, "subtract")
+    else:
+        entitle_sheet.update_hours("pending", absence_hours, "subtract")
+    print("\nYour absence has been successfully cancelled.")
+    menu_quit = menu_or_quit()
+    if menu_quit == "MENU":
+        utility.clear()
+        employee_main(id)
+    else:
+        title.title_end()
+        sys.exit()
+
+
+def menu_or_quit():
     """Ask the user if they want to go back to the menu or quit.
     Run a while loop until the user inputs a valid answer.
+
+    Returns:
+        str: The user input - menu or quit.
     """
     while True:
         print(f"Type {Fore.GREEN}menu{Style.RESET_ALL} to go back to the menu",
-              f"or {Fore.GREEN}quit{Style.RESET_ALL} to quite the system.")
+              f"or {Fore.GREEN}quit{Style.RESET_ALL} to exit the system.")
         choice = input("\nPlease enter your answer here:\n").upper().strip()
         if validations.validate_choice_letter(choice, ["MENU", "QUIT"]):
             return choice
