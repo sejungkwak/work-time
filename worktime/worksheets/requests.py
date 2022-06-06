@@ -31,14 +31,14 @@ class Requests:
         return request_id
 
     def add_request(self, data):
-        """Add request data to the worksheet.
+        """Add new request data to the worksheet.
 
         Args:
             :data list: A list containing request details - request ID,
             employee ID, start/end date, start/end time, total number of days,
             request date, default approved and cancelled values.
         """
-        self.worksheet.append_row(data)
+        self.worksheet.append_row(data, value_input_option='RAW')
 
     def update_approved(self, row, action):
         """Replace False or True with "/" in a approved cell.
@@ -47,7 +47,8 @@ class Requests:
             :row int: The index of the target row which starts with 1.
         """
         result = "True" if action == "APPROVE" else "False"
-        self.worksheet.update(f"{self.approved_col}{row}", f"{result}", raw=True)
+        (self.worksheet.update(f"{self.approved_col}{row}",
+                               f"{result}", raw=True))
 
     def update_cancelled(self, row):
         """Replace False with True in a cancelled cell.
@@ -59,7 +60,9 @@ class Requests:
 
     def get_today_absence(self):
         """Check if today is the start date of planned absence.
-        Return a list of lists containing the employee ID and duration.
+
+        Returns:
+            list: A list of lists containing the employee ID and duration.
         """
         today_list = []
         for request in self.requests:
@@ -98,7 +101,12 @@ class Requests:
         return is_cancelled
 
     def get_cancellable_absence(self):
-        """Return a list of lists containing cancellable absence data."""
+        """Retrieve data that meets the condition: start date is in the future,
+        not rejected and not cancelled.
+
+        Returns:
+            list: A list of lists containing cancellable absence data.
+        """
         cancellable = []
         today = utility.convert_date(self.today)
         for request in self.requests:
@@ -109,6 +117,12 @@ class Requests:
         return cancellable
 
     def get_new_requests(self):
+        """Retrieve data that meets the condition: start date is in the future,
+        not approved or rejected, not cancelled.
+
+        Returns:
+            list: A list of lists containing new request data.
+        """
         new_requests = []
         today = utility.convert_date(self.today)
         for request in self.requests:
