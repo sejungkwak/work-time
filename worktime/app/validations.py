@@ -152,11 +152,39 @@ def validate_days(date1, date2, unallocated):
         num_of_hours = num_of_days * 8
         if num_of_hours > int(unallocated):
             raise ValueError(
-                print("You have unsufficient paid time off available.")
+                print("Unsufficient paid time off available.")
             )
         if num_of_days < 0:
             raise ValueError(
-                print("Please make sure to enter the dates correctly.")
+                print("Please make sure to enter the date correctly.")
+            )
+    except ValueError:
+        return False
+    else:
+        return num_of_days
+
+
+def validate_unpaid_days(date1, date2):
+    """Calculate total number of weekdays.
+
+    Args:
+        :date1: Absence start date
+        :date2: Absence end date
+
+    Returns:
+        int: Total number of weekdays between date1 and date2.
+        bool: False if exceptions raised.
+
+    Raises:
+        ValueError: If the end date is before start date.
+    """
+    try:
+        start_date = utility.convert_date(date1)
+        end_date = utility.convert_date(date2)
+        num_of_days = utility.get_num_of_weekdays(start_date, end_date)
+        if num_of_days < 0:
+            raise ValueError(
+                print("Please make sure to enter the date correctly.")
             )
     except ValueError:
         return False
