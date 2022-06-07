@@ -432,7 +432,7 @@ def get_cancel_number(id):
         id_list = [int(item[0]) for item in allocated_absences]
         print(f"To go back to the menu, type {Fore.GREEN}menu",
               f"or to exit the system, type {Fore.GREEN}quit.")
-        answer = input("Please enter the ID you want to cancel:\n").strip()
+        answer = input(f"{Fore.GREEN}Please enter the ID you want to cancel:\n").strip()
         if answer.upper() == "MENU":
             utility.clear()
             employee_main(id)
@@ -451,7 +451,7 @@ def update_cancel_absence(id, req_id):
         req_id str: Absence request ID to cancel.
     """
     print("\nProcessing your request...")
-    row_index = int(req_id) + 1
+    row_index = int(req_id)
     requests.Requests().update_cancelled(row_index)
     absence_days = requests.Requests().get_duration(row_index)
     absence_hours = int(float(absence_days) * 8)

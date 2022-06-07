@@ -7,7 +7,7 @@ class Requests:
     """Represent the absence_requests worksheet.
 
     Args:
-        :id str: An employee ID
+        id str: An employee ID
     """
 
     today = utility.get_current_datetime()["date"]
@@ -24,9 +24,12 @@ class Requests:
     def generate_req_id(self):
         """Increment the request ID by 1.
         If there hasn't been a request, assign 1 to it.
+
+        Returns:
+            int: Request ID.
         """
         request_id = 1
-        if self.requests != []:
+        if self.requests:
             request_id = int([request[0] for request in self.requests][-1]) + 1
         return request_id
 
@@ -34,7 +37,7 @@ class Requests:
         """Add new request data to the worksheet.
 
         Args:
-            :data list: A list containing request details - request ID,
+            data list: A list containing request details - request ID,
             employee ID, start/end date, start/end time, total number of days,
             request date, default approved and cancelled values.
         """
@@ -44,19 +47,19 @@ class Requests:
         """Replace False or True with "/" in a approved cell.
 
         Args:
-            :row int: The index of the target row which starts with 1.
+            row int: The index of the target row which starts with 1.
         """
         result = "True" if action == "APPROVE" else "False"
-        (self.worksheet.update(f"{self.approved_col}{row}",
+        (self.worksheet.update(f"{self.approved_col}{row+1}",
                                f"{result}", raw=True))
 
     def update_cancelled(self, row):
         """Replace False with True in a cancelled cell.
 
         Args:
-            :row int: The index of the target row which starts with 1.
+            row int: The index of the target row.
         """
-        self.worksheet.update(f"{self.cancelled_col}{row}", "True", raw=True)
+        self.worksheet.update(f"{self.cancelled_col}{row+1}", "True", raw=True)
 
     def get_today_absence(self):
         """Check if today is the start date of planned absence.
@@ -72,32 +75,36 @@ class Requests:
         return today_list
 
     def get_duration(self, row):
-        """Return total days of an absence request.
+        """Get the total_days column(index 6) of the given row's value.
 
         Args:
-            :row int: The index of the target row which starts with 1.
+            row int: The index of the target row.
+        Returns:
+            str: Total days of an absence request.
         """
-        duration = self.worksheet.acell(f"{self.duration_col}{row}").value
+        duration = self.requests[row-1][6]
         return duration
 
     def get_approved(self, row):
-        """Return the value of an approved cell.
-        Default is "/", or else "True" or "False".
+        """Get the approved column(index 8) of the given row's value.
 
         Args:
-            :row int: The index of the target row which starts with 1.
+            row int: The index of the target row.
+        Returns:
+            str: Value of approved cell - True, False or /.
         """
-        is_approved = self.worksheet.acell(f"{self.approved_col}{row}").value
+        is_approved = self.requests[row-1][8]
         return is_approved
 
     def get_cancelled(self, row):
-        """Return the value of an approved cell.
-        Default is "False".
+        """Get the cancelled column(index 9) of the given row's value.
 
         Args:
-            :row int: The index of the target row which starts with 1.
+            row int: The index of the target row.
+        Returns:
+            str: Value of cancelled cell - True or False.
         """
-        is_cancelled = self.worksheet.acell(f"{self.cancelled_col}{row}").value
+        is_cancelled = self.requests[row-1][9]
         return is_cancelled
 
     def get_cancellable_absence(self):

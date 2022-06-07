@@ -64,7 +64,7 @@ def handle_request():
         print("Processing...")
         time.sleep(3)
         utility.clear()
-        requests_row_index = int(req_id) + 1
+        requests_row_index = int(req_id)
         requests.Requests().update_approved(requests_row_index, decision)
         employee_id = find_ee_id(req_id)
         absence_days = requests.Requests().get_duration(requests_row_index)
@@ -169,7 +169,7 @@ def find_ee_id(request_id):
 
 def get_attendance_date():
     """Display today's clock cards of all employees and then ask if the user wants
-    to review other weeks. Run a while loop until they input a valid answer.
+    to review other days. Run a while loop until they input a valid answer.
     """
     utility.clear()
     if not display_attendance():
