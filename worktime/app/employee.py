@@ -30,7 +30,7 @@ def employee_main(id):
     elif choice == "2":
         clock_out(id)
     elif choice == "3":
-        display_clock_card(id)
+        get_attendance_date(id)
     elif choice == "4":
         display_entitlements(id)
     elif choice == "5":
@@ -133,40 +133,62 @@ def clock_out(id):
         sys.exit()
 
 
-def display_clock_card(id):
-    """Retrieve clock in/out data from the worksheet and display it.
+def get_attendance_date(id):
+    """Display this week's clock cards and then ask if the user wants
+    to review other weeks. Run a while loop until they input a valid answer.
 
     Args:
         id str: Employee ID that was used to log in.
     """
-    clock_sheet = clockings.Clockings(id)
-    if clock_sheet.get_week_clockings():
-        print("Your clock card for this week.")
-        print("Clock cards display from Monday to Sunday.")
-        tables.display_clock_card(id)
-    else:
-        print("No data found for this week.")
+    utility.clear()
+    if not display_attendance(id):
+        print("There is no clocking data for this week.")
+
     while True:
-        print("\nIf you would like to review other days,",
-              "please enter the date that you want to review.")
+        print("\nEnter a date to review another week.")
         print("The date should be in the following format:",
               f"{Fore.GREEN}Day/Month/Year")
         print(f"For example, 01/12/2021 is the 1st of December 2021.")
         print(f"To go back to the menu, type {Fore.GREEN}menu",
               f"or to exit the system, type {Fore.GREEN}quit.")
         answer = input("Please enter the date here:\n").strip()
+        utility.clear()
         if answer.upper() == "MENU":
-            utility.clear()
             employee_main(id)
             break
         elif answer.upper() == "QUIT":
             title.title_end()
             sys.exit()
         elif validations.validate_date(answer):
-            if clock_sheet.get_week_clockings(answer):
-                tables.display_clock_card(id, answer)
-            else:
-                print(f"No data found for the week of {answer}.")
+            utility.clear()
+            display_attendance(id, answer)
+
+
+def display_attendance(id, date=None):
+    """Check if there is any clock in/out data, and then display the result.
+
+    Args:
+        date str: A DD/MM/YYYY formatted date. Today if none.
+    Returns:
+        bool: True if there are clock cards.
+    """
+    utility.clear()
+    print("Getting clocking data...")
+    today = utility.get_current_datetime()["date"]
+    date = today if date is None else date
+    data = False
+    headers = ["ID", "Date", "Clock In", "Clock Out"]
+    clock_sheet = clockings.Clockings(id)
+    table = clock_sheet.get_week_clockings(date)
+    if table:
+        data = True
+        utility.clear()
+        print("Clock cards display from Monday to Sunday.")
+        tables.display_table(headers, table)
+    else:
+        utility.clear()
+        print("There is no clocking data.")
+    return data
 
 
 def display_entitlements(id):
@@ -232,7 +254,7 @@ def get_absence_duration(id):
         elif validations.validate_choice_number(answer, range(1, 5)):
             if ((answer == "4" and float(unallocated) < 16) or
                     (answer == "3" and float(unallocated) < 8)):
-                print("Unsufficient paid time off available",
+                print("Insufficient paid time off available",
                       "to complete the request.")
                 print("Please select a different option or",
                       "contact your manager.")
@@ -407,7 +429,7 @@ def get_cancel_number(id):
     allocated_absences = requests.Requests(id).get_cancellable_absence()
     tables.display_allocated_absences(id)
     while True:
-        id_list = [int(list[0]) for list in allocated_absences]
+        id_list = [int(item[0]) for item in allocated_absences]
         print(f"To go back to the menu, type {Fore.GREEN}menu",
               f"or to exit the system, type {Fore.GREEN}quit.")
         answer = input("Please enter the ID you want to cancel:\n").strip()
