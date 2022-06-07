@@ -74,9 +74,9 @@ def handle_request():
         else:
             entitle_sheet.update_hours("unallocated", hours, "add")
         print("Data has been updated successfully.")
-    menu_or_quit = menu_or_quit()
+    menu_quit = menu_or_quit()
     utility.clear()
-    if menu_or_quit == "MENU":
+    if menu_quit == "MENU":
         admin_main()
     else:
         title.title_end()
@@ -119,6 +119,7 @@ def get_request_id():
         answer = input("Please enter your answer here:\n").strip()
         if answer.upper() == "MENU":
             admin_main()
+            break
         elif answer.upper() == "QUIT":
             title.title_end()
             sys.exit()
@@ -141,6 +142,7 @@ def get_decision():
         answer = input("Please enter your answer here:\n").upper().strip()
         if answer == "MENU":
             admin_main()
+            break
         elif answer == "QUIT":
             title.title_end()
             sys.exit()
