@@ -1,5 +1,5 @@
 # Built-in Modules
-import sys
+import sys, time
 from itertools import groupby
 
 # Third-party Packages
@@ -30,7 +30,7 @@ def admin_main():
     if answer == "1":
         handle_request()
     elif answer == "2":
-        display_attendance()
+        get_attendance_date()
     elif answer == "3":
         add_absence()
     else:
@@ -62,6 +62,8 @@ def handle_request():
         req_id = get_request_id()
         decision = get_decision()
         print("Processing...")
+        time.sleep(3)
+        utility.clear()
         requests_row_index = int(req_id) + 1
         requests.Requests().update_approved(requests_row_index, decision)
         employee_id = find_ee_id(req_id)
@@ -89,7 +91,6 @@ def sort_new_request(req_list):
 
     Args:
         req_list list: A list of lists containing new requests.
-
     Returns:
         new_req_list list: A list sorted by the employee ID.
     """
@@ -104,14 +105,14 @@ def sort_new_request(req_list):
 
 
 def get_request_id():
-    """Run a while loop until the user inputs a valid number.
+    """Run a while loop until the user inputs a valid value.
 
     Returns:
         str: User input value - Request ID.
     """
     new_request = requests.Requests().get_new_requests()
     while True:
-        id_list = [int(list[0]) for list in new_request]
+        id_list = [int(item[0]) for item in new_request]
         print(f"\nEnter the {Fore.GREEN}request ID",
               "from the first column to approve or reject.")
         print(f"Type {Fore.GREEN}menu{Style.RESET_ALL} to go back to the menu",
@@ -151,11 +152,11 @@ def get_decision():
 
 
 def find_ee_id(request_id):
-    """Get the corresponding employee ID to the request ID.
+    """Iterate through the sheet to find the corresponding employee ID
+    to the request ID.
 
     Args:
         request_id str: Request ID on the requests worksheet.
-
     Returns:
         str: An employee ID.
     """
@@ -166,16 +167,16 @@ def find_ee_id(request_id):
             return ee_id
 
 
-def display_attendance():
-    """Display the current week's clock cards and then ask if the user wants
+def get_attendance_date():
+    """Display today's clock cards of all employees and then ask if the user wants
     to review other weeks. Run a while loop until they input a valid answer.
     """
-    print("Getting this week's clock cards data...")
-    if get_clock_cards():
-        print("Clock cards display from Monday to Sunday.")
+    utility.clear()
+    if not display_attendance():
+        print("There is no clocking data for today.")
 
     while True:
-        print("\nEnter a date to review an other week.")
+        print("\nEnter a date to review another day.")
         print("The date should be in the following format:",
               f"{Fore.GREEN}Day/Month/Year")
         print(f"For example, 01/12/2021 is the 1st of December 2021.")
@@ -191,32 +192,40 @@ def display_attendance():
             sys.exit()
         else:
             if validations.validate_date(answer):
-                get_clock_cards(answer)
+                utility.clear()
+                display_attendance(answer)
 
 
-def get_clock_cards(date=None):
-    """Check if there is any clock in/out data for the current week or
-    the week of a passed date, and then display it.
+def display_attendance(date=None):
+    """Check if there is any clock in/out data, and then display the result.
 
     Args:
-        date str: A DD/MM/YYYY formatted date.
-
-    Retruns:
-        bool: True if there are clock cards, False otherwise.
+        date str: A DD/MM/YYYY formatted date. Today if none.
+    Returns:
+        bool: True if there are clock cards.
     """
+    utility.clear()
+    print("Getting clocking data...")
     today = utility.get_current_datetime()["date"]
     date = today if date is None else date
-
-    all_ees = employees.Employees()
-    ee_ids = [ee[0] for ee in all_ees.employees]
     data = False
-    for ee_id in ee_ids:
-        clock_sheet = clockings.Clockings(ee_id)
-        if clock_sheet.get_week_clockings(date):
-            tables.display_clock_card(ee_id, date)
-            data = True
-        else:
-            print(f"No data found for {ee_id}.")
+    no_data = ""
+    headers = ["Name", "Date", "Clock In", "Clock Out"]
+    table = []
+    clock_sheet = clockings.Clockings()
+    cards = clock_sheet.get_one_all_employee(date)
+    if cards:
+        for card in cards:
+            card[0] = employees.Employees(card[0]).get_fullname()
+            table.append(card)
+        data = True
+    else:
+        utility.clear()
+        print(f"There is no clocking data for {date}.")
+    if table:
+        utility.clear()
+        print(f"Clock cards for {date}.")
+        tables.display_table(headers, table)
     return data
 
 
@@ -293,7 +302,6 @@ def get_absence_type(hours):
 
     Args:
         hours int: Available paid time off hours.
-
     Returns:
         str: A digit - 1. Paid time off 2. Unpaid time off.
     """
@@ -312,7 +320,7 @@ def get_absence_type(hours):
             sys.exit()
         elif validations.validate_choice_number(answer, range(1, 3)):
             if answer == "1" and hours <= 0:
-                print("Unsufficient paid time off available.")
+                print("Insufficient paid time off available.")
             else:
                 return answer
 
@@ -323,7 +331,6 @@ def get_absence_duration(type, hours):
     Args:
         type str: Absence type - Paid or unpaid time off.
         hours int: Available paid time off hours.
-
     Returns:
         str: A digit - 1. Morning, 2. Afternoon, 3. A full day, 4. 2+ days
     """
@@ -346,7 +353,7 @@ def get_absence_duration(type, hours):
             if type == "1":
                 if ((answer == "4" and hours < 16) or
                         (answer == "3" and hours < 8)):
-                    print("Unsufficient paid time off available.")
+                    print("Insufficient paid time off available.")
                 else:
                     return answer
             else:
@@ -358,9 +365,8 @@ def get_absence_start_date(duration):
 
     Args:
         duration str: Absence duration - 1 & 2. Half day, 3. A day, 4. 2+ days
-
     Returns:
-        str: A date.
+        str: A DD/MM/YYYY format date.
     """
     while True:
         if int(duration) in range(1, 4):
@@ -388,9 +394,8 @@ def get_absence_end_date(type, date, hours):
 
     Args:
         type str: 1(Paid time off) or 2(Unpaid time off).
-        date str: Absence start date - DD/MM/YYYY.
+        date str: A DD/MM/YYYY format absence start date.
         hours str: Total available absence hours.
-
     Returns:
         str: Absence end date.
     """
@@ -420,7 +425,6 @@ def get_avail_hours(id):
 
     Args:
         id str: An employee ID.
-
     Returns:
         str: A digit - Paid time off hours.
     """
