@@ -59,19 +59,22 @@ def display_entitlements(id):
     display_table(headers, table)
 
 
-def display_new_requests():
-    """Display new absence requests that were not yet approved, nor cancelled."""
-    lists = requests.Requests().get_new_requests()
-    table = []
-    for list in lists:
-        list = list[:7]
-        employee_id = list[1]
-        fname = employees.Employees(employee_id).get_fname()
-        lname = employees.Employees(employee_id).get_lname()
-        fullname = f"{fname} {lname}"
-        list[1] = fullname
-        list[-1] = f"{list[-1]} Day(s)"
-        table.append(list)
-    headers = (["ID", "Name", "Start Date", "End Date",
-                "Start\nTime", "End\nTime", "Duration"])
-    display_table(headers, table)
+def display_new_requests(req_list):
+    """Display new absence requests grouped by employee ID.
+
+    Args:
+        req_list list: A list of lists of lists containing new requests.
+    """
+    fullname = ""
+    headers = (["ID", "Start Date", "End Date",
+                "Start Time", "End Time", "Duration"])
+    for request in req_list:
+        table = []
+        for item in request:
+            item = item[:7]
+            employee_id = item.pop(1)
+            fullname = employees.Employees(employee_id).get_fullname()
+            item[-1] = f"{item[-1]} Day(s)"
+            table.append(item)
+        print(f"New request(s) from {fullname}")
+        display_table(headers, table)

@@ -1,5 +1,6 @@
 # Built-in Modules
 import sys
+from itertools import groupby
 
 # Third-party Packages
 from colorama import init, Fore, Style
@@ -56,7 +57,8 @@ def handle_request():
     new_request = requests.Requests().get_new_requests()
     if len(new_request) > 0:
         print("Getting data...")
-        tables.display_new_requests()
+        request_list = sort_new_request(new_request)
+        tables.display_new_requests(request_list)
         req_id = get_request_id()
         decision = get_decision()
         print("Processing...")
@@ -79,6 +81,26 @@ def handle_request():
     else:
         title.title_end()
         sys.exit()
+
+
+def sort_new_request(req_list):
+    """Sort and combine lists with the same employee ID to display
+    new absence requests.
+
+    Args:
+        req_list list: A list of lists containing new requests.
+
+    Returns:
+        new_req_list list: A list sorted by the employee ID.
+    """
+    # Source: mouad's answer on Stack Overflow
+    # https://stackoverflow.com/questions/4174941
+    req_list.sort(key=lambda req: req[1])
+    # Source: Robert Rossney's answer on Stack Overflow
+    # https://stackoverflow.com/questions/5695208
+    groups = groupby(req_list, lambda req: req[1])
+    new_req_list = [[item for item in data] for (key, data) in groups]
+    return new_req_list
 
 
 def get_request_id():
@@ -221,7 +243,7 @@ def add_absence():
         total_hours = 8
     else:
         end_date = get_absence_end_date(absence_type, start_date, avail_hours)
-        total_hours = calculate_absence_hours(start_date, end_date)
+        total_hours = utility.get_num_of_weekdays(start_date, end_date) * 8
 
     if absence_type == "1":
         entitle_sheet = entitlements.Entitlements(ee_id)
@@ -237,22 +259,6 @@ def add_absence():
     data = ([req_id, ee_id, start_date, end_date,
             start_time, end_time, days, "", "True", "False"])
     req_sheet.add_request(data)
-
-
-def calculate_absence_hours(date1, date2):
-    """Calculate absence hours if the absence is more than 2 days.
-
-    Args:
-        date1 str: Absence start date.
-        date2 str: Absence end date.
-
-    Returns:
-        int: Total absence hours.
-    """
-    start_date = utility.convert_date(date1)
-    end_date = utility.convert_date(date2)
-    total_hours = utility.get_num_of_weekdays(start_date, end_date) * 8
-    return total_hours
 
 
 def get_employee_id():
