@@ -24,7 +24,7 @@ def validate_id(id):
         if id not in ids:
             raise ValueError()
     except ValueError:
-        print(f"\nYou have entered an invalid ID: {id}.\nPlease try again!\n")
+        print(utility.red("Invalid ID: " + id + "."))
         return False
     else:
         return True
@@ -50,7 +50,7 @@ def validate_pw(id, entered_pw):
         if not valid:
             raise ValueError()
     except ValueError:
-        print(f"\nYou have entered an incorrect password.\nPlease try again!")
+        print(utility.red("Incorrect password."))
         return False
     else:
         return True
@@ -74,8 +74,7 @@ def validate_choice_number(choice, numbers):
         if choice not in numbers:
             raise ValueError()
     except ValueError:
-        print(f"You have entered an invalid value: {choice}.",
-              "\nPlease try again!")
+        print(utility.red("Invalid value: " + choice + "."))
         return False
     else:
         return True
@@ -98,8 +97,7 @@ def validate_choice_letter(choice, choices):
         if choice not in choices:
             raise ValueError()
     except ValueError:
-        print(f"You have entered an invalid value: {choice}.",
-              "\nPlease try again!")
+        print(utility.red("Invalid value: " + choice + "."))
         return False
     else:
         return True
@@ -121,8 +119,11 @@ def validate_date(date):
     """
     try:
         date = utility.convert_date(date)
-    except (ValueError, IndexError):
-        print("Please provide a valid date with the correct format.")
+    except ValueError:
+        print(utility.red("Invalid date: " + date + "."))
+        return False
+    except IndexError:
+        print(utility.red("Invalid format: " + date + "."))
         return False
     else:
         return date
@@ -149,11 +150,11 @@ def validate_days(date1, date2, unallocated):
         num_of_hours = num_of_days * 8
         if num_of_hours > int(unallocated):
             raise ValueError(
-                print("Unsufficient paid time off available.")
+                print(utility.red("Insufficient paid time off available."))
             )
-        if num_of_days < 0:
+        elif num_of_days < 2:
             raise ValueError(
-                print("Please make sure to enter the date correctly.")
+                print(utility.red("The end date must be after the start date."))
             )
     except ValueError:
         return False
@@ -177,9 +178,9 @@ def validate_unpaid_days(date1, date2):
     """
     try:
         num_of_days = utility.get_num_of_weekdays(date1, date2)
-        if num_of_days < 0:
+        if num_of_days < 2:
             raise ValueError(
-                print("Please make sure to enter the date correctly.")
+                print(utility.red("The end date must be after the start date."))
             )
     except ValueError:
         return False
