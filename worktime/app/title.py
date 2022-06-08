@@ -47,7 +47,8 @@ def title_employee(id):
     print(portal)
     print(f"Welcome back, {fname}!".center(80))
     print("\n" + "="*80)
-    time.sleep(2)
+    time.sleep(3)
+    utility.clear()
 
 
 def title_admin():
@@ -63,7 +64,26 @@ def title_admin():
     print(portal)
     print("Welcome back!".center(80))
     print("\n" + "="*80)
-    time.sleep(2)
+    time.sleep(3)
+    utility.clear()
+
+
+def title_help():
+    """Display the title for the help portal."""
+    utility.clear()
+    print("""
+
+                        ██   ██ ███████ ██      ██████
+                        ██   ██ ██      ██      ██   ██
+                        ███████ █████   ██      ██████
+                        ██   ██ ██      ██      ██
+                        ██   ██ ███████ ███████ ██
+
+    """)
+    print(portal)
+    print("\n" + "="*80)
+    time.sleep(3)
+    utility.clear()
 
 
 def title_end():
