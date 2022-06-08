@@ -27,7 +27,7 @@ def admin_main():
     elif answer == "2":
         get_attendance_date()
     elif answer == "3":
-        add_absence()
+        get_absence_data()
     else:
         title.title_end()
         sys.exit()
@@ -41,7 +41,7 @@ def new_request_notification():
         print(f"\n{utility.yellow('You have ' + str(len(new_request)))}",
               f"{utility.yellow(word_form + ' to review.')}")
     else:
-        print("\nThere are no more requests to review right now.")
+        print("There are no more requests to review right now.")
 
 
 def handle_request():
@@ -69,7 +69,7 @@ def handle_request():
             entitle_sheet.update_hours(hours, "pending_to_planned")
         else:
             entitle_sheet.update_hours(hours, "pending_to_unallocated")
-        print("Data has been updated successfully.")
+        print(utility.green("Data updated successfully."))
     menu_quit = menu_or_quit()
     utility.clear()
     if menu_quit == "MENU":
@@ -107,7 +107,7 @@ def get_request_id():
     new_request = requests.Requests().get_new_requests()
     while True:
         id_list = [int(item[0]) for item in new_request]
-        print(f"\nEnter a {utility.green('request ID')}",
+        print(f"\nEnter a {utility.cyan('request ID')}",
               "from the first column to approve or reject.")
         print(messages.to_menu())
         answer = input(f"{messages.enter_req_id()}\n").strip()
@@ -128,9 +128,9 @@ def get_decision():
         str: User input value - Approve or reject.
     """
     while True:
-        print(f"\nEnter {utility.green('approve')}",
+        print(f"\nEnter {utility.cyan('approve')}",
               "to approve the request",
-              f"or {utility.green('reject')} to reject.")
+              f"or {utility.cyan('reject')} to reject.")
         print(messages.to_menu())
         answer = input("Enter approve or reject here:\n").upper().strip()
         if answer == "MENU":
@@ -213,51 +213,142 @@ def display_attendance(date=None):
         print(f"There is no clocking data for {date}.")
     if table:
         utility.clear()
-        print(f"Clock cards for {date}.")
+        print(f"Clock cards for {date}")
         tables.display_table(headers, table)
     return data
 
 
-def add_absence():
-    """Get an employee ID, absence type(1 - Paid, 2 - Unpaid),
-    duration(1&2 - half day, 3 - a day, 4 - 2+ days),
-    start and end date from the user and update data to worksheet.
+def get_absence_data():
+    """Get an employee ID, absence type(Paid or Unpaid),
+    duration, start and end date from the user.
     """
     ee_id = get_employee_id()
     avail_hours = int(get_avail_hours(ee_id))
     absence_type = get_absence_type(avail_hours)
     absence_duration = get_absence_duration(absence_type, avail_hours)
-    start_date = get_absence_start_date(absence_duration)
+    start_date = get_absence_start_date(absence_type, absence_duration)
+    if absence_duration == "4":
+        end_date = get_absence_end_date(absence_type, start_date, avail_hours)
+    else:
+        end_date = start_date
+    get_confirm_absence(ee_id, absence_type, start_date, end_date,
+                        absence_duration)
 
-    end_date = start_date
+
+def get_confirm_absence(id, type, from_date, to_date, duration):
+    """Display the absence summary and ask user to confirm to update.
+
+    Args:
+        id str: An employee ID.
+        type str: 1. Paid, 2. Unpaid.
+        from_date str: The absence start date - DD/MM/YYYY.
+        to_date str: The absence end date - DD/MM/YYYY.
+        duration str: 1. morning, 2. afternoon, 3. full day, 4. 2+ days
+    """
+    fullname = employees.Employees(id).get_fullname()
     start_time = ""
     end_time = ""
     total_hours = 4
-    if absence_duration == "1":
-        start_time = "9:30"
-        end_time = "13:30"
-    elif absence_duration == "2":
-        start_time = "13:30"
-        end_time = "17:30"
-    elif absence_duration == "3":
+    is_paid = "Paid absence" if type == "1" else "Unpaid absence"
+    if duration == "1":
+        period = "9:30 - 13:30"
+    elif duration == "2":
+        period = "13:30 - 17:30"
+    elif duration == "3":
+        period = "1 day"
         total_hours = 8
     else:
-        end_date = get_absence_end_date(absence_type, start_date, avail_hours)
-        total_hours = utility.get_num_of_weekdays(start_date, end_date) * 8
+        period = utility.get_num_of_weekdays(from_date, to_date)
+        total_hours = period * 8
+        period = f"{period} days"
 
-    if absence_type == "1":
-        entitle_sheet = entitlements.Entitlements(ee_id)
-        iso_start_date = utility.convert_date(start_date)
-        if int((iso_start_date - utility.get_today()).days) > 0:
-            entitle_sheet.update_hours(total_hours, "unallocated_to_planned")
-        else:
-            entitle_sheet.update_hours(total_hours, "unallocated_to_taken")
-    req_sheet = requests.Requests(ee_id)
+    while True:
+        utility.clear()
+        print(f"{utility.yellow('Please confirm the details.')}")
+        print(f"Employee ID: {id}")
+        print(f"Employee Name: {fullname}")
+        print(f"Absence Type: {is_paid}")
+        print(f"Start date: {from_date}")
+        print(f"End date: {to_date}")
+        print(f"Period: {period}")
+        if duration == "4":
+            print("Please note that the weekends are not included.")
+        print("\nUpdate this absence?")
+        answer = input(f"{messages.y_or_n()}\n").upper().strip()
+        if validations.validate_choice_letter(answer, ["Y", "N"]):
+            if answer == "Y":
+                if type == "1":
+                    add_entitlement(id, from_date, total_hours, fullname)
+                add_absence(id, from_date, to_date, duration, total_hours,
+                            fullname)
+                break
+            else:
+                print(utility.green('No changes were made.'))
+                print("Returning to the menu...")
+                time.sleep(2)
+                utility.clear()
+                admin_main()
+                break
+
+
+def add_absence(id, from_date, to_date, duration, hours, fullname):
+    """Update absence data to the absence_requests worksheet.
+
+    Args:
+        id str: An employee ID.
+        from_date str: The absence start date - DD/MM/YYYY.
+        to_date str: The absence end date - DD/MM/YYYY.
+        duration str: 1. morning, 2. afternoon, 3. full day, 4. 2+ days
+        hours int: Total number of the absence hours.
+        fullname str: An employee name.
+    """
+    print(f"\nUpdating {fullname}'s absence details...")
+    time.sleep(1)
+    req_sheet = requests.Requests(id)
     req_id = req_sheet.generate_req_id()
-    days = total_hours / 8
-    data = ([req_id, ee_id, start_date, end_date,
+    days = hours / 8
+    start_time = ""
+    end_time = ""
+    if duration == "1":
+        start_time = "9:30"
+        end_time = "13:30"
+    if duration == "2":
+        start_time = "13:30"
+        end_time = "17:30"
+    data = ([req_id, id, from_date, to_date,
             start_time, end_time, days, "", "True", "False"])
     req_sheet.add_request(data)
+    print(utility.green(fullname + "\'s absence details"),
+          utility.green("updated successfully."))
+
+    menu_quit = menu_or_quit()
+    utility.clear()
+    if menu_quit == "MENU":
+        admin_main()
+    else:
+        title.title_end()
+        sys.exit()
+
+
+def add_entitlement(id, from_date, hours, fullname):
+    """Update absence data to the entitlement worksheet if paid absence.
+
+    Args:
+        id str: An employee ID.
+        from_date str: The absence start date - DD/MM/YYYY.
+        hours int: Total number of the absence hours.
+        fullname str: An employee name.
+    """
+    print(f"\nUpdating {fullname}'s absence entitlements...")
+    time.sleep(1)
+    entitle_sheet = entitlements.Entitlements(id)
+    iso_start_date = utility.convert_date(from_date)
+    if int((iso_start_date - utility.get_today()).days) > 0:
+        entitle_sheet.update_hours(hours, "unallocated_to_planned")
+    else:
+        entitle_sheet.update_hours(hours, "unallocated_to_taken")
+    print(utility.green(fullname + "\'s absence entitlements"),
+          utility.green("updated successfully."))
 
 
 def get_employee_id():
@@ -267,7 +358,8 @@ def get_employee_id():
         str: A valid employee ID.
     """
     while True:
-        print(f"Enter an {utility.green('employee ID')}",
+        utility.clear()
+        print(f"Enter an {utility.cyan('employee ID')}",
               "to add absence.")
         print(messages.to_menu())
         answer = input(f"{messages.enter_ee_id()}\n").upper().strip()
@@ -278,7 +370,7 @@ def get_employee_id():
             title.title_end()
             sys.exit()
         elif answer == "ADMIN":
-            print("Unable to amend ADMIN data.\n")
+            print(f"{utility.red('Unable to amend ADMIN data.')}\n")
             continue
         elif validations.validate_id(answer):
             return answer
@@ -293,9 +385,8 @@ def get_absence_type(hours):
         str: A digit - 1. Paid time off 2. Unpaid time off.
     """
     while True:
-        print("\nPlease select an absence type.\n")
-        print(f"{utility.green('1')} Paid Time OFF")
-        print(f"{utility.green('2')} Unpaid Time OFF")
+        utility.clear()
+        menu.absence_paid_menu()
         print(messages.to_menu())
         answer = input(f"\n{messages.enter_number()}\n").strip()
         if answer.upper() == "MENU":
@@ -306,7 +397,7 @@ def get_absence_type(hours):
             sys.exit()
         elif validations.validate_choice_number(answer, range(1, 3)):
             if answer == "1" and hours <= 0:
-                print("Insufficient paid time off available.")
+                print(utility.red("Insufficient paid time off available."))
             else:
                 return answer
 
@@ -321,7 +412,8 @@ def get_absence_duration(type, hours):
         str: A digit - 1. Morning, 2. Afternoon, 3. A full day, 4. 2+ days
     """
     while True:
-        menu.absence_menu()
+        utility.clear()
+        menu.absence_period_menu()
         print(messages.to_menu())
         answer = input(f"\n{messages.enter_number()}\n").strip()
         if answer.upper() == "MENU":
@@ -334,26 +426,29 @@ def get_absence_duration(type, hours):
             if type == "1":
                 if ((answer == "4" and hours < 16) or
                         (answer == "3" and hours < 8)):
-                    print("Insufficient paid time off available.")
+                    print(utility.red("Insufficient paid time off available."))
                 else:
                     return answer
             else:
                 return answer
 
 
-def get_absence_start_date(duration):
+def get_absence_start_date(type, duration):
     """Run while loop until the user inputs a valid date.
 
     Args:
+        type str: Absence type - Paid or unpaid time off.
         duration str: Absence duration - 1 & 2. Half day, 3. A day, 4. 2+ days
     Returns:
         str: A DD/MM/YYYY format date.
     """
+    utility.clear()
     while True:
         if int(duration) in range(1, 4):
             print("\nPlease enter the absence date.")
         else:
-            print("\nPlease enter the start date for the absence duration.")
+            print(f"\nPlease enter the {utility.cyan('start date')}",
+                  "for the absence duration.")
         print(messages.date_format())
         print(messages.to_menu())
         answer = input(f"{messages.enter_date()}\n").strip()
@@ -364,7 +459,11 @@ def get_absence_start_date(duration):
             title.title_end()
             sys.exit()
         elif validations.validate_date(answer):
-            return answer
+            if type == "1" and
+            answer[-4:] != str(utility.get_current_datetime()["year"]):
+                print(messages.invalid_year())
+            else:
+                return answer
 
 
 def get_absence_end_date(type, date, hours):
@@ -377,9 +476,12 @@ def get_absence_end_date(type, date, hours):
     Returns:
         str: Absence end date.
     """
+    utility.clear()
     while True:
-        print("\nPlease enter the last date for the absence duration.")
+        print(f"\nPlease enter the {utility.cyan('last date')}",
+              "for the absence duration.")
         print(messages.date_format())
+        print(messages.to_menu())
         answer = input(f"{messages.enter_date()}\n").strip()
         if answer.upper() == "MENU":
             admin_main()
@@ -389,11 +491,10 @@ def get_absence_end_date(type, date, hours):
             sys.exit()
         elif validations.validate_date(answer):
             if ((type == "1" and
-                    validations.validate_days(answer, date, hours)) or
+                    validations.validate_days(date, answer, hours)) or
                     (type == "2" and
-                        validations.validate_unpaid_days(answer, date))):
-                break
-        return answer
+                        validations.validate_unpaid_days(date, answer))):
+                return answer
 
 
 def get_avail_hours(id):
