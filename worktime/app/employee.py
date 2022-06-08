@@ -1,5 +1,6 @@
 # Built-in Modules
 import sys
+import time
 
 # Custom Packages
 from worktime.worksheets import clockings, entitlements, requests
@@ -221,7 +222,7 @@ def check_avail_hours(id):
         print("You do not have paid time off available.")
         print("Please contact your manager.")
     else:
-        print(f"You have {unallocated} hours available to book absence.")
+        print(f"You have {unallocated} hours available to book absence.\n")
         get_absence_duration(id)
 
 
@@ -264,6 +265,7 @@ def get_absence_start_date(id, duration):
             1. morning, 2. afternoon, 3. full day, 4. 2+ days
     """
     while True:
+        utility.clear()
         if int(duration) in range(1, 4):
             print("\nPlease enter your absence date.")
         else:
@@ -298,12 +300,7 @@ def get_absence_start_date(id, duration):
                     get_absence_end_date(id, answer)
                     break
                 else:
-                    add_absence_request(id, answer, answer, duration)
-                    if duration == "3":
-                        hours = 8
-                    else:
-                        hours = 4
-                    add_pending_hours(id, hours)
+                    get_confirm_request(id, answer, answer, duration)
                     break
 
 
@@ -329,10 +326,55 @@ def get_absence_end_date(id, start_date):
             sys.exit()
         elif (validations.validate_date(answer) and
               validations.validate_days(start_date, answer, unallocated)):
-            hours = utility.get_num_of_weekdays(start_date, answer) * 8
-            add_absence_request(id, start_date, answer, "4")
-            add_pending_hours(id, hours)
+            get_confirm_request(id, start_date, answer, "4")
             break
+
+
+def get_confirm_request(id, start_date, end_date, duration):
+    """Display absence request summary and ask user to confirm to submit.
+
+    Args:
+        id str: Employee ID that was used to log in.
+        start_date str: The absence start date - DD/MM/YYYY.
+        end_date str: The absence end date - DD/MM/YYYY.
+        duration str: Absence duration.
+            1. morning, 2. afternoon, 3. full day, 4. 2+ days
+    """
+    if duration == "1":
+        period = "9:30 - 13:30"
+        hours = 4
+    elif duration == "2":
+        period = "13:30 - 17:30"
+        hours = 4
+    elif duration == "3":
+        period = "1 day"
+        hours = 8
+    else:
+        period = utility.get_num_of_weekdays(start_date, end_date)
+        hours = period * 8
+        period = f"{period} days"
+    while True:
+        utility.clear()
+        print(f"{utility.yellow('Please confirm your request.')}")
+        print(f"Start date: {start_date}")
+        print(f"End date: {end_date}")
+        print(f"Period: {period}")
+        if duration == "4":
+            print("Please note that the weekends are not included.")
+        print("\nSubmit your request?")
+        answer = input(f"{messages.y_or_n()}\n").upper().strip()
+        if validations.validate_choice_letter(answer, ["Y", "N"]):
+            if answer == "Y":
+                add_absence_request(id, start_date, end_date, duration)
+                add_pending_hours(id, hours)
+                break
+            else:
+                print("No requests were submitted.")
+                print("Returning to the menu...")
+                time.sleep(2)
+                utility.clear()
+                employee_main(id)
+                break
 
 
 def add_absence_request(id, start_date, end_date, duration):
@@ -370,6 +412,7 @@ def add_pending_hours(id, hours):
         hours int: The number of requested absence hours.
     """
     print("\nUpdating your absence entitlements...")
+    time.sleep(1)
     entitle_sheet = entitlements.Entitlements(id)
     entitle_sheet.update_hours(hours, "unallocated_to_pending")
     print("\nYour absence entitlements has been successfully updated.\n")
