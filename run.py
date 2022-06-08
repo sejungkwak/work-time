@@ -2,14 +2,10 @@
 import sys
 
 # Third-party Packages
-from colorama import init, Fore, Style
 import stdiomask
 
 # Custom Packages
 from worktime.app import admin, employee, title, utility, validations
-
-# colorama method to enable it on Windows
-init(autoreset=True)
 
 
 def get_employee_id():
@@ -19,7 +15,7 @@ def get_employee_id():
     while True:
         print("Please enter your Employee ID.")
         print("To contact the system administrator, enter",
-              f"{Fore.GREEN}help{Style.RESET_ALL} instead.")
+              f"{utility.cyan('help')} instead.")
         entered_id = input("\nEmployee ID:\n").upper().strip()
 
         if entered_id == "HELP":
@@ -31,7 +27,7 @@ def get_employee_id():
 
 
 def get_pw(id):
-    """Request Password and validate the user input.
+    """Request password and validate the user input.
     Run a while loop until the user types "help" or a correct password.
 
     Args:
