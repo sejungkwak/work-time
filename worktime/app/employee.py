@@ -465,11 +465,12 @@ def get_cancel_number(id):
         if answer.upper() == "MENU":
             utility.clear()
             employee_main(id)
+            break
         elif answer.upper() == "QUIT":
             title.title_end()
             sys.exit()
         elif validations.validate_choice_number(answer, id_list):
-            update_cancel_absence(id, answer)
+            get_confirm_cancel(id, answer, allocated_absences)
 
 
 def display_allocated_absences(data):
@@ -489,34 +490,73 @@ def display_allocated_absences(data):
     tables.display_table(headers, table)
 
 
-def update_cancel_absence(id, req_id):
+def get_confirm_cancel(id, request_id, data):
+    """Ask user to confirm to cancel an absence request.
+
+    Args:
+        id str: Employee ID that was used to log in.
+        request_id str: Absence request ID.
+        data list: A list of lists containing absence requests.
+    """
+    for item in data:
+        if item[0] == request_id:
+            details = item
+    if details[4]:
+        period = f"{details[4]} - {details[5]}"
+    else:
+        period = f"{details[6]} day(s)"
+    while True:
+        utility.clear()
+        print(f"{utility.yellow('Please confirm your cancellation of absence request.')}")
+        print(f"Start date: {details[2]}")
+        print(f"End date: {details[3]}")
+        print(f"Period: {period}")
+        print("\nCanel this absence?")
+        answer = input(f"{messages.y_or_n()}\n").upper().strip()
+        if validations.validate_choice_letter(answer, ["Y", "N"]):
+            if answer == "Y":
+                update_cancel_absence(id, details)
+                break
+            if answer == "N":
+                utility.clear()
+                print("No absences were cancelled.")
+                break
+    time.sleep(2)
+    if (answer == "Y" and len(data) > 1) or (answer == "N" and len(data) > 0):
+        print("Returning to the cancellation menu...")
+        time.sleep(2)
+        get_cancel_number(id)
+    else:
+        menu_quit = menu_or_quit()
+        if menu_quit == "MENU":
+            utility.clear()
+            employee_main(id)
+        else:
+            title.title_end()
+            sys.exit()
+
+
+def update_cancel_absence(id, request):
     """Update absence_requests and entitlements worksheets.
 
     Args:
         id str: Employee ID that was used to log in.
-        req_id str: Absence request ID to cancel.
+        request list: Absence to cancel.
     """
     utility.clear()
-    print(f"\nProcessing your request...")
-    row_index = int(req_id)
+    print("\nProcessing your request...")
+    row_index = int(request[0])
     requests.Requests().update_cancelled(row_index)
-    absence_days = requests.Requests().get_duration(row_index)
+    absence_days = request[6]
     absence_hours = int(float(absence_days) * 8)
-    is_approved = requests.Requests().get_approved(row_index)
+    is_approved = request[8]
     entitle_sheet = entitlements.Entitlements(id)
     if is_approved == "True":
         entitle_sheet.update_hours(absence_hours, "planned_to_unallocated")
     else:
         entitle_sheet.update_hours(absence_hours, "pending_to_unallocated")
     utility.clear()
-    print("\nYour absence has been successfully cancelled.")
-    menu_quit = menu_or_quit()
-    if menu_quit == "MENU":
-        utility.clear()
-        employee_main(id)
-    else:
-        title.title_end()
-        sys.exit()
+    print(f"{utility.green('Your absence has been successfully cancelled.')}\n")
 
 
 def menu_or_quit():
