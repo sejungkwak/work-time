@@ -17,18 +17,23 @@ def clear():
 
 
 def green(text):
-    """Change the text to green."""
+    """Change the text colour to green."""
     return Fore.GREEN + text + Style.RESET_ALL
 
 
 def yellow(text):
-    """Change the text to yellow."""
+    """Change the text colour to yellow."""
     return Fore.YELLOW + text + Style.RESET_ALL
 
 
 def red(text):
-    """Change the text to red."""
+    """Change the text colour to red."""
     return Fore.RED + text + Style.RESET_ALL
+
+
+def cyan(text):
+    """Change the text colour to cyan."""
+    return Fore.CYAN + text + Style.RESET_ALL
 
 
 def get_current_datetime():
