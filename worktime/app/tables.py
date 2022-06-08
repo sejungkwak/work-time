@@ -15,24 +15,6 @@ def display_table(headers, table):
     print(tabulate(table, headers, tablefmt="fancy_grid"))
 
 
-def display_allocated_absences(id):
-    """Display absence requests that can be cancelled by the user.
-
-    Args:
-        id str: An employee ID.
-    """
-    lists = requests.Requests(id).get_cancellable_absence()
-    table = []
-    for list in lists:
-        list = list[:7]
-        list.pop(1)
-        list[-1] = f"{list[-1]} Day(s)"
-        table.append(list)
-    headers = (["ID", "Start Date", "End Date",
-                "Start Time", "End Time", "Duration"])
-    display_table(headers, table)
-
-
 def display_entitlements(id):
     """Retrieve absence entitlements from the entitlements module and display it.
 

@@ -456,7 +456,8 @@ def get_cancel_number(id):
     """
     print("Loading data...")
     allocated_absences = requests.Requests(id).get_cancellable_absence()
-    tables.display_allocated_absences(id)
+    utility.clear()
+    display_allocated_absences(allocated_absences)
     while True:
         id_list = [int(item[0]) for item in allocated_absences]
         print(messages.to_menu())
@@ -471,6 +472,23 @@ def get_cancel_number(id):
             update_cancel_absence(id, answer)
 
 
+def display_allocated_absences(data):
+    """Display absence requests that can be cancelled by the user.
+
+    Args:
+        data list: A list of lists containing absence requests.
+    """
+    table = []
+    for item in data:
+        item = item[:7]
+        item.pop(1)
+        item[-1] = f"{item[-1]} day(s)"
+        table.append(item)
+    headers = (["ID", "Start Date", "End Date",
+                "Start Time", "End Time", "Duration"])
+    tables.display_table(headers, table)
+
+
 def update_cancel_absence(id, req_id):
     """Update absence_requests and entitlements worksheets.
 
@@ -479,7 +497,7 @@ def update_cancel_absence(id, req_id):
         req_id str: Absence request ID to cancel.
     """
     utility.clear()
-    print(f"\n{Style.RESET_ALL}Processing your request...")
+    print(f"\nProcessing your request...")
     row_index = int(req_id)
     requests.Requests().update_cancelled(row_index)
     absence_days = requests.Requests().get_duration(row_index)
