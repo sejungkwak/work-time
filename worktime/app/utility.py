@@ -4,12 +4,31 @@ from os import name, system
 
 # Third-party Package
 import pytz
+from colorama import init, Fore, Style
+
+# colorama method to enable it on Windows
+init()
 
 
 # Source: https://www.geeksforgeeks.org/clear-screen-python/
 def clear():
     """Clear the screen."""
     system("cls" if name == "nt" else "clear")
+
+
+def green(text):
+    """Change the text to green."""
+    return Fore.GREEN + text + Style.RESET_ALL
+
+
+def yellow(text):
+    """Change the text to yellow."""
+    return Fore.YELLOW + text + Style.RESET_ALL
+
+
+def red(text):
+    """Change the text to red."""
+    return Fore.RED + text + Style.RESET_ALL
 
 
 def get_current_datetime():

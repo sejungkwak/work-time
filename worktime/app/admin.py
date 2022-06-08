@@ -1,16 +1,11 @@
 # Built-in Modules
-import sys, time
+import sys
+import time
 from itertools import groupby
-
-# Third-party Packages
-from colorama import init, Fore, Style
 
 # Custom Package
 from worktime.app import menu, tables, title, utility, validations
 from worktime.worksheets import clockings, employees, entitlements, requests
-
-# colorama method to enable it on Windows
-init(autoreset=True)
 
 
 def admin_main():
@@ -43,8 +38,8 @@ def new_request_notification():
     new_request = requests.Requests().get_new_requests()
     if len(new_request) > 0:
         word_form = "request" if len(new_request) == 1 else "requests"
-        print(f"\n{Fore.GREEN}You have",
-              f"{Fore.GREEN}{len(new_request)} {word_form} to review.")
+        print(f"\n{utility.green('You have ' + len(new_request))}",
+              f"{word_form} to review.")
     else:
         print("\nThere are no more requests to review right now.")
 
@@ -112,10 +107,10 @@ def get_request_id():
     new_request = requests.Requests().get_new_requests()
     while True:
         id_list = [int(item[0]) for item in new_request]
-        print(f"\nEnter the {Fore.GREEN}request ID",
+        print(f"\nEnter the {utility.green('request ID')}",
               "from the first column to approve or reject.")
-        print(f"Type {Fore.GREEN}menu{Style.RESET_ALL} to go back to the menu",
-              f"or {Fore.GREEN}quit{Style.RESET_ALL} to exit the system.")
+        print(f"Type {utility.green('menu')} to go back to the menu",
+              f"or {utility.green('quit')} to exit the system.")
         answer = input("Please enter your answer here:\n").strip()
         if answer.upper() == "MENU":
             admin_main()
@@ -134,11 +129,11 @@ def get_decision():
         str: User input value - Approve or reject.
     """
     while True:
-        print(f"\nEnter {Fore.GREEN}approve",
+        print(f"\nEnter {utility.green('approve')}",
               "to approve the request",
-              f"or {Fore.GREEN}reject {Style.RESET_ALL}to reject.")
-        print(f"Type {Fore.GREEN}menu{Style.RESET_ALL} to go back to the menu",
-              f"or {Fore.GREEN}quit{Style.RESET_ALL} to exit the system.")
+              f"or {utility.green('reject')} to reject.")
+        print(f"Type {utility.green('menu')} to go back to the menu",
+              f"or {utility.green('quit')} to exit the system.")
         answer = input("Please enter your answer here:\n").upper().strip()
         if answer == "MENU":
             admin_main()
@@ -177,10 +172,10 @@ def get_attendance_date():
     while True:
         print("\nEnter a date to review another day.")
         print("The date should be in the following format:",
-              f"{Fore.GREEN}Day/Month/Year")
+              f"{utility.green('Day/Month/Year')}.")
         print(f"For example, 01/12/2021 is the 1st of December 2021.")
-        print(f"To go back to the menu, type {Fore.GREEN}menu",
-              f"or to exit the system, type {Fore.GREEN}quit.")
+        print(f"To go back to the menu, type {utility.green('menu')}",
+              f"or to exit the system, type {utility.green('quit')}.")
         answer = input("Please enter the date here:\n").strip()
         utility.clear()
         if answer.upper() == "MENU":
@@ -277,10 +272,10 @@ def get_employee_id():
         str: A valid employee ID.
     """
     while True:
-        print(f"Enter an {Fore.GREEN}employee ID",
+        print(f"Enter an {utility.green('employee ID')}",
               "to add absence.")
-        print(f"Type {Fore.GREEN}menu{Style.RESET_ALL} to go back to the menu",
-              f"or {Fore.GREEN}quit{Style.RESET_ALL} to exit the system.")
+        print(f"Type {utility.green('menu')} to go back to the menu",
+              f"or {utility.green('quit')} to exit the system.")
         answer = input("Please enter your answer here:\n").upper().strip()
         if answer == "MENU":
             admin_main()
@@ -305,10 +300,10 @@ def get_absence_type(hours):
     """
     while True:
         print("\nPlease select an absence type.\n")
-        print(f"{Fore.GREEN}1{Style.RESET_ALL} Paid Time OFF")
-        print(f"{Fore.GREEN}2{Style.RESET_ALL} Unpaid Time OFF")
-        print(f"Type {Fore.GREEN}menu{Style.RESET_ALL} to go back to the menu",
-              f"or {Fore.GREEN}quit{Style.RESET_ALL} to exit the system.")
+        print(f"{utility.green('1')} Paid Time OFF")
+        print(f"{utility.green('2')} Unpaid Time OFF")
+        print(f"Type {utility.green('menu')} to go back to the menu",
+              f"or {utility.green('quit')} to exit the system.")
         answer = input("\nPlease enter your answer here:\n").strip()
         if answer.upper() == "MENU":
             admin_main()
@@ -334,12 +329,12 @@ def get_absence_duration(type, hours):
     """
     while True:
         print("\nSelect a duration of the absence.\n")
-        print(f"{Fore.GREEN}1{Style.RESET_ALL} 9:30AM-1:30PM")
-        print(f"{Fore.GREEN}2{Style.RESET_ALL} 1:30PM-5:30PM")
-        print(f"{Fore.GREEN}3{Style.RESET_ALL} Full day")
-        print(f"{Fore.GREEN}4{Style.RESET_ALL} More than 2 consecutive days")
-        print(f"Type {Fore.GREEN}menu{Style.RESET_ALL} to go back to the menu",
-              f"or {Fore.GREEN}quit{Style.RESET_ALL} to exit the system.")
+        print(f"{utility.green('1')} 9:30AM-1:30PM")
+        print(f"{utility.green('2')} 1:30PM-5:30PM")
+        print(f"{utility.green('3')} Full day")
+        print(f"{utility.green('4')} More than 2 consecutive days")
+        print(f"Type {utility.green('menu')} to go back to the menu",
+              f"or {utility.green('quit')} to exit the system.")
         answer = input("\nPlease enter your answer here:\n").strip()
         if answer.upper() == "MENU":
             admin_main()
@@ -372,10 +367,10 @@ def get_absence_start_date(duration):
         else:
             print("\nEnter a start date.")
         print("The date should be in the following format:",
-              f"{Fore.GREEN}Day/Month/Year")
+              f"{utility.green('Day/Month/Year')}.")
         print(f"For example, 01/12/2021 is the 1st of December 2021.")
-        print(f"Type {Fore.GREEN}menu{Style.RESET_ALL} to go back to the menu",
-              f"or {Fore.GREEN}quit{Style.RESET_ALL} to exit the system.")
+        print(f"Type {utility.green('menu')} to go back to the menu",
+              f"or {utility.green('quit')} to exit the system.")
         answer = input("\nPlease enter the date to continue:\n").strip()
         if answer.upper() == "MENU":
             admin_main()
@@ -400,7 +395,7 @@ def get_absence_end_date(type, date, hours):
     while True:
         print("\nEnter the last day of the absence.")
         print("The date should be in the following format:",
-              f"{Fore.GREEN}Day/Month/Year")
+              f"{utility.green('Day/Month/Year')}")
         print(f"For example, 01/12/2021 is the 1st of December 2021.")
         answer = input("Please enter the date to continue:\n").strip()
         if answer.upper() == "MENU":
@@ -439,8 +434,8 @@ def menu_or_quit():
         str: The user input - menu or quit.
     """
     while True:
-        print(f"Type {Fore.GREEN}menu{Style.RESET_ALL} to go back to the menu",
-              f"or {Fore.GREEN}quit{Style.RESET_ALL} to exit the system.")
+        print(f"Type {utility.green('menu')} to go back to the menu",
+              f"or {utility.green('quit')} to exit the system.")
         answer = input("\nPlease enter your answer here:\n").upper().strip()
         if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
             return answer
