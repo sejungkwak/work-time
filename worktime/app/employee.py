@@ -53,13 +53,13 @@ def clock_in(id):
     if clocking:
         if clocking["end_time"]:
             clocked_out_at = clocking["end_time"]
-            print(f"{utility.red('You already clocked out at')}",
+            print(f"{utility.red(id + ' already clocked out at')}",
                   f"{utility.red(clocked_out_at + '.')}")
             print(f"{utility.red('To update the clock in time,')}",
                   f"{utility.red('please contact your manager.')}")
         else:
             clocked_in_at = clocking["start_time"]
-            print(f"{utility.yellow('You already clocked in for today at')}",
+            print(f"{utility.yellow(id + ' already clocked in for today at')}",
                   f"{utility.yellow(clocked_in_at + '.')}")
             print(f"{utility.yellow('Overwrite it?')}")
             answer = check_for_overwrite()
@@ -75,7 +75,7 @@ def clock_in(id):
         print("Submitting today's clock in time...")
         data = [id, today, clock_in_at]
         clock_sheet.add_clocking(data)
-        print(f"{utility.green('You have successfully clocked in at')}",
+        print(f"{utility.green('Successfully clocked in at')}",
               f"{utility.green(clock_in_at + '.')}")
     menu_quit = menu_or_quit()
     if menu_quit == "MENU":
@@ -113,19 +113,22 @@ def clock_out(id):
     if clocking:
         if clocking["end_time"]:
             clocked_out_at = clocking["end_time"]
-            print(utility.red('You already clocked out at ' +
+            print(utility.red(id + ' already clocked out at ' +
                   clocked_out_at + '.'))
             print("Please contact your manager",
                   "to update your clock out time.")
         else:
             clock_sheet.update_clock_out(clock_out_at)
-            print(f"You have successfully clocked out at {clock_out_at}.")
+            print(utility.green("Successfully clocked out at"),
+                  utility.green(clock_out_at + "."))
     else:
         data = [id, today, "", clock_out_at]
         clock_sheet.add_clocking(data)
-        print(f"{utility.red('You did not clock in today.')}")
-        print("Please contact your manager to add your clock in time.")
-        print(f"You have successfully clocked out at {clock_out_at}.")
+        print(f"{utility.red('No clock in data for today.')}")
+        print("Please contact your manager",
+              "to add your clock in time.")
+        print(utility.green("Successfully clocked out at"),
+              utility.green(clock_out_at + "."))
     menu_quit = menu_or_quit()
     if menu_quit == "MENU":
         utility.clear()
@@ -198,7 +201,7 @@ def display_entitlements(id):
     """
     utility.clear()
     this_year = utility.get_current_datetime()["year"]
-    print(f"\nYour absence entitlements for {this_year}.")
+    print(f"\nAbsence entitlements for {this_year}.")
     tables.display_entitlements(id)
     menu_quit = menu_or_quit()
     if menu_quit == "MENU":
@@ -219,10 +222,9 @@ def check_avail_hours(id):
     unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
 
     if unallocated == "0":
-        print("You do not have paid time off available.")
-        print("Please contact your manager.")
+        print(utility.red("Insufficient paid time off available."))
     else:
-        print(f"You have {unallocated} hours available to book absence.\n")
+        print(f"{unallocated} hours available to book absence.\n")
         get_absence_duration(id)
 
 
@@ -234,7 +236,7 @@ def get_absence_duration(id):
     """
     unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
     while True:
-        menu.absence_menu()
+        menu.absence_period_menu()
         print(f"\n{messages.to_menu()}")
         answer = input(f"\n{messages.enter_number()}\n").strip()
         if answer.upper() == "MENU":
@@ -247,10 +249,9 @@ def get_absence_duration(id):
         elif validations.validate_choice_number(answer, range(1, 5)):
             if ((answer == "4" and float(unallocated) < 16) or
                     (answer == "3" and float(unallocated) < 8)):
-                print("Insufficient paid time off available",
-                      "to complete the request.")
-                print("Please select a different option or",
-                      "contact your manager.")
+                print(utility.red("Insufficient paid time off available"),
+                      utility.red("to complete the request."))
+                print("Select a different option or contact your manager.")
             else:
                 get_absence_start_date(id, answer)
                 break
@@ -286,15 +287,13 @@ def get_absence_start_date(id, duration):
             request_year = request_date.year
             this_year = int(utility.get_current_datetime()["year"])
             if (request_date - today).days <= 0:
-                print(f"\n{utility.yellow('Please note holidays must be')}",
-                      f"{utility.yellow('booked in advance.')}")
-                print(f"{utility.yellow('If you would like to submit')}",
-                      f"{utility.yellow('absence in the past,')}",
-                      f"{utility.yellow('please contact your manager.')}")
+                print(f"\n{utility.red('Please note holidays must be')}",
+                      f"{utility.red('booked in advance.')}")
+                print(f"{utility.red('If you would like to submit')}",
+                      f"{utility.red('absence in the past,')}",
+                      f"{utility.red('please contact your manager.')}")
             elif request_year != this_year:
-                print(f"\n{utility.yellow('Unable to process your request.')}")
-                print(f"{utility.yellow('Absence entitlements must be')}",
-                      f"{utility.yellow('taken within the leave year.')}")
+                print(messages.invalid_year())
             else:
                 if duration == "4":
                     get_absence_end_date(id, answer)
@@ -369,7 +368,7 @@ def get_confirm_request(id, start_date, end_date, duration):
                 add_pending_hours(id, hours)
                 break
             else:
-                print("No requests were submitted.")
+                print(utility.green("No requests were submitted."))
                 print("Returning to the menu...")
                 time.sleep(2)
                 utility.clear()
@@ -401,7 +400,7 @@ def add_absence_request(id, start_date, end_date, duration):
         days = str(utility.get_num_of_weekdays(start_date, end_date))
         data[3:3] = [end_date, "", "", days]
     requests.Requests().add_request(data)
-    print("\nYour absence request has been successfully submitted.")
+    print(f"\n{utility.green('Absence request submitted successfully.')}")
 
 
 def add_pending_hours(id, hours):
@@ -411,11 +410,11 @@ def add_pending_hours(id, hours):
         id str: Employee ID that was used to log in.
         hours int: The number of requested absence hours.
     """
-    print("\nUpdating your absence entitlements...")
+    print("\nUpdating absence entitlements...")
     time.sleep(1)
     entitle_sheet = entitlements.Entitlements(id)
     entitle_sheet.update_hours(hours, "unallocated_to_pending")
-    print("\nYour absence entitlements has been successfully updated.\n")
+    print(f"\n{utility.green('Absence entitlements updated successfully.')}\n")
     menu_quit = menu_or_quit()
     if menu_quit == "MENU":
         utility.clear()
@@ -436,7 +435,7 @@ def check_cancellable(id):
     planned = entitle_sheet.get_hours("planned")
     pending = entitle_sheet.get_hours("pending")
     if planned == pending == 0:
-        print("You do not have any planned/pending absence to cancel.")
+        print(utility.red("No planned/pending absence to cancel."))
         menu_quit = menu_or_quit()
         if menu_quit == "MENU":
             utility.clear()
@@ -507,7 +506,7 @@ def get_confirm_cancel(id, request_id, data):
         period = f"{details[6]} day(s)"
     while True:
         utility.clear()
-        print(f"{utility.yellow('Please confirm your cancellation of absence request.')}")
+        print(f"{utility.yellow('Please confirm cancellation.')}")
         print(f"Start date: {details[2]}")
         print(f"End date: {details[3]}")
         print(f"Period: {period}")
@@ -519,7 +518,7 @@ def get_confirm_cancel(id, request_id, data):
                 break
             if answer == "N":
                 utility.clear()
-                print("No absences were cancelled.")
+                print(utility.green("No absences were cancelled."))
                 break
     time.sleep(2)
     if (answer == "Y" and len(data) > 1) or (answer == "N" and len(data) > 0):
@@ -556,7 +555,7 @@ def update_cancel_absence(id, request):
     else:
         entitle_sheet.update_hours(absence_hours, "pending_to_unallocated")
     utility.clear()
-    print(f"{utility.green('Your absence has been successfully cancelled.')}\n")
+    print(f"{utility.green('Absence cancelled successfully.')}\n")
 
 
 def menu_or_quit():
