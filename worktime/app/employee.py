@@ -3,7 +3,7 @@ import sys
 
 # Custom Packages
 from worktime.worksheets import clockings, entitlements, requests
-from worktime.app import menu, tables, title, utility, validations
+from worktime.app import menu, messages, tables, title, utility, validations
 
 
 def employee_main(id):
@@ -15,7 +15,7 @@ def employee_main(id):
     """
     while True:
         menu.employee_menu()
-        choice = input("\nPlease enter a number to continue:\n").strip()
+        choice = input(f"\n{messages.enter_number()}\n").strip()
         if validations.validate_choice_number(choice, range(1, 8)):
             break
 
@@ -52,22 +52,30 @@ def clock_in(id):
     if clocking:
         if clocking["end_time"]:
             clocked_out_at = clocking["end_time"]
-            print(f"You already clocked out at {clocked_out_at}.")
-            print(f"To update time, please contact your manager.")
+            print(f"{utility.red('You already clocked out at')}",
+                  f"{utility.red(clocked_out_at + '.')}")
+            print(f"{utility.red('To update the clock in time,')}",
+                  f"{utility.red('please contact your manager.')}")
         else:
             clocked_in_at = clocking["start_time"]
-            print(f"\nYou already clocked in for today at {clocked_in_at}.")
-            print(f"Would you like to overwrite it?")
-            is_overwrite = check_for_overwrite()
-            if is_overwrite == "Y":
+            print(f"{utility.yellow('You already clocked in for today at')}",
+                  f"{utility.yellow(clocked_in_at + '.')}")
+            print(f"{utility.yellow('Overwrite it?')}")
+            answer = check_for_overwrite()
+            utility.clear()
+            if answer == "Y":
+                print("Updating today's clock in time...")
                 clock_sheet.update_clock_in(clock_in_at)
-                print(f"Clock in time has been updated: {clock_in_at}")
+                print(f"{utility.green('Clock in time has been updated to')}",
+                      f"{utility.green(clock_in_at + '.')}")
             else:
-                print(f"Your clock in time for today: {clocked_in_at}")
+                print(f"{utility.green('No changes were made.')}")
     else:
+        print("Submitting today's clock in time...")
         data = [id, today, clock_in_at]
         clock_sheet.add_clocking(data)
-        print(f"You have successfully clocked in at {clock_in_at}.")
+        print(f"{utility.green('You have successfully clocked in at')}",
+              f"{utility.green(clock_in_at + '.')}")
     menu_quit = menu_or_quit()
     if menu_quit == "MENU":
         utility.clear()
@@ -84,9 +92,7 @@ def check_for_overwrite():
         str: The user input - Y or N
     """
     while True:
-        print(f"Enter {utility.green('y')} to overwrite",
-              f"or {utility.green('n')} to not overwrite.")
-        answer = input("\nPlease enter your answer here:\n").upper().strip()
+        answer = input(f"{messages.y_or_n()}\n").upper().strip()
         if validations.validate_choice_letter(answer, ["Y", "N"]):
             return answer
 
@@ -141,12 +147,9 @@ def get_attendance_date(id):
 
     while True:
         print("\nEnter a date to review another week.")
-        print("The date should be in the following format:",
-              f"{utility.green('Day/Month/Year')}.")
-        print(f"For example, 01/12/2021 is the 1st of December 2021.")
-        print(f"To go back to the menu, type {utility.green('menu')}",
-              f"or to exit the system, type {utility.green('quit')}.")
-        answer = input("Please enter the date here:\n").strip()
+        print(messages.date_format())
+        print(messages.to_menu())
+        answer = input(f"{messages.enter_date()}\n").strip()
         utility.clear()
         if answer.upper() == "MENU":
             employee_main(id)
@@ -230,15 +233,9 @@ def get_absence_duration(id):
     """
     unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
     while True:
-        print("\nPlease select an option that is the most suitable",
-              "for your absence duration.\n")
-        print(f"{utility.green('1')} 9:30AM-1:30PM")
-        print(f"{utility.green('2')} 1:30PM-5:30PM")
-        print(f"{utility.green('3')} Full day")
-        print(f"{utility.green('4')} More than 2 consecutive days")
-        print(f"To go back to the menu, type {utility.green('menu')}",
-              f"or to exit the system, type {utility.green('quit')}.")
-        answer = input("\nPlease enter a number to continue:\n").strip()
+        menu.absence_menu()
+        print(f"\n{messages.to_menu()}")
+        answer = input(f"\n{messages.enter_number()}\n").strip()
         if answer.upper() == "MENU":
             utility.clear()
             employee_main(id)
@@ -268,15 +265,12 @@ def get_absence_start_date(id, duration):
     """
     while True:
         if int(duration) in range(1, 4):
-            print("\nPlease enter a date that you want to book.")
+            print("\nPlease enter your absence date.")
         else:
-            print("\nPlease enter the start date that you want to book.")
-        print("The date should be in the following format:",
-              f"{utility.green('Day/Month/Year')}.")
-        print(f"For example, 01/12/2021 is the 1st of December 2021.")
-        print(f"To go back to the menu, type {utility.green('menu')}",
-              f"or to exit the system, type {utility.green('quit')}.")
-        answer = input("Please enter the date to continue:\n").strip()
+            print("\nPlease enter the start date for your absence duration.")
+        print(messages.date_format())
+        print(messages.to_menu())
+        answer = input(f"{messages.enter_date()}\n").strip()
         if answer.upper() == "MENU":
             utility.clear()
             employee_main(id)
@@ -323,12 +317,9 @@ def get_absence_end_date(id, start_date):
     unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
     while True:
         print("\nPlease enter the last day for your absence duration.")
-        print("The date should be in the following format:",
-              f"{utility.green('Day/Month/Year')}.")
-        print(f"For example, 01/12/2021 is the 1st of December 2021.")
-        print(f"To go back to the menu, type {utility.green('menu')}",
-              f"or to exit the system, type {utility.green('quit')}.")
-        answer = input("Please enter the date to continue:\n").strip()
+        print(messages.date_format())
+        print(messages.to_menu())
+        answer = input(f"{messages.enter_date()}\n").strip()
         if answer.upper() == "MENU":
             utility.clear()
             employee_main(id)
@@ -425,10 +416,8 @@ def get_cancel_number(id):
     tables.display_allocated_absences(id)
     while True:
         id_list = [int(item[0]) for item in allocated_absences]
-        print(f"To go back to the menu, type {utility.green('menu')}",
-              f"or to exit the system, type {utility.green('quit')}.")
-        answer = input(f"Enter the {utility.green('request ID')}",
-                       "from the first column to cancel:\n").strip()
+        print(messages.to_menu())
+        answer = input(f"{messages.enter_req_id()}\n").strip()
         if answer.upper() == "MENU":
             utility.clear()
             employee_main(id)
@@ -471,14 +460,13 @@ def update_cancel_absence(id, req_id):
 
 def menu_or_quit():
     """Ask the user if they want to go back to the menu or quit.
-    Run a while loop until the user inputs a valid answer.
+    Run a while loop until the user inputs a valid option.
 
     Returns:
         str: The user input - menu or quit.
     """
     while True:
-        print(f"Type {utility.green('menu')} to go back to the menu",
-              f"or {utility.green('quit')} to exit the system.")
-        choice = input("\nPlease enter your answer here:\n").upper().strip()
-        if validations.validate_choice_letter(choice, ["MENU", "QUIT"]):
-            return choice
+        print(messages.to_menu())
+        answer = input(f"\n{messages.enter_menu()}\n").upper().strip()
+        if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
+            return answer
