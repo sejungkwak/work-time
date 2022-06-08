@@ -6,7 +6,7 @@ class Entitlements:
     """Represent the entitlements worksheet.
 
     Args:
-        :id str: An employee ID
+        id str: An employee ID
     """
 
     def __init__(self, id):
@@ -15,7 +15,7 @@ class Entitlements:
         self.entitlements = self.worksheet.get_all_values()[1:]
 
     def get_entitlements(self):
-        """Retrive an employee's entitlements in a list."""
+        """Retrieve an employee's entitlements in a list."""
         for entitlement in self.entitlements:
             if self.id == entitlement[0]:
                 return entitlement[1:]
@@ -30,7 +30,7 @@ class Entitlements:
         """Return the current value of target cell.
 
         Args:
-            :code str: Absence status - taken, planned, pending or unallocated.
+            code str: Absence status - taken, planned, pending or unallocated.
         """
         row = self.get_row() - 2
         # ord() returns unicode code number. i.e. A = 65.
@@ -48,7 +48,7 @@ class Entitlements:
             direction str: Cell names
         """
         row = self.get_row()
-        taken_col = self.get_col("pending")
+        taken_col = self.get_col("taken")
         planned_col = self.get_col("planned")
         pending_col = self.get_col("pending")
         unallocated_col = self.get_col("unallocated")
@@ -67,6 +67,13 @@ class Entitlements:
             planned_hours = self.get_hours("planned") + hours
             self.worksheet.update(f"{planned_col}{row}:{pending_col}{row}",
                                   [[planned_hours, pending_hours]])
+        elif direction == "unallocated_to_planned":
+            pending_hours = self.get_hours("pending")
+            planned_hours = self.get_hours("planned") + hours
+            unallocated_hours = self.get_hours("unallocated") - hours
+            self.worksheet.update(f"{planned_col}{row}:{unallocated_col}{row}",
+                                  [[planned_hours, pending_hours,
+                                   unallocated_hours]])
         elif direction == "planned_to_unallocated":
             pending_hours = self.get_hours("pending")
             planned_hours = self.get_hours("planned") - hours
@@ -87,7 +94,7 @@ class Entitlements:
         """Return the worksheet column index.
 
         Args:
-            :code str: Absence status - taken, planned, pending or unallocated.
+            code str: Absence status - taken, planned, pending or unallocated.
         """
         if code == "taken":
             col = "C"
