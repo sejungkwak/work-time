@@ -39,19 +39,49 @@ class Entitlements:
         current_hours = self.entitlements[row][col]
         return int(current_hours)
 
-    def update_hours(self, code, hours, math):
-        """Update hours on the worksheet.
+    def update_hours(self, hours, direction):
+        """Add and subtract the value of hours to / from the cell
+        depending on the value of argument "direction".
 
         Args:
-            :code str: Absence status - taken, planned, pending or unallocated.
-            :hours int: The operand.
-            :math str: Type of mathematical operations - add or subtract.
+            hours int: The operand - requested absence hours.
+            direction str: Cell names
         """
         row = self.get_row()
-        col = self.get_col(code)
-        current = self.get_hours(code)
-        new = current + hours if math == "add" else current - hours
-        self.worksheet.update(f"{col}{row}", new)
+        taken_col = self.get_col("pending")
+        planned_col = self.get_col("planned")
+        pending_col = self.get_col("pending")
+        unallocated_col = self.get_col("unallocated")
+        if direction == "unallocated_to_pending":
+            pending_hours = self.get_hours("pending") + hours
+            unallocated_hours = self.get_hours("unallocated") - hours
+            self.worksheet.update(f"{pending_col}{row}:{unallocated_col}{row}",
+                                  [[pending_hours, unallocated_hours]])
+        elif direction == "pending_to_unallocated":
+            pending_hours = self.get_hours("pending") - hours
+            unallocated_hours = self.get_hours("unallocated") + hours
+            self.worksheet.update(f"{pending_col}{row}:{unallocated_col}{row}",
+                                  [[pending_hours, unallocated_hours]])
+        elif direction == "pending_to_planned":
+            pending_hours = self.get_hours("pending") - hours
+            planned_hours = self.get_hours("planned") + hours
+            self.worksheet.update(f"{planned_col}{row}:{pending_col}{row}",
+                                  [[planned_hours, pending_hours]])
+        elif direction == "planned_to_unallocated":
+            pending_hours = self.get_hours("pending")
+            planned_hours = self.get_hours("planned") - hours
+            unallocated_hours = self.get_hours("unallocated") + hours
+            self.worksheet.update(f"{planned_col}{row}:{unallocated_col}{row}",
+                                  [[planned_hours, pending_hours,
+                                   unallocated_hours]])
+        elif direction == "unallocated_to_taken":
+            taken_hours = self.get_hours("taken") + hours
+            planned_hours = self.get_hours("planned")
+            pending_hours = self.get_hours("pending")
+            unallocated_hours = self.get_hours("unallocated") - hours
+            self.worksheet.update(f"{taken_col}{row}:{unallocated_col}{row}",
+                                  [[taken_hours, planned_hours,
+                                   pending_hours, unallocated_hours]])
 
     def get_col(self, code):
         """Return the worksheet column index.
@@ -59,7 +89,6 @@ class Entitlements:
         Args:
             :code str: Absence status - taken, planned, pending or unallocated.
         """
-        col = ""
         if code == "taken":
             col = "C"
         elif code == "planned":

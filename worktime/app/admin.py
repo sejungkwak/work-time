@@ -70,11 +70,10 @@ def handle_request():
         absence_days = requests.Requests().get_duration(requests_row_index)
         hours = int(float(absence_days) * 8)
         entitle_sheet = entitlements.Entitlements(employee_id)
-        entitle_sheet.update_hours("pending", hours, "subtract")
         if decision == "APPROVE":
-            entitle_sheet.update_hours("planned", hours, "add")
+            entitle_sheet.update_hours(hours, "pending_to_planned")
         else:
-            entitle_sheet.update_hours("unallocated", hours, "add")
+            entitle_sheet.update_hours(hours, "pending_to_unallocated")
         print("Data has been updated successfully.")
     menu_quit = menu_or_quit()
     utility.clear()
@@ -258,12 +257,11 @@ def add_absence():
 
     if absence_type == "1":
         entitle_sheet = entitlements.Entitlements(ee_id)
-        entitle_sheet.update_hours("unallocated", total_hours, "subtract")
         iso_start_date = utility.convert_date(start_date)
         if int((iso_start_date - utility.get_today()).days) > 0:
-            entitle_sheet.update_hours("planned", total_hours, "add")
+            entitle_sheet.update_hours(total_hours, "unallocated_to_planned")
         else:
-            entitle_sheet.update_hours("taken", total_hours, "add")
+            entitle_sheet.update_hours(total_hours, "unallocated_to_taken")
     req_sheet = requests.Requests(ee_id)
     req_id = req_sheet.generate_req_id()
     days = total_hours / 8

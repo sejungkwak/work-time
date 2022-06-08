@@ -223,7 +223,7 @@ def check_avail_hours(id):
         print("You do not have paid time off available.")
         print("Please contact your manager.")
     else:
-        print(f"\nYou have {unallocated} hours available to book absence.")
+        print(f"You have {unallocated} hours available to book absence.")
         get_absence_duration(id)
 
 
@@ -384,8 +384,7 @@ def add_pending_hours(id, hours):
     """
     print("\nUpdating your absence entitlements...")
     entitle_sheet = entitlements.Entitlements(id)
-    entitle_sheet.update_hours("pending", hours, "add")
-    entitle_sheet.update_hours("unallocated", hours, "substract")
+    entitle_sheet.update_hours(hours, "unallocated_to_pending")
     print("\nYour absence entitlements has been successfully updated.\n")
     menu_quit = menu_or_quit()
     if menu_quit == "MENU":
@@ -432,7 +431,8 @@ def get_cancel_number(id):
         id_list = [int(item[0]) for item in allocated_absences]
         print(f"To go back to the menu, type {Fore.GREEN}menu",
               f"or to exit the system, type {Fore.GREEN}quit.")
-        answer = input(f"{Fore.GREEN}Please enter the ID you want to cancel:\n").strip()
+        answer = input(f"Enter the {Fore.GREEN}request ID",
+                       "from the first column to cancel:\n").strip()
         if answer.upper() == "MENU":
             utility.clear()
             employee_main(id)
@@ -450,18 +450,19 @@ def update_cancel_absence(id, req_id):
         id str: Employee ID that was used to log in.
         req_id str: Absence request ID to cancel.
     """
-    print("\nProcessing your request...")
+    utility.clear()
+    print(f"\n{Style.RESET_ALL}Processing your request...")
     row_index = int(req_id)
     requests.Requests().update_cancelled(row_index)
     absence_days = requests.Requests().get_duration(row_index)
     absence_hours = int(float(absence_days) * 8)
     is_approved = requests.Requests().get_approved(row_index)
     entitle_sheet = entitlements.Entitlements(id)
-    entitle_sheet.update_hours("unallocated", absence_hours, "add")
     if is_approved == "True":
-        entitle_sheet.update_hours("planned", absence_hours, "subtract")
+        entitle_sheet.update_hours(absence_hours, "planned_to_unallocated")
     else:
-        entitle_sheet.update_hours("pending", absence_hours, "subtract")
+        entitle_sheet.update_hours(absence_hours, "pending_to_unallocated")
+    utility.clear()
     print("\nYour absence has been successfully cancelled.")
     menu_quit = menu_or_quit()
     if menu_quit == "MENU":
