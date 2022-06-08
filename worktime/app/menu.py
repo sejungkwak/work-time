@@ -19,21 +19,28 @@ def admin_menu():
     format_menu(numbers, options)
 
 
-def absence_menu():
-    """Displays the menu for absence."""
+def absence_period_menu():
+    """Displays the menu for absence period."""
     numbers = range(1, 5)
     options = (["9:30AM-1:30PM", "1:30PM-5:30PM",
                 "Full day", "More than 2 consecutive days"])
     format_menu(numbers, options)
 
 
+def absence_paid_menu():
+    """Displays the menu for absence paid type."""
+    numbers = range(1, 3)
+    options = ["Paid Absence: Taken from entitlements", "Unpaid Absence"]
+    format_menu(numbers, options)
+
+
 def format_menu(numbers, options):
-    """Displays the option number in green font.
+    """Displays the option number in cyan font.
 
     Args:
         numbers object: A sequence of numbers.
         options list: A list of menu options.
     """
-    print("\nPlease choose one of the following options.\n")
+    print("Please choose one of the following options.\n")
     for number, option in zip(numbers, options):
-        print(f" {utility.green(str(number))} {option}")
+        print(f" {utility.cyan(str(number))} {option}")
