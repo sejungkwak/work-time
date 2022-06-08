@@ -48,7 +48,7 @@ def get_today():
     """Get the current date of Dublin.
 
     Returns:
-        date: A instans of datetime.date().
+        date: A instance of datetime.date().
     """
     DUBLIN = pytz.timezone("Europe/Dublin")
     return datetime.now(DUBLIN).date()
@@ -79,14 +79,14 @@ def get_week(xdate, result):
 
 
 def convert_date(xdate):
-    """Split a string into a list of integers that represet
+    """Split a string into a list of integers that represent
     year, month and date, and then pass them to date() object.
 
     Args:
         xdate str: A date - DD/MM/YYYY.
 
     Returns:
-        date: An instans of datetime.date().
+        date: An instance of datetime.date().
     """
     date_to_list = xdate.split("/")
     year = int(date_to_list[2])
