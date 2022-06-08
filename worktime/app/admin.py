@@ -459,8 +459,8 @@ def get_absence_start_date(type, duration):
             title.title_end()
             sys.exit()
         elif validations.validate_date(answer):
-            if type == "1" and
-            answer[-4:] != str(utility.get_current_datetime()["year"]):
+            if (answer[-4:] != str(utility.get_current_datetime()["year"]) and
+                    type == "1"):
                 print(messages.invalid_year())
             else:
                 return answer
