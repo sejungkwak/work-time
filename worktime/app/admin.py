@@ -19,7 +19,7 @@ def admin_main():
     """
     while True:
         menu.admin_menu()
-        answer = input(f"\n{messages.enter_number()}\n").strip()
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
         utility.clear()
         if validations.validate_choice_number(answer, range(1, 5)):
             break
@@ -111,8 +111,8 @@ def get_request_id():
         id_list = [int(item[0]) for item in new_request]
         print(f"\nEnter a {utility.cyan('request ID')}",
               "from the first column to approve or reject.")
-        print(messages.to_menu())
-        answer = input(f"{messages.enter_req_id()}\n").strip()
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
         if answer.upper() == "MENU":
             admin_main()
             break
@@ -133,7 +133,7 @@ def get_decision():
         print(f"\nEnter {utility.cyan('approve')}",
               "to approve the request",
               f"or {utility.cyan('reject')} to reject.")
-        print(messages.to_menu())
+        print(f"({messages.to_menu()})")
         answer = input("Enter approve or reject here:\n").upper().strip()
         if answer == "MENU":
             admin_main()
@@ -169,10 +169,10 @@ def get_attendance_date():
     display_attendance()
 
     while True:
-        print("\nEnter a date to review another day.")
+        print(f"\nEnter a {utility.cyan('date')} to review another day.")
         print(messages.date_format())
-        print(messages.to_menu())
-        answer = input(f"{messages.enter_date()}\n").strip()
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -256,12 +256,12 @@ def get_confirm_absence(id, type, from_date, to_date, duration):
     elif duration == "2":
         period = "13:30 - 17:30"
     elif duration == "3":
-        period = "1 day"
+        period = "1 workday"
         total_hours = 8
     else:
         period = utility.get_num_of_weekdays(from_date, to_date)
         total_hours = period * 8
-        period = f"{period} days"
+        period = f"{period} workdays"
 
     while True:
         print(f"{utility.yellow('Please confirm the details.')}")
@@ -363,8 +363,8 @@ def get_employee_id():
     while True:
         print(f"Enter an {utility.cyan('employee ID')}",
               "to add absence.")
-        print(messages.to_menu())
-        answer = input(f"{messages.enter_ee_id()}\n").upper().strip()
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").upper().strip()
         utility.clear()
         if answer == "MENU":
             admin_main()
@@ -390,8 +390,8 @@ def get_absence_type(hours):
     utility.clear()
     while True:
         menu.absence_paid_menu()
-        print(messages.to_menu())
-        answer = input(f"\n{messages.enter_number()}\n").strip()
+        print(f"({messages.to_menu()})")
+        answer = input(f"\n{utility.cyan('>>>')}\n").strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -417,8 +417,8 @@ def get_absence_duration(type, hours):
     """
     while True:
         menu.absence_period_menu()
-        print(messages.to_menu())
-        answer = input(f"\n{messages.enter_number()}\n").strip()
+        print(f"({messages.to_menu()})")
+        answer = input(f"\n{utility.cyan('>>>')}\n").strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -449,13 +449,13 @@ def get_absence_start_date(type, duration):
     utility.clear()
     while True:
         if int(duration) in range(1, 4):
-            print("\nPlease enter the absence date.")
+            print(f"\nPlease enter {utility.cyan('the absence date')}.")
         else:
-            print(f"\nPlease enter the {utility.cyan('start date')}",
+            print(f"\nPlease enter {utility.cyan('the start date')}",
                   "for the absence duration.")
         print(messages.date_format())
-        print(messages.to_menu())
-        answer = input(f"{messages.enter_date()}\n").strip()
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -486,8 +486,8 @@ def get_absence_end_date(type, date, hours):
         print(f"\nPlease enter the {utility.cyan('last date')}",
               "for the absence duration.")
         print(messages.date_format())
-        print(messages.to_menu())
-        answer = input(f"{messages.enter_date()}\n").strip()
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -525,7 +525,7 @@ def menu_or_quit():
     """
     while True:
         print(messages.to_menu())
-        answer = input(f"\n{messages.enter_menu()}\n").upper().strip()
+        answer = input(f"\n{utility.cyan('>>>')}\n").upper().strip()
         utility.clear()
         if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
             return answer

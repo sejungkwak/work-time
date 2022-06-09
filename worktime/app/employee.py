@@ -16,7 +16,7 @@ def employee_main(id):
     """
     while True:
         menu.employee_menu()
-        choice = input(f"\n{messages.enter_number()}\n").strip()
+        choice = input(f"{utility.cyan('>>>')}\n").strip()
         if validations.validate_choice_number(choice, range(1, 8)):
             break
 
@@ -61,7 +61,7 @@ def clock_in(id):
             clocked_in_at = clocking["start_time"]
             print(f"{utility.yellow(id + ' already clocked in for today at')}",
                   f"{utility.yellow(clocked_in_at + '.')}")
-            print(f"{utility.yellow('Overwrite it?')}")
+            print("Overwrite it?")
             answer = check_for_overwrite()
             utility.clear()
             if answer == "Y":
@@ -150,10 +150,10 @@ def get_attendance_date(id):
         print("There is no clocking data for this week.")
 
     while True:
-        print("\nEnter a date to review another week.")
+        print(f"Enter a \n{utility.cyan('date')} to review another week.")
         print(messages.date_format())
-        print(messages.to_menu())
-        answer = input(f"{messages.enter_date()}\n").strip()
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
         utility.clear()
         if answer.upper() == "MENU":
             employee_main(id)
@@ -237,8 +237,8 @@ def get_absence_duration(id):
     unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
     while True:
         menu.absence_period_menu()
-        print(f"\n{messages.to_menu()}")
-        answer = input(f"\n{messages.enter_number()}\n").strip()
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
         if answer.upper() == "MENU":
             utility.clear()
             employee_main(id)
@@ -266,14 +266,15 @@ def get_absence_start_date(id, duration):
             1. morning, 2. afternoon, 3. full day, 4. 2+ days
     """
     while True:
-        utility.clear()
         if int(duration) in range(1, 4):
-            print("\nPlease enter your absence date.")
+            print(f"\nPlease enter the {utility.cyan('absence date')}.")
         else:
-            print("\nPlease enter the start date for your absence duration.")
+            print(f"\nPlease enter the {utility.cyan('start date')}",
+                  "for the absence duration.")
         print(messages.date_format())
-        print(messages.to_menu())
-        answer = input(f"{messages.enter_date()}\n").strip()
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        utility.clear()
         if answer.upper() == "MENU":
             utility.clear()
             employee_main(id)
@@ -312,10 +313,12 @@ def get_absence_end_date(id, start_date):
     """
     unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
     while True:
-        print("\nPlease enter the last day for your absence duration.")
+        print(f"\nPlease enter the {utility.cyan('last date')}",
+              "for the absence duration.")
         print(messages.date_format())
-        print(messages.to_menu())
-        answer = input(f"{messages.enter_date()}\n").strip()
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        utility.clear()
         if answer.upper() == "MENU":
             utility.clear()
             employee_main(id)
@@ -346,22 +349,22 @@ def get_confirm_request(id, start_date, end_date, duration):
         period = "13:30 - 17:30"
         hours = 4
     elif duration == "3":
-        period = "1 day"
+        period = "1 workday"
         hours = 8
     else:
         period = utility.get_num_of_weekdays(start_date, end_date)
         hours = period * 8
-        period = f"{period} days"
+        period = f"{period} workdays"
     while True:
-        utility.clear()
         print(f"{utility.yellow('Please confirm your request.')}")
         print(f"Start date: {start_date}")
         print(f"End date: {end_date}")
         print(f"Period: {period}")
         if duration == "4":
             print("Please note that the weekends are not included.")
-        print("\nSubmit your request?")
+        print("\nSubmit this request?")
         answer = input(f"{messages.y_or_n()}\n").upper().strip()
+        utility.clear()
         if validations.validate_choice_letter(answer, ["Y", "N"]):
             if answer == "Y":
                 add_absence_request(id, start_date, end_date, duration)
@@ -456,11 +459,14 @@ def get_cancel_number(id):
     print("Loading data...")
     allocated_absences = requests.Requests(id).get_cancellable_absence()
     utility.clear()
-    display_allocated_absences(allocated_absences)
     while True:
+        display_allocated_absences(allocated_absences)
         id_list = [int(item[0]) for item in allocated_absences]
-        print(messages.to_menu())
-        answer = input(f"{messages.enter_req_id()}\n").strip()
+        print(f"\nEnter a {utility.cyan('request ID')}",
+              "from the first column to cancel.")
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        utility.clear()
         if answer.upper() == "MENU":
             utility.clear()
             employee_main(id)
@@ -505,13 +511,13 @@ def get_confirm_cancel(id, request_id, data):
     else:
         period = f"{details[6]} day(s)"
     while True:
-        utility.clear()
-        print(f"{utility.yellow('Please confirm cancellation.')}")
+        print(f"{utility.yellow('Please confirm the cancellation.')}")
         print(f"Start date: {details[2]}")
         print(f"End date: {details[3]}")
         print(f"Period: {period}")
         print("\nCanel this absence?")
         answer = input(f"{messages.y_or_n()}\n").upper().strip()
+        utility.clear()
         if validations.validate_choice_letter(answer, ["Y", "N"]):
             if answer == "Y":
                 update_cancel_absence(id, details)
@@ -567,6 +573,6 @@ def menu_or_quit():
     """
     while True:
         print(messages.to_menu())
-        answer = input(f"\n{messages.enter_menu()}\n").upper().strip()
+        answer = input(f"{utility.cyan('>>>')}\n").upper().strip()
         if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
             return answer
