@@ -150,7 +150,7 @@ def get_attendance_date(id):
         print("There is no clocking data for this week.")
 
     while True:
-        print(f"Enter a \n{utility.cyan('date')} to review another week.")
+        print(f"Enter a {utility.cyan('date')} to review another week.")
         print(messages.date_format())
         print(f"({messages.to_menu()})")
         answer = input(f"{utility.cyan('>>>')}\n").strip()
