@@ -6,22 +6,25 @@ import stdiomask
 
 # Custom Packages
 from worktime.app import admin, employee, title, utility, validations
+from worktime.worksheets import credentials
 
 
 def get_employee_id():
     """Request Employee ID and validate the user input.
     Run a while loop until the user types "help" or a valid ID.
     """
+    ids = credentials.Credentials().ids()
     while True:
         print("Please enter your Employee ID.")
         print("To contact the system administrator, enter",
               f"{utility.cyan('help')} instead.")
         entered_id = input("\nEmployee ID:\n").upper().strip()
+        utility.clear()
 
         if entered_id == "HELP":
             break
 
-        if validations.validate_id(entered_id):
+        if validations.validate_id(entered_id, ids):
             get_pw(entered_id)
             break
 
@@ -33,12 +36,15 @@ def get_pw(id):
     Args:
         id str: Employee ID that was entered to log in.
     """
+    pw = credentials.Credentials().pw(id)
     while True:
-        password = stdiomask.getpass(prompt="\nPassword:\n")
+        password = stdiomask.getpass(prompt="Password:\n")
+        utility.clear()
+
         if password.upper() == "HELP":
             break
 
-        is_valid = validations.validate_pw(id, password)
+        is_valid = validations.validate_pw(id, password, pw)
         if is_valid:
             if id == "ADMIN":
                 title.title_admin()
