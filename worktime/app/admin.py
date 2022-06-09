@@ -17,6 +17,9 @@ def admin_main():
         4. Log Out
     Run a while loop until the user inputs a valid number.
     """
+    request_sheet = requests.Requests().requests
+    new_request = get_new_requests(request_sheet)
+    new_request_notification(new_request)
     while True:
         menu.admin_menu()
         answer = input(f"{utility.cyan('>>>')}\n").strip()
@@ -35,36 +38,45 @@ def admin_main():
         sys.exit()
 
 
-def new_request_notification():
-    """Check if there are new requests and display the result."""
-    new_request = requests.Requests().get_new_requests()
-    if len(new_request) > 0:
-        word_form = "request" if len(new_request) == 1 else "requests"
-        print(f"{utility.yellow('You have ' + str(len(new_request)))}",
-              f"{utility.yellow(word_form + ' to review.')}\n")
-    else:
-        print("There are no more requests to review right now.\n")
+def get_new_requests(data):
+    """Retrieve data that meets conditions: start date is in the future,
+    not approved or rejected, not cancelled.
+
+    Args:
+        data list: The absence_requests worksheet values.
+    Returns:
+        list: A list of lists containing new request data.
+    """
+    today = utility.get_today()
+    new_requests = []
+    for item in data:
+        date_ = utility.convert_date(item[2])
+        if ((date_ - today).days > 0 and
+                item[-2] == "/" and not eval(item[-1])):
+            new_requests.append(item)
+    return new_requests
 
 
 def handle_request():
     """Display new requests and update the worksheet depending on the user
     input - approve or reject.
     """
-    new_request_notification()
-    new_request = requests.Requests().get_new_requests()
+    request_sheet = requests.Requests()
+    new_request = get_new_requests(request_sheet.requests)
+    new_request_notification(new_request)
     if len(new_request) > 0:
-        print("Getting data...")
+        print("Loading data...")
         request_list = sort_new_request(new_request)
         tables.display_new_requests(request_list)
-        req_id = get_request_id()
+        req_id = get_request_id(new_request)
         decision = get_decision()
         print("Processing...")
         time.sleep(3)
         utility.clear()
         requests_row_index = int(req_id)
-        requests.Requests().update_approved(requests_row_index, decision)
+        request_sheet.update_approved(requests_row_index, decision)
         employee_id = find_ee_id(req_id)
-        absence_days = requests.Requests().get_duration(requests_row_index)
+        absence_days = request_sheet.get_duration(requests_row_index)
         hours = int(float(absence_days) * 8)
         entitle_sheet = entitlements.Entitlements(employee_id)
         if decision == "APPROVE":
@@ -79,6 +91,20 @@ def handle_request():
     else:
         title.title_end()
         sys.exit()
+
+
+def new_request_notification(new_request):
+    """Check if there are new absence requests and display the result.
+
+    Args:
+        new_request list: A list of lists containing new absence requests.
+    """
+    if len(new_request) > 0:
+        word_form = "request" if len(new_request) == 1 else "requests"
+        print(f"{utility.yellow('You have ' + str(len(new_request)))}",
+              f"{utility.yellow(word_form + ' to review.')}\n")
+    else:
+        print("There are no more requests to review right now.\n")
 
 
 def sort_new_request(req_list):
@@ -100,13 +126,14 @@ def sort_new_request(req_list):
     return new_req_list
 
 
-def get_request_id():
+def get_request_id(new_request):
     """Run a while loop until the user inputs a valid value.
 
+    Args:
+        new_request list: A list of list containing new absence requests.
     Returns:
         str: User input value - Request ID.
     """
-    new_request = requests.Requests().get_new_requests()
     while True:
         id_list = [int(item[0]) for item in new_request]
         print(f"\nEnter a {utility.cyan('request ID')}",
@@ -134,7 +161,7 @@ def get_decision():
               "to approve the request",
               f"or {utility.cyan('reject')} to reject.")
         print(f"({messages.to_menu()})")
-        answer = input("Enter approve or reject here:\n").upper().strip()
+        answer = input(f"{utility.cyan('>>>')}\n").upper().strip()
         if answer == "MENU":
             admin_main()
             break
@@ -391,7 +418,7 @@ def get_absence_type(hours):
     while True:
         menu.absence_paid_menu()
         print(f"({messages.to_menu()})")
-        answer = input(f"\n{utility.cyan('>>>')}\n").strip()
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -418,7 +445,7 @@ def get_absence_duration(type, hours):
     while True:
         menu.absence_period_menu()
         print(f"({messages.to_menu()})")
-        answer = input(f"\n{utility.cyan('>>>')}\n").strip()
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -449,9 +476,9 @@ def get_absence_start_date(type, duration):
     utility.clear()
     while True:
         if int(duration) in range(1, 4):
-            print(f"\nPlease enter {utility.cyan('the absence date')}.")
+            print(f"\nPlease enter the {utility.cyan('absence date')}.")
         else:
-            print(f"\nPlease enter {utility.cyan('the start date')}",
+            print(f"\nPlease enter the {utility.cyan('start date')}",
                   "for the absence duration.")
         print(messages.date_format())
         print(f"({messages.to_menu()})")
@@ -525,7 +552,7 @@ def menu_or_quit():
     """
     while True:
         print(messages.to_menu())
-        answer = input(f"\n{utility.cyan('>>>')}\n").upper().strip()
+        answer = input(f"{utility.cyan('>>>')}\n").upper().strip()
         utility.clear()
         if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
             return answer

@@ -122,19 +122,3 @@ class Requests:
                     not request[-2] == "False" and request[-1] == "False"):
                 cancellable.append(request)
         return cancellable
-
-    def get_new_requests(self):
-        """Retrieve data that meets the condition: start date is in the future,
-        not approved or rejected, not cancelled.
-
-        Returns:
-            list: A list of lists containing new request data.
-        """
-        new_requests = []
-        today = utility.convert_date(self.today)
-        for request in self.requests:
-            date = utility.convert_date(request[2])
-            if ((date - today).days > 0 and
-                    request[-2] == "/" and request[-1] == "False"):
-                new_requests.append(request)
-        return new_requests

@@ -39,6 +39,8 @@ def get_pw(id):
     pw = credentials.Credentials().pw(id)
     while True:
         print(f"Please enter {utility.cyan('Password')}.")
+        print("To contact the system administrator, enter",
+              f"{utility.cyan('help')} instead.")
         password = stdiomask.getpass(prompt=f"{utility.cyan('>>>')}\n")
         utility.clear()
 
@@ -49,7 +51,6 @@ def get_pw(id):
         if is_valid:
             if id == "ADMIN":
                 title.title_admin()
-                admin.new_request_notification()
                 admin.admin_main()
                 break
             else:
