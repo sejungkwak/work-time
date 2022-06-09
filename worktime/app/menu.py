@@ -7,7 +7,7 @@ def employee_menu():
     numbers = range(1, 8)
     options = (["Clock In", "Clock Out", "View Clock Card",
                 "View Absence Entitlements", "Book Absence",
-                "Cancel Absence", "Log Out"])
+                "Cancel Absence", "Exit"])
     format_menu(numbers, options)
 
 
@@ -15,7 +15,7 @@ def admin_menu():
     """Displays the menu for a logged in user as an admin."""
     numbers = range(1, 5)
     options = (["Review Requests", "Review Attendance",
-                "Add Employee Absence", "Log Out"])
+                "Add Employee Absence", "Exit"])
     format_menu(numbers, options)
 
 
@@ -41,7 +41,8 @@ def format_menu(numbers, options):
         numbers object: A sequence of numbers.
         options list: A list of menu options.
     """
-    print("Please choose one of the following options.\n")
+    print(f"Enter a {utility.cyan('number')} to select",
+          "one of the following options.")
     items = ""
     for number, option in zip(numbers, options):
         items += f"{utility.cyan(str(number))} {option}\n"
