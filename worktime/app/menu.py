@@ -41,9 +41,8 @@ def format_menu(numbers, options):
         numbers object: A sequence of numbers.
         options list: A list of menu options.
     """
-    print(f"Enter a {utility.cyan('number')} to select",
-          "one of the following options.")
-    items = ""
+    items = f"Enter a {utility.cyan('number')} to select "
+    items += "one of the following options.\n\n"
     for number, option in zip(numbers, options):
         items += f"{utility.cyan(str(number))} {option}\n"
     table = [[items]]
