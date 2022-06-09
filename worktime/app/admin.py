@@ -215,7 +215,7 @@ def display_attendance(date=None):
     if table:
         utility.clear()
         print(f"Clock cards for {date}")
-        tables.display_table(headers, table)
+        tables.display_table(table, headers)
     return data
 
 

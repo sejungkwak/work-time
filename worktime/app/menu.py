@@ -1,5 +1,5 @@
 # Custom Package
-from worktime.app import utility
+from worktime.app import tables, utility
 
 
 def employee_menu():
@@ -30,7 +30,7 @@ def absence_period_menu():
 def absence_paid_menu():
     """Displays the menu for absence paid type."""
     numbers = range(1, 3)
-    options = ["Paid Absence: Taken from entitlements", "Unpaid Absence"]
+    options = ["Paid Absence(Taken from entitlements)", "Unpaid Absence"]
     format_menu(numbers, options)
 
 
@@ -42,5 +42,8 @@ def format_menu(numbers, options):
         options list: A list of menu options.
     """
     print("Please choose one of the following options.\n")
+    items = ""
     for number, option in zip(numbers, options):
-        print(f" {utility.cyan(str(number))} {option}")
+        items += f"{utility.cyan(str(number))} {option}\n"
+    table = [[items]]
+    tables.display_table(table)

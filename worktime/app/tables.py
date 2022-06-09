@@ -5,14 +5,17 @@ from tabulate import tabulate
 from worktime.worksheets import clockings, employees, entitlements, requests
 
 
-def display_table(headers, table):
+def display_table(table, headers=None):
     """Display a table with a solid border.
 
     Args:
-        headers list: Names of the columns.
         table list: A list of lists - The Content of the table.
+        headers list: Names of the columns.
     """
-    print(tabulate(table, headers, tablefmt="fancy_grid"))
+    if headers is None:
+        print(tabulate(table, tablefmt="fancy_grid"))
+    else:
+        print(tabulate(table, headers, tablefmt="fancy_grid"))
 
 
 def display_entitlements(id):
@@ -24,7 +27,7 @@ def display_entitlements(id):
     data = entitlements.Entitlements(id).get_entitlements()
     table = [[item for item in data]]
     headers = ["Total Hours", "Taken", "Planned", "Pending", "Unallocated"]
-    display_table(headers, table)
+    display_table(table, headers)
 
 
 def display_new_requests(req_list):
@@ -45,4 +48,4 @@ def display_new_requests(req_list):
             item[-1] = f"{item[-1]} Day(s)"
             table.append(item)
         print(f"New request(s) from {fullname}")
-        display_table(headers, table)
+        display_table(table, headers)

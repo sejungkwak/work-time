@@ -186,7 +186,7 @@ def display_attendance(id, date=None):
         data = True
         utility.clear()
         print("Clock cards display from Monday to Sunday.")
-        tables.display_table(headers, table)
+        tables.display_table(table, headers)
     else:
         utility.clear()
         print("There is no clocking data.")
@@ -486,7 +486,7 @@ def display_allocated_absences(data):
         table.append(item)
     headers = (["ID", "Start Date", "End Date",
                 "Start Time", "End Time", "Duration"])
-    tables.display_table(headers, table)
+    tables.display_table(table, headers)
 
 
 def get_confirm_cancel(id, request_id, data):
