@@ -15,10 +15,10 @@ def get_employee_id():
     """
     ids = credentials.Credentials().ids()
     while True:
-        print("Please enter your Employee ID.")
+        print(f"Please enter {utility.cyan('Employee ID.')}")
         print("To contact the system administrator, enter",
               f"{utility.cyan('help')} instead.")
-        entered_id = input("\nEmployee ID:\n").upper().strip()
+        entered_id = input(f"{utility.cyan('>>>')}\n").upper().strip()
         utility.clear()
 
         if entered_id == "HELP":
@@ -38,7 +38,8 @@ def get_pw(id):
     """
     pw = credentials.Credentials().pw(id)
     while True:
-        password = stdiomask.getpass(prompt="Password:\n")
+        print(f"Please enter {utility.cyan('Password')}.")
+        password = stdiomask.getpass(prompt=f"{utility.cyan('>>>')}\n")
         utility.clear()
 
         if password.upper() == "HELP":
