@@ -20,6 +20,9 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 - [Flowchart](#flowchart)
 - [Data Model](#data-model)
 
+[Deployment](#deployment)
+- [Heroku](#heroku)
+
 <br>
 
 # User Experience (UX)
@@ -91,5 +94,113 @@ Each employee’s login id will be stored in the login_credentials sheet and wil
 I have created a diagram to visualise each sheet and its columns.
  
 ![Data model](documentation/technical-design/data-model.png)
+
+<br>
+
+# Deployment
+
+## Heroku
+
+This project was deployed automatically from _GitHub_ to _Heroku_ using the following steps:
+
+1. Run the following command in the Terminal to add a list of dependencies to the requirements.txt file. It enables the application to run on Heroku.
+`pip3 freeze > requirements.txt`
+
+    <details>
+        <summary>Deployment Step 1 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step1.png">
+    </details>
+
+2. Go to the _Heroku_ website and log in to my account.
+3. Click the __New__ button on the dashboard.
+4. Select the __Create new app__ option.
+
+    <details>
+        <summary>Deployment Step 3 and Step 4 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step3-4.png">
+    </details>
+
+5. Fill in the form and click the __Create app__ button.
+
+    <details>
+        <summary>Deployment Step 5 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step5.png">
+    </details>
+
+6. Go to __Settings__ and click the __Reveal Config Vars__ button.
+
+    <details>
+        <summary>Deployment Step 6 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step6.png">
+    </details>
+
+7. Copy the entire creds.json file.
+8. Input __CREDS__ in the key field, paste the copied text in step 7 to the value field and then click the __ADD__ button.
+
+    <details>
+        <summary>Deployment Step 8 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step8.png">
+    </details>
+
+9. Scroll down to the __Buildpacks__ section and click the __Add buildpack__ button.
+
+    <details>
+        <summary>Deployment Step 9 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step9.png">
+    </details>
+
+10. Select __python__ and click the __Save changes__ button.
+
+    <details>
+        <summary>Deployment Step 10 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step10.png">
+    </details>
+
+11. Repeat step 9.
+
+12. Select __nodejs__ and click the __Save changes__ button.
+
+    <details>
+        <summary>Deployment Step 12 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step12.png">
+    </details>
+
+13. Scroll up and select __Deploy__.
+14. Select __GitHub__ in the __Deployment method__ section.
+15. Click __Connect to GitHub__.
+
+    <details>
+        <summary>Deployment Step 13 to Step 15 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step13-15.png">
+    </details>
+
+16. Enter this repository name and click __Search__.
+17. When the repository with __Connect__ button appears, click the button.
+
+    <details>
+        <summary>Deployment Step 16 and Step 17 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step16-17.png">
+    </details>
+
+18. The status changes to connected.
+
+    <details>
+        <summary>Deployment Step 18 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step18.png">
+    </details>
+
+19. Click __Enable Automatic Deploys__.
+
+    <details>
+        <summary>Deployment Step 19 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step19.png">
+    </details>
+
+20. The text changes to indicate that automatic deploys are enabled successfully.
+
+    <details>
+        <summary>Deployment Step 20 Screenshot</summary>
+        <img src="documentation/deployment/deployment-step20.png">
+    </details>
 
 <br>
