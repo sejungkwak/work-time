@@ -3,7 +3,7 @@ from worktime.app import tables, utility
 
 
 def employee_menu():
-    """Displays the menu for a logged in user as an employee."""
+    """Displays the menu for a logged-in user as an employee."""
     numbers = range(1, 8)
     options = (["Clock In", "Clock Out", "View Clock Card",
                 "View Absence Entitlements", "Book Absence",
@@ -12,10 +12,10 @@ def employee_menu():
 
 
 def admin_menu():
-    """Displays the menu for a logged in user as an admin."""
-    numbers = range(1, 5)
+    """Displays the menu for a logged-in user as an admin."""
+    numbers = range(1, 6)
     options = (["Review Requests", "Review Attendance",
-                "Add Employee Absence", "Exit"])
+                "Add Absence", "Update Clock Card", "Exit"])
     format_menu(numbers, options)
 
 
@@ -31,6 +31,13 @@ def absence_paid_menu():
     """Displays the menu for absence paid type."""
     numbers = range(1, 3)
     options = ["Paid Absence(Taken from entitlements)", "Unpaid Absence"]
+    format_menu(numbers, options)
+
+
+def update_clocking_menu():
+    """Displays the menu for update clock cards."""
+    numbers = range(1, 3)
+    options = ["Update clock in time", "Update clock out time"]
     format_menu(numbers, options)
 
 
