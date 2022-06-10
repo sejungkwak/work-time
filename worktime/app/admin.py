@@ -14,11 +14,11 @@ def admin_main():
         1. Review Requests
         2. Review Attendance
         3. Add Employee Absence
-        4. Log Out
+        4. Exit
     Run a while loop until the user inputs a valid number.
     """
-    request_sheet = requests.Requests().requests
-    new_request = get_new_requests(request_sheet)
+    all_requests = requests.Requests().requests
+    new_request = get_new_requests(all_requests)
     new_request_notification(new_request)
     while True:
         menu.admin_menu()
@@ -28,7 +28,7 @@ def admin_main():
             break
 
     if answer == "1":
-        handle_request()
+        handle_request(new_request)
     elif answer == "2":
         get_attendance_date()
     elif answer == "3":
@@ -57,40 +57,103 @@ def get_new_requests(data):
     return new_requests
 
 
-def handle_request():
-    """Display new requests and update the worksheet depending on the user
-    input - approve or reject.
+def handle_request(new_request):
+    """Display new requests and take user input.
+    Run a while loop until there are no new requests left.
+
+    Args:
+        new_request list: A list of lists containing new absence requests.
     """
-    request_sheet = requests.Requests()
-    new_request = get_new_requests(request_sheet.requests)
     new_request_notification(new_request)
-    if len(new_request) > 0:
+    num_requests = len(new_request)
+    while num_requests > 0:
         print("Loading data...")
         request_list = sort_new_request(new_request)
+        utility.clear()
         tables.display_new_requests(request_list)
         req_id = get_request_id(new_request)
         decision = get_decision()
-        print("Processing...")
-        time.sleep(3)
-        utility.clear()
-        requests_row_index = int(req_id)
-        request_sheet.update_approved(requests_row_index, decision)
-        employee_id = find_ee_id(req_id)
-        absence_days = request_sheet.get_duration(requests_row_index)
-        hours = int(float(absence_days) * 8)
-        entitle_sheet = entitlements.Entitlements(employee_id)
-        if decision == "APPROVE":
-            entitle_sheet.update_hours(hours, "pending_to_planned")
-        else:
-            entitle_sheet.update_hours(hours, "pending_to_unallocated")
-        print(utility.green("Data updated successfully."))
-    menu_quit = menu_or_quit()
-    utility.clear()
-    if menu_quit == "MENU":
-        admin_main()
+        confirmed = get_confirm_decision(req_id, new_request, decision)
+        if confirmed == "Y":
+            num_requests -= 1
+            update_decision(req_id, new_request, decision)
+            for i, req in enumerate(new_request):
+                if req[0] == req_id:
+                    new_request.pop(i)
+        if num_requests > 0:
+            print("Returning to the list...")
     else:
-        title.title_end()
-        sys.exit()
+        menu_quit = menu_or_quit()
+        if menu_quit == "MENU":
+            utility.clear()
+            admin_main()
+        else:
+            title.title_end()
+            sys.exit()
+
+
+def get_confirm_decision(req_id, requests, decision):
+    """Display a request review summary and ask user to confirm to proceed.
+
+    Args:
+        req_id str: Request ID.
+        requests list: A list of lists containing all new requests.
+        decision str: Approve or Reject.
+    Returns:
+        str: User input - Y or N.
+    """
+    for request in requests:
+        if request[0] == req_id:
+            req_id, id_, fromdate, todate, fromtime, totime, days, *_ = request
+            fullname = employees.Employees(id_).get_fullname()
+            if fromtime:
+                period = f"{fromtime} - {totime}"
+            else:
+                period = f"{days} day" if days == "1" else f"{days} days"
+    utility.clear()
+    while True:
+        print(f"{utility.yellow('Please confirm the details.')}")
+        print(f"Employee ID: {id_}")
+        print(f"Employee Name: {fullname}")
+        print(f"Start date: {fromdate}")
+        print(f"End date: {todate}")
+        print(f"Period: {period}")
+        if decision == "APPROVE":
+            print("\nApprove this request?")
+        else:
+            print("\nReject this request?")
+        answer = input(f"{messages.y_or_n()}\n").upper().strip()
+        utility.clear()
+        if validations.validate_choice_letter(answer, ["Y", "N"]):
+            return answer
+
+
+def update_decision(req_id, requests_, decision):
+    """Update the absence_requests and entitlements worksheets
+    depending on the user input(approve or reject).
+
+    Args:
+        req_id str: Request ID.
+        requests_ list: A list of lists containing all new requests.
+        decision str: Approve or Reject.
+    """
+    print("Processing...")
+    employee_id = find_ee_id(req_id, requests_)
+    requests_row_index = int(req_id)
+
+    request_sheet = requests.Requests()
+    absence_days = request_sheet.get_duration(requests_row_index)
+    hours = int(float(absence_days) * 8)
+    request_sheet.update_approved(requests_row_index, decision)
+
+    entitle_sheet = entitlements.Entitlements(employee_id)
+    if decision == "APPROVE":
+        entitle_sheet.update_hours(hours, "pending_to_planned")
+    else:
+        entitle_sheet.update_hours(hours, "pending_to_unallocated")
+    utility.clear()
+    print(utility.green("Data updated successfully."))
+    time.sleep(2)
 
 
 def new_request_notification(new_request):
@@ -172,16 +235,16 @@ def get_decision():
             return answer
 
 
-def find_ee_id(request_id):
+def find_ee_id(request_id, new_request):
     """Iterate through the sheet to find the corresponding employee ID
     to the request ID.
 
     Args:
         request_id str: Request ID on the requests worksheet.
+        new_request list: A list of lists containing new absence requests.
     Returns:
         str: An employee ID.
     """
-    new_request = requests.Requests().requests
     for request in new_request:
         if request_id == request[0]:
             ee_id = request[1]
@@ -207,10 +270,9 @@ def get_attendance_date():
         elif answer.upper() == "QUIT":
             title.title_end()
             sys.exit()
-        else:
-            if validations.validate_date(answer):
-                utility.clear()
-                display_attendance(answer)
+        elif validations.validate_date(answer):
+            utility.clear()
+            display_attendance(answer)
 
 
 def display_attendance(date=None):
@@ -226,7 +288,6 @@ def display_attendance(date=None):
     today = utility.get_current_datetime()["date"]
     date = today if date is None else date
     data = False
-    no_data = ""
     headers = ["Name", "Date", "Clock In", "Clock Out"]
     table = []
     clock_sheet = clockings.Clockings()
@@ -274,8 +335,6 @@ def get_confirm_absence(id, type, from_date, to_date, duration):
         duration str: 1. morning, 2. afternoon, 3. full day, 4. 2+ days
     """
     fullname = employees.Employees(id).get_fullname()
-    start_time = ""
-    end_time = ""
     total_hours = 4
     is_paid = "Paid absence" if type == "1" else "Unpaid absence"
     if duration == "1":
@@ -299,7 +358,7 @@ def get_confirm_absence(id, type, from_date, to_date, duration):
         print(f"End date: {to_date}")
         print(f"Period: {period}")
         if duration == "4":
-            print("Please note that the weekends are not included.")
+            print("Please note that weekends are not included.")
         print("\nUpdate this absence?")
         answer = input(f"{messages.y_or_n()}\n").upper().strip()
         if validations.validate_choice_letter(answer, ["Y", "N"]):
