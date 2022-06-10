@@ -47,5 +47,8 @@ def display_new_requests(req_list):
             fullname = employees.Employees(employee_id).get_fullname()
             item[-1] = f"{item[-1]} Day(s)"
             table.append(item)
-        print(f"New request(s) from {fullname}")
+        if len(table) > 1:
+            print(f"\nNew requests from {fullname}")
+        else:
+            print(f"\nNew request from {fullname}")
         display_table(table, headers)
