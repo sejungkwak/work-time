@@ -3,18 +3,19 @@ import sys
 import time
 from itertools import groupby
 
-# Custom Package
+# Custom Packages
 from worktime.app import menu, messages, tables, title, utility, validations
 from worktime.worksheets import (clockings, credentials, employees,
                                  entitlements, requests)
 
 
 def admin_main():
-    """Request a number between 1 and 4, the numbered options:
+    """Request a number between 1 and 5, the numbered options:
         1. Review Requests
         2. Review Attendance
         3. Add Employee Absence
-        4. Exit
+        4. Update Clock Card
+        5. Exit
     Run a while loop until the user inputs a valid number.
     """
     all_requests = requests.Requests().requests
@@ -24,7 +25,7 @@ def admin_main():
         menu.admin_menu()
         answer = input(f"{utility.cyan('>>>')}\n").strip()
         utility.clear()
-        if validations.validate_choice_number(answer, range(1, 5)):
+        if validations.validate_choice_number(answer, range(1, 6)):
             break
 
     if answer == "1":
@@ -33,6 +34,8 @@ def admin_main():
         get_attendance_date()
     elif answer == "3":
         get_absence_data()
+    elif answer == "4":
+        update_clocking()
     else:
         title.title_end()
         sys.exit()
@@ -92,17 +95,17 @@ def handle_request(new_request):
             sys.exit()
 
 
-def get_confirm_decision(req_id, requests, decision):
+def get_confirm_decision(req_id, requests_, decision):
     """Display a request review summary and ask user to confirm to proceed.
 
     Args:
         req_id str: Request ID.
-        requests list: A list of lists containing all new requests.
+        requests_ list: A list of lists containing all new requests.
         decision str: Approve or Reject.
     Returns:
         str: User input - Y or N.
     """
-    for request in requests:
+    for request in requests_:
         if request[0] == req_id:
             req_id, id_, fromdate, todate, fromtime, totime, days, *_ = request
             fullname = employees.Employees(id_).get_fullname()
@@ -279,7 +282,7 @@ def display_attendance(date=None):
     """Check if there is any clock in/out data, and then display the result.
 
     Args:
-        date str: A DD/MM/YYYY formatted date. Today if none.
+        date str: A DD/MM/YYYY formatted date, today if None.
     Returns:
         bool: True if there are clock cards.
     """
@@ -311,7 +314,7 @@ def get_absence_data():
     """Get an employee ID, absence type(Paid or Unpaid),
     duration, start and end date from the user.
     """
-    ee_id = get_employee_id()
+    ee_id = get_employee_id("to add absence.")
     avail_hours = int(get_avail_hours(ee_id))
     absence_type = get_absence_type(avail_hours)
     absence_duration = get_absence_duration(absence_type, avail_hours)
@@ -438,9 +441,11 @@ def add_entitlement(id, from_date, hours, fullname):
           utility.green("updated successfully."))
 
 
-def get_employee_id():
+def get_employee_id(text):
     """Run a while loop until the user inputs a valid employee ID.
 
+    Args:
+        text str: Purpose of the ID request.
     Returns:
         str: A valid employee ID.
     """
@@ -448,7 +453,7 @@ def get_employee_id():
     ids = credentials.Credentials().ids()
     while True:
         print(f"Enter an {utility.cyan('employee ID')}",
-              "to add absence.")
+              text)
         print(f"({messages.to_menu()})")
         answer = input(f"{utility.cyan('>>>')}\n").upper().strip()
         utility.clear()
@@ -600,6 +605,179 @@ def get_avail_hours(id):
     entitle_sheet = entitlements.Entitlements(id)
     avail_hours = entitle_sheet.get_hours("unallocated")
     return avail_hours
+
+
+def update_clocking():
+    """Get user input for updating clockings sheet(employee ID, date,
+    clock in or out, time) and update accordingly.
+    Run a while loop until user types menu or quit.
+    """
+    while True:
+        id_ = get_employee_id("to update clock cards.")
+        date_ = get_date()
+        fullname = employees.Employees(id_).get_fullname()
+        data = clockings.Clockings(id_).get_one_clocking(date_)
+        in_or_out = clock_in_or_out(id_, date_, fullname, data)
+        time_ = get_time(data, in_or_out)
+        confirm = get_confirm_clocking(id_, date_, in_or_out, time_, fullname)
+        if confirm == "Y":
+            print(f"Updating clock {in_or_out.lower()} time...")
+            clocking_sheet = clockings.Clockings(id_)
+            if data is None and in_or_out == "IN":
+                clocking_sheet.add_clocking([id_, date_, f"{time_}:00", ""])
+            elif data is None and in_or_out == "OUT":
+                clocking_sheet.add_clocking([id_, date_, "", f"{time_}:00"])
+            elif data and in_or_out == "IN":
+                clocking_sheet.update_clock_in(f"{time_}:00")
+            else:
+                clocking_sheet.update_clock_out(f"{time_}:00")
+            print(utility.green("Data updated successfully."))
+            print("Returning to the beginning...")
+            time.sleep(2)
+        else:
+            print(utility.green("No changes were made."))
+            print("Returning to the beginning...")
+            time.sleep(2)
+
+
+def get_date():
+    """Run while loop until the user inputs a valid date.
+
+    Returns:
+        str: A DD/MM/YYYY format date.
+    """
+    while True:
+        print(f"Enter a {utility.cyan('date')} to update.")
+        print(messages.date_format())
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        utility.clear()
+        if answer.upper() == "MENU":
+            admin_main()
+            break
+        elif answer.upper() == "QUIT":
+            title.title_end()
+            sys.exit()
+        elif validations.validate_date(answer):
+            if utility.convert_date(answer) > utility.get_today():
+                print(utility.red("Unable to set clocking time"),
+                      utility.red("in the future."))
+            elif answer[3:5] != utility.get_current_datetime()["date"][3:5]:
+                print(utility.red("Unable to update clocking time"),
+                      utility.red("after payroll has been processed."))
+            else:
+                return answer
+
+
+def clock_in_or_out(id_, date_, fullname, data):
+    """Display the target employee's clock card for the target date to update.
+    Run while loop until the user inputs a valid input:
+    1 for clock in update or 2 for clock out update.
+
+    Args:
+        id_ str: An employee ID.
+        date_ str: A %d/%m/%Y format date.
+        fullname str: Employee's name.
+        data dict: Clocking data.
+    Returns:
+        str: IN or OUT from user input.
+    """
+    if data is not None:
+        print(f"{id_}\'s clock card")
+        table = ([[fullname, data["date"], data["start_time"],
+                 data["end_time"]]])
+        headers = ["Name", "Date", "Clock In", "Clock Out"]
+        tables.display_table(table, headers)
+    else:
+        print(utility.yellow("No clock in / out data found for"),
+              utility.yellow(f"{id_}({fullname}) on {date_}.\n"))
+    while True:
+        menu.update_clocking_menu()
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        utility.clear()
+        if answer.upper() == "MENU":
+            admin_main()
+            break
+        elif answer.upper() == "QUIT":
+            title.title_end()
+            sys.exit()
+        elif validations.validate_choice_number(answer, range(1, 3)):
+            in_out = "IN" if answer == "1" else "OUT"
+            return in_out
+
+
+def get_time(data, type_):
+    """Run while loop until the user inputs a valid time.
+
+    Args:
+        data dict: Clocking data or None.
+        type_ str: IN or OUT for clock in or clock out.
+    Returns:
+        str: A %H:%M format time.
+    """
+    if data is not None:
+        row, id, date, from_time, to_time = data.values()
+    while True:
+        print(f"Enter {utility.cyan('time')} to update",
+              f"{utility.cyan('clock ' + type_.lower())} time.")
+        print("The time should be in the 24-hour notation:",
+              f"{utility.cyan('Hour:Minute')}.")
+        print("For example, 9:00 is the nine o\'clock in the morning",
+              "and 17:00 is the five o\'clock in the evening.")
+        print(f"({messages.to_menu()})")
+        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        utility.clear()
+        if answer.upper() == "MENU":
+            admin_main()
+            break
+        elif answer.upper() == "QUIT":
+            title.title_end()
+            sys.exit()
+        elif validations.validate_time(answer):
+            if type_ == "IN" and data is not None and to_time != "":
+                if (utility.convert_time(answer) >=
+                        utility.convert_time(to_time)):
+                    print(utility.red("Clock in time must be"),
+                          utility.red("before clock out time."))
+                else:
+                    return answer
+            elif type_ == "OUT" and data is not None and from_time != "":
+                if (utility.convert_time(answer) <=
+                        utility.convert_time(from_time)):
+                    print(utility.red("Clock out time must be"),
+                          utility.red("after clock in time."))
+                else:
+                    return answer
+            else:
+                return answer
+
+
+def get_confirm_clocking(id_, date_, in_out, time_, fullname):
+    """Display a clock card update summary and ask user to confirm to proceed.
+
+    Args:
+        id_ str: An employee ID.
+        date_ str: A %d/%m/%Y format date.
+        in_out str: IN or OUT for clock in or clock out.
+        time_ str: A %H:%M format time.
+        fullname str: Employee's name.
+    Returns:
+        str: User input - Y or N.
+    """
+    in_out = in_out.capitalize()
+    while True:
+        print(f"{utility.yellow('Please confirm the details.')}")
+        print(f"Employee ID: {id_}")
+        print(f"Employee Name: {fullname}")
+        print(f"Update Date: {date_}")
+        print(f"Clocking Type: Clock {in_out}")
+        print(f"Update Time: {time_}")
+        print("\nUpdate?")
+        answer = input(f"{messages.y_or_n()}\n").upper().strip()
+        utility.clear()
+        if validations.validate_choice_letter(answer, ["Y", "N"]):
+            return answer
 
 
 def menu_or_quit():
