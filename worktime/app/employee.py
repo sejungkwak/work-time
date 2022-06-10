@@ -265,6 +265,7 @@ def get_absence_start_date(id, duration):
         duration str: Absence duration.
             1. morning, 2. afternoon, 3. full day, 4. 2+ days
     """
+    utility.clear()
     while True:
         if int(duration) in range(1, 4):
             print(f"\nPlease enter the {utility.cyan('absence date')}.")
@@ -282,8 +283,8 @@ def get_absence_start_date(id, duration):
         elif answer.upper() == "QUIT":
             title.title_end()
             sys.exit()
-        else:
-            request_date = validations.validate_date(answer)
+        elif validations.validate_date(answer):
+            request_date = utility.convert_date(answer)
             today = utility.get_today()
             request_year = request_date.year
             this_year = int(utility.get_current_datetime()["year"])
