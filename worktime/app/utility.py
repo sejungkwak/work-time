@@ -1,5 +1,5 @@
 # Built-in Modules
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from os import name, system
 
 # Third-party Package
@@ -44,9 +44,9 @@ def get_current_datetime():
     """
     DUBLIN = pytz.timezone("Europe/Dublin")
     now = datetime.now(DUBLIN)
-    date = now.date().strftime("%d/%m/%Y")
-    time = now.time().strftime("%H:%M:%S")
-    return {"year": now.year, "date": date, "time": time}
+    date_ = now.date().strftime("%d/%m/%Y")
+    time_ = now.time().strftime("%H:%M:%S")
+    return {"year": now.year, "date": date_, "time": time_}
 
 
 def get_today():
@@ -59,20 +59,49 @@ def get_today():
     return datetime.now(DUBLIN).date()
 
 
-def get_week(xdate, result):
+def convert_date(date_):
+    """Split a string into a list of integers that represent
+    year, month and date, and then pass them to date() object.
+
+    Args:
+        date_ str: A date - DD/MM/YYYY.
+    Returns:
+        date: An instance of datetime.date().
+    """
+    date_to_list = date_.split("/")
+    int_list = list(map(int, date_to_list))
+    converted_date = date(int_list[2], int_list[1], int_list[0])
+    return converted_date
+
+
+def convert_time(time_):
+    """Split a string into a list of integers that represent
+    hours, minutes and seconds if any, and then pass them to time() object.
+
+    Args:
+        time_ str: A time - %H:%M or %H:%M:%S
+    return
+        time: An instance of datetime.time()
+    """
+    time_to_list = time_.split(":")
+    int_list = list(map(int, time_to_list))
+    converted_time = time(int_list[0], int_list[1])
+    return converted_time
+
+
+def get_week(date_, result):
     """Return a list of a week(inc./excl. weekend) of the given date.
 
     Args:
-        xdate date: An instance of datetime.date().
+        date_ date: An instance of datetime.date().
         result str: Including or excluding weekend.
-
     Returns
-        list: Dates of a week.
+        list: Dates of a week starting Monday.
     """
     # Source: ALFAFA's answer on Stack Overflow
     # https://stackoverflow.com/questions/56163008
-    week = xdate.isocalendar()[2]
-    start = xdate - timedelta(days=week)
+    week = date_.isocalendar()[2]
+    start = date_ - timedelta(days=week)
     dates = []
     if result == "weekdays":
         for day in range(1, 6):
@@ -83,30 +112,12 @@ def get_week(xdate, result):
     return dates
 
 
-def convert_date(xdate):
-    """Split a string into a list of integers that represent
-    year, month and date, and then pass them to date() object.
-
-    Args:
-        xdate str: A date - DD/MM/YYYY.
-
-    Returns:
-        date: An instance of datetime.date().
-    """
-    date_to_list = xdate.split("/")
-    year = int(date_to_list[2])
-    month = int(date_to_list[1])
-    day = int(date_to_list[0])
-    return date(year, month, day)
-
-
 def get_num_of_weekdays(date1, date2):
     """Calculate total number of weekdays between two dates.
 
     Args:
         date1 str: Start date - DD/MM/YYYY.
         date2 str: End date - DD/MM/YYYY.
-
     Returns:
         int: Total number of weekdays.
     """
