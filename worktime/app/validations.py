@@ -5,11 +5,11 @@ from passlib.hash import pbkdf2_sha256
 from worktime.app import utility
 
 
-def validate_id(id, ids):
+def validate_id(id_, ids):
     """In the try block, compare the given ID to the list of IDs.
 
     Args:
-        id str: An employee ID.
+        id_ str: An employee ID.
         ids list: Employee IDs with matching password.
     Returns:
         bool: True if the ID in the list, False otherwise.
@@ -17,23 +17,22 @@ def validate_id(id, ids):
         ValueError: If the ID is not in the ID list.
     """
     try:
-        if id not in ids:
+        if id_ not in ids:
             raise ValueError()
     except ValueError:
-        print(utility.red("Invalid ID: " + id))
+        print(utility.red("Invalid ID: " + id_))
         return False
     else:
         return True
 
 
-def validate_pw(id, entered_pw, password):
+def validate_pw(entered_pw, password):
     """In the try block, check if the given password is correct
     using passlib method.
 
     Args:
-        id str: An employee ID.
         entered_pw str: A password the user has inputted.
-        password: The correct password.
+        password str: The correct password.
     Returns:
         bool: True if successful, False otherwise.
     Raises:
@@ -93,11 +92,12 @@ def validate_choice_letter(choice, choices):
         return True
 
 
-def validate_date(date):
-    """In the try block, pass the argument to the convert_date function.
+def validate_date(date_):
+    """In the try block, pass the argument to the convert_date function and
+    check if a day and month contains a leading zero.
 
     Args:
-        date str: A value the user has entered for the date.
+        date_ str: A value the user has entered for the date.
     Returns:
         date: A ISO format date if successful.
         bool: False if exceptions raised.
@@ -106,12 +106,16 @@ def validate_date(date):
         IndexError: If "/" is not used to separate the year, month and date.
     """
     try:
-        date = utility.convert_date(date)
+        date_to_list = date_.split("/")
+        date = utility.convert_date(date_)
+        if (len(date_to_list[0]) != 2 or len(date_to_list[1]) != 2 or
+                len(date_to_list[2]) != 4):
+            raise IndexError()
     except ValueError:
-        print(utility.red("Invalid date: " + str(date)))
+        print(utility.red("Invalid date: " + str(date_)))
         return False
     except IndexError:
-        print(utility.red("Invalid format: " + str(date)))
+        print(utility.red("Invalid format: " + str(date_)))
         return False
     else:
         return date
@@ -123,7 +127,7 @@ def validate_days(date1, date2, unallocated):
     Args:
         date1 str: The start date.
         date2 str: The end date.
-        unallocated: Total available absence hours.
+        unallocated str: Total available absence hours.
     Returns:
         int: Total number of weekdays between date1 and date2.
         bool: False if exceptions raised.
@@ -140,8 +144,8 @@ def validate_days(date1, date2, unallocated):
             )
         elif num_of_days < 2:
             raise ValueError(
-                print(utility.red("The end date must be"),
-                      utility.red("after the start date."))
+                print(utility.red("Absence end date must be"),
+                      utility.red("after absence start date."))
             )
     except ValueError:
         return False
@@ -159,14 +163,14 @@ def validate_unpaid_days(date1, date2):
         int: Total number of weekdays between date1 and date2.
         bool: False if exceptions raised.
     Raises:
-        ValueError: If the end date is before start date.
+        ValueError: If the absence end date is before start date.
     """
     try:
         num_of_days = utility.get_num_of_weekdays(date1, date2)
         if num_of_days < 2:
             raise ValueError(
-                print(utility.red("The end date must be"),
-                      utility.red("after the start date."))
+                print(utility.red("Absence end date must be"),
+                      utility.red("after absence start date."))
             )
     except ValueError:
         return False
