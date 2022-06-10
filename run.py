@@ -47,7 +47,7 @@ def get_pw(id):
         if password.upper() == "HELP":
             break
 
-        is_valid = validations.validate_pw(id, password, pw)
+        is_valid = validations.validate_pw(password, pw)
         if is_valid:
             if id == "ADMIN":
                 title.title_admin()
