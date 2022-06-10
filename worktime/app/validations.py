@@ -1,3 +1,6 @@
+# Built-in Modules
+from datetime import datetime
+
 # Third-party Packages
 from passlib.hash import pbkdf2_sha256
 
@@ -9,7 +12,7 @@ def validate_id(id_, ids):
     """In the try block, compare the given ID to the list of IDs.
 
     Args:
-        id_ str: An employee ID.
+        id_ str: User input value.
         ids list: Employee IDs with matching password.
     Returns:
         bool: True if the ID in the list, False otherwise.
@@ -31,7 +34,7 @@ def validate_pw(entered_pw, password):
     using passlib method.
 
     Args:
-        entered_pw str: A password the user has inputted.
+        entered_pw str: User input value.
         password str: The correct password.
     Returns:
         bool: True if successful, False otherwise.
@@ -53,7 +56,7 @@ def validate_choice_number(choice, numbers):
     """In the try block, convert a string value into an integer.
 
     Args:
-        choice str: A number the user has inputted.
+        choice str: User input value.
         numbers list: Numbered options.
     Returns:
         bool: True if successful, False otherwise.
@@ -75,7 +78,7 @@ def validate_choice_letter(choice, choices):
     """In the try block, check if the user entered a valid input.
 
     Args:
-        choice str: A letter the user has inputted.
+        choice str: User input value.
         choices list: A list of options the user needs to choose from.
     Returns:
         bool: True if successful, False otherwise.
@@ -93,8 +96,7 @@ def validate_choice_letter(choice, choices):
 
 
 def validate_date(date_):
-    """In the try block, pass the argument to the convert_date function and
-    check if a day and month contains a leading zero.
+    """In the try block, compare user input to the date format.
 
     Args:
         date_ str: A value the user has entered for the date.
@@ -102,23 +104,38 @@ def validate_date(date_):
         date: A ISO format date if successful.
         bool: False if exceptions raised.
     Raises:
-        ValueError: If the date is invalid.
-        IndexError: If "/" is not used to separate the year, month and date.
+        ValueError: If the date is invalid or "/" is not used to separate
+                    the year, month and date.
     """
     try:
-        date_to_list = date_.split("/")
-        date = utility.convert_date(date_)
-        if (len(date_to_list[0]) != 2 or len(date_to_list[1]) != 2 or
-                len(date_to_list[2]) != 4):
-            raise IndexError()
+        date_format = "%d/%m/%Y"
+        new_date = datetime.strptime(date_, date_format).date()
     except ValueError:
-        print(utility.red("Invalid date: " + str(date_)))
-        return False
-    except IndexError:
-        print(utility.red("Invalid format: " + str(date_)))
+        print(utility.red("Invalid value: " + date_))
         return False
     else:
-        return date
+        return new_date
+
+
+def validate_time(time_):
+    """In the try block, compare user input to the time format.
+
+    Args:
+        time_ str: A value the user has entered for the time.
+    Returns:
+        bool: True if successful, False otherwise.
+    Raises:
+        ValueError: If the time is invalid or ":" is not used to separate
+                    the hours and minutes.
+    """
+    try:
+        time_format = "%H:%M"
+        datetime.strptime(time_, time_format).time()
+    except ValueError:
+        print(utility.red("Invalid value: " + time_))
+        return False
+    else:
+        return True
 
 
 def validate_days(date1, date2, unallocated):
@@ -132,7 +149,7 @@ def validate_days(date1, date2, unallocated):
         int: Total number of weekdays between date1 and date2.
         bool: False if exceptions raised.
     Raises:
-        ValueError: If request hours are exceed the unallocated hours
+        ValueError: If request hours are exceeding the unallocated hours
                     or the end date is before start date.
     """
     try:
