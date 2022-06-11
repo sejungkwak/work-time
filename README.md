@@ -22,6 +22,7 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 
 [Deployment](#deployment)
 - [Heroku](#heroku)
+- [Making a Local Clone](#making-a-local-clone)
 
 <br>
 
@@ -76,6 +77,8 @@ The application will be structured as shown in the following diagram.
 
 ![Wireframe](documentation/ux/wireframe.png)
 
+[Back To **Table of Contents**](#table-of-contents)
+
 <br>
 
 # Technical Design
@@ -95,6 +98,8 @@ I have created a diagram to visualise each sheet and its columns.
  
 ![Data model](documentation/technical-design/data-model.png)
 
+[Back To **Table of Contents**](#table-of-contents)
+
 <br>
 
 # Deployment
@@ -104,7 +109,10 @@ I have created a diagram to visualise each sheet and its columns.
 This project was deployed automatically from _GitHub_ to _Heroku_ using the following steps:
 
 1. Run the following command in the Terminal to add a list of dependencies to the requirements.txt file. It enables the application to run on Heroku.
-`pip3 freeze > requirements.txt`
+
+    ```
+    pip3 freeze > requirements.txt
+    ```
 
     <details>
         <summary>Deployment Step 1 Screenshot</summary>
@@ -202,5 +210,50 @@ This project was deployed automatically from _GitHub_ to _Heroku_ using the foll
         <summary>Deployment Step 20 Screenshot</summary>
         <img src="documentation/deployment/deployment-step20.png">
     </details>
+
+## Making a Local Clone
+
+These steps demonstrate how I cloned my repository to create a local copy on my computer to run the code locally.
+
+1. Navigate to [my GitHub Repository](https://github.com/sejungkwak/work-time).
+2. Click the __Code__ button above the list of files.
+
+    <details>
+        <summary>Clone Step 1 and Step 2 Screenshot</summary>
+        <img src="documentation/deployment/clone-step1-2.png">
+    </details>
+
+3. Select __HTTPS__ under __Clone__. I have chosen this option as it is simpler than SSH.
+4. Click the copy icon on the right side of the URL.
+
+    <details>
+        <summary>Clone Step 3 and Step 4 Screenshot</summary>
+        <img src="documentation/deployment/clone-step3-4.png">
+    </details>
+
+5. Open the Terminal.
+6. Change the current working directory to the location where I want the cloned directory.
+7. Type `git clone ` and then paste the URL I copied in step 4.
+
+    ```
+    $ git clone https://github.com/sejungkwak/work-time.git
+    ```
+
+    <details>
+        <summary>Clone Step 6 and Step 7 Screenshot</summary>
+        <img src="documentation/deployment/clone-step6-7.png">
+    </details>
+
+8. Press enter. Messages are displayed in the Terminal to indicate the local clone has been successfully created.
+
+    <details>
+        <summary>Clone Step 8 Screenshot</summary>
+        <img src="documentation/deployment/clone-step8.png">
+    </details>
+
+9. Copy the existing service account key from the creds.json file.
+10. Create a new file called creds.json in the root directory and then paste the key I copied in step 9.
+
+[Back To **Table of Contents**](#table-of-contents)
 
 <br>
