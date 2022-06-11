@@ -10,7 +10,7 @@ class Clockings:
         ee_id str: An employee ID
     """
 
-    today = utility.get_current_datetime()["date"]
+    today = utility.GetDatetime().tday_str()
 
     def __init__(self, ee_id=None):
         self.ee_id = ee_id

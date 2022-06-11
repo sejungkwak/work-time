@@ -36,27 +36,29 @@ def cyan(text):
     return Fore.CYAN + text + Style.RESET_ALL
 
 
-def get_current_datetime():
-    """Get the current datetime of Dublin.
+class GetDatetime:
+    """Represent the current datetime of Dublin."""
 
-    Returns:
-        dict: The current year, date and time of Dublin.
-    """
-    DUBLIN = pytz.timezone("Europe/Dublin")
-    now = datetime.now(DUBLIN)
-    date_ = now.date().strftime("%d/%m/%Y")
-    time_ = now.time().strftime("%H:%M:%S")
-    return {"year": now.year, "date": date_, "time": time_}
+    def __init__(self):
+        """Set a time zone to Dublin."""
+        self.DUBLIN = pytz.timezone("Europe/Dublin")
+        self.now = datetime.now(self.DUBLIN)
 
+    def now_year(self):
+        """Return int: the current year."""
+        return self.now.year
 
-def get_today():
-    """Get the current date of Dublin.
+    def tday(self):
+        """Return date: an ISO format date."""
+        return self.now.date()
 
-    Returns:
-        date: A instance of datetime.date().
-    """
-    DUBLIN = pytz.timezone("Europe/Dublin")
-    return datetime.now(DUBLIN).date()
+    def tday_str(self):
+        """Return str: a DD/MM/YYYY format date."""
+        return self.now.date().strftime("%d/%m/%Y")
+
+    def now_time_str(self):
+        """Return str: a HH:MM:SS format time."""
+        return self.now.time().strftime("%H:%M:%S")
 
 
 def convert_date(date_):

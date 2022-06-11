@@ -45,9 +45,8 @@ def clock_in(id):
         id str: Employee ID that was used to log in.
     """
     utility.clear()
-    now = utility.get_current_datetime()
-    today = now["date"]
-    clock_in_at = now["time"]
+    today = utility.GetDatetime().tday_str()
+    clock_in_at = utility.GetDatetime().now_time_str()
     clock_sheet = clockings.Clockings(id)
     clocking = clock_sheet.get_one_clocking()
     if clocking:
@@ -105,9 +104,8 @@ def clock_out(id):
         id str: Employee ID that was used to log in.
     """
     utility.clear()
-    now = utility.get_current_datetime()
-    today = now["date"]
-    clock_out_at = now["time"]
+    today = utility.GetDatetime().tday_str()
+    clock_out_at = utility.GetDatetime().now_time_str()
     clock_sheet = clockings.Clockings(id)
     clocking = clock_sheet.get_one_clocking()
     if clocking:
@@ -176,7 +174,7 @@ def display_attendance(id, date=None):
     """
     utility.clear()
     print("Getting clocking data...")
-    today = utility.get_current_datetime()["date"]
+    today = utility.GetDatetime().tday_str()
     date = today if date is None else date
     data = False
     headers = ["ID", "Date", "Clock In", "Clock Out"]
@@ -200,7 +198,7 @@ def display_entitlements(id):
         id str: Employee ID that was used to log in.
     """
     utility.clear()
-    this_year = utility.get_current_datetime()["year"]
+    this_year = utility.GetDatetime().now_year()
     print(f"\nAbsence entitlements for {this_year}.")
     tables.display_entitlements(id)
     menu_quit = menu_or_quit()
@@ -285,9 +283,9 @@ def get_absence_start_date(id, duration):
             sys.exit()
         elif validations.validate_date(answer):
             request_date = utility.convert_date(answer)
-            today = utility.get_today()
+            today = utility.GetDatetime().tday()
             request_year = request_date.year
-            this_year = int(utility.get_current_datetime()["year"])
+            this_year = utility.GetDatetime().now_year()
             if (request_date - today).days <= 0:
                 print(f"\n{utility.red('Please note holidays must be')}",
                       f"{utility.red('booked in advance.')}")
@@ -362,7 +360,7 @@ def get_confirm_request(id, start_date, end_date, duration):
         print(f"End date: {end_date}")
         print(f"Period: {period}")
         if duration == "4":
-            print("Please note that the weekends are not included.")
+            print("Please note that weekends are not included.")
         print("\nSubmit this request?")
         answer = input(f"{messages.y_or_n()}\n").upper().strip()
         utility.clear()
@@ -392,7 +390,7 @@ def add_absence_request(id, start_date, end_date, duration):
     """
     print("\nSubmitting your absence request...")
     request_id = requests.Requests().generate_req_id()
-    today = utility.get_current_datetime()["date"]
+    today = utility.GetDatetime().tday_str()
     data = [request_id, id, start_date, today, "/", "False"]
     if duration == "1":
         data[3:3] = [start_date, "9:30", "13:30", "0.5"]

@@ -50,7 +50,7 @@ def get_new_requests(data):
     Returns:
         list: A list of lists containing new request data.
     """
-    today = utility.get_today()
+    today = utility.GetDatetime().tday()
     new_requests = []
     for item in data:
         date_ = utility.convert_date(item[2])
@@ -288,7 +288,7 @@ def display_attendance(date=None):
     """
     utility.clear()
     print("Getting clocking data...")
-    today = utility.get_current_datetime()["date"]
+    today = utility.GetDatetime().tday_str()
     date = today if date is None else date
     data = False
     headers = ["Name", "Date", "Clock In", "Clock Out"]
@@ -433,7 +433,8 @@ def add_entitlement(id, from_date, hours, fullname):
     time.sleep(1)
     entitle_sheet = entitlements.Entitlements(id)
     iso_start_date = utility.convert_date(from_date)
-    if int((iso_start_date - utility.get_today()).days) > 0:
+    today = utility.GetDatetime().tday()
+    if int((iso_start_date - today).days) > 0:
         entitle_sheet.update_hours(hours, "unallocated_to_planned")
     else:
         entitle_sheet.update_hours(hours, "unallocated_to_taken")
@@ -555,8 +556,8 @@ def get_absence_start_date(type, duration):
             title.title_end()
             sys.exit()
         elif validations.validate_date(answer):
-            if (answer[-4:] != str(utility.get_current_datetime()["year"]) and
-                    type == "1"):
+            this_year = utility.GetDatetime().now_year()
+            if answer[-4:] != this_year and type == "1":
                 print(messages.invalid_year())
             else:
                 return answer
@@ -659,10 +660,12 @@ def get_date():
             title.title_end()
             sys.exit()
         elif validations.validate_date(answer):
-            if utility.convert_date(answer) > utility.get_today():
+            today = utility.GetDatetime().tday()
+            today_str = utility.GetDatetime().tday_str()
+            if utility.convert_date(answer) > today:
                 print(utility.red("Unable to set clocking time"),
                       utility.red("in the future."))
-            elif answer[3:5] != utility.get_current_datetime()["date"][3:5]:
+            elif answer[3:5] != today_str[3:5]:
                 print(utility.red("Unable to update clocking time"),
                       utility.red("after payroll has been processed."))
             else:
