@@ -27,23 +27,25 @@ class Clockings:
         """
         self.worksheet.append_row(data)
 
-    def update_clock_in(self, time):
+    def update_clock_in(self, date_, time_):
         """Replace an existing clock in time with a new one.
 
         Args:
-            time str: A HH:MM:SS format time.
+            date_ str: A DD/MM/YYYY format date.
+            time_ str: A HH:MM:SS format time.
         """
-        row = self.get_one_clocking()["row"]
-        self.worksheet.update(f"{self.clock_in_col}{row}", time)
+        row = self.get_one_clocking(date_)["row"]
+        self.worksheet.update(f"{self.clock_in_col}{row}", time_)
 
-    def update_clock_out(self, time):
+    def update_clock_out(self, date_, time_):
         """Replace an existing clock out time with a new one.
 
         Args:
-            time str: A HH:MM:SS format time.
+            date_ str: A DD/MM/YYYY format date.
+            time_ str: A HH:MM:SS format time.
         """
-        row = self.get_one_clocking()["row"]
-        self.worksheet.update(f"{self.clock_out_col}{row}", time)
+        row = self.get_one_clocking(date_)["row"]
+        self.worksheet.update(f"{self.clock_out_col}{row}", time_)
 
     def get_one_clocking(self, target_date=None):
         """Iterate through the sheet to find row values that match the ID and date.
