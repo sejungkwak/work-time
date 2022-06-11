@@ -327,6 +327,9 @@ class BookAbsence:
                           f"{utility.red('please contact your manager.')}")
                 elif request_year != this_year:
                     print(messages.invalid_year())
+                elif request_date.weekday() > 4:
+                    print(utility.red("No absence requests required"),
+                          utility.red("for weekends."))
                 else:
                     return answer
 
