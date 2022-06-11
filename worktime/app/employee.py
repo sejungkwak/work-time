@@ -76,13 +76,7 @@ def clock_in(id):
         clock_sheet.add_clocking(data)
         print(f"{utility.green('Successfully clocked in at')}",
               f"{utility.green(clock_in_at + '.')}")
-    menu_quit = menu_or_quit()
-    if menu_quit == "MENU":
-        utility.clear()
-        employee_main(id)
-    else:
-        title.title_end()
-        sys.exit()
+    menu_or_quit(id)
 
 
 def check_for_overwrite():
@@ -127,13 +121,7 @@ def clock_out(id):
               "to add your clock in time.")
         print(utility.green("Successfully clocked out at"),
               utility.green(clock_out_at + "."))
-    menu_quit = menu_or_quit()
-    if menu_quit == "MENU":
-        utility.clear()
-        employee_main(id)
-    else:
-        title.title_end()
-        sys.exit()
+    menu_or_quit(id)
 
 
 def get_attendance_date(id):
@@ -201,13 +189,7 @@ def display_entitlements(id):
     this_year = utility.GetDatetime().now_year()
     print(f"\nAbsence entitlements for {this_year}.")
     tables.display_entitlements(id)
-    menu_quit = menu_or_quit()
-    if menu_quit == "MENU":
-        utility.clear()
-        employee_main(id)
-    else:
-        title.title_end()
-        sys.exit()
+    menu_or_quit(id)
 
 
 class BookAbsence:
@@ -269,13 +251,7 @@ class BookAbsence:
             utility.clear()
         else:
             self.display_avail_hours()
-            menu_quit = menu_or_quit()
-            if menu_quit == "MENU":
-                utility.clear()
-                employee_main(self.id)
-            else:
-                title.title_end()
-                sys.exit()
+            menu_or_quit(self.id)
 
     def display_avail_hours(self):
         """Display the employee's available paid time off hours."""
@@ -432,13 +408,7 @@ def check_cancellable(id):
     pending = entitle_sheet.get_hours("pending")
     if planned == pending == 0:
         print(utility.red("No planned/pending absence to cancel."))
-        menu_quit = menu_or_quit()
-        if menu_quit == "MENU":
-            utility.clear()
-            employee_main(id)
-        else:
-            title.title_end()
-            sys.exit()
+        menu_or_quit(id)
     else:
         get_cancel_number(id)
 
@@ -525,13 +495,7 @@ def get_confirm_cancel(id, request_id, data):
         time.sleep(2)
         get_cancel_number(id)
     else:
-        menu_quit = menu_or_quit()
-        if menu_quit == "MENU":
-            utility.clear()
-            employee_main(id)
-        else:
-            title.title_end()
-            sys.exit()
+        menu_or_quit(id)
 
 
 def update_cancel_absence(id, request):
@@ -557,10 +521,12 @@ def update_cancel_absence(id, request):
     print(f"{utility.green('Absence cancelled successfully.')}\n")
 
 
-def menu_or_quit():
+def menu_or_quit(id):
     """Ask the user if they want to go back to the menu or quit.
     Run a while loop until the user inputs a valid option.
 
+    Args:
+        id str: Employee ID that was used to log in.
     Returns:
         str: The user input - menu or quit.
     """
@@ -568,4 +534,10 @@ def menu_or_quit():
         print(messages.to_menu())
         answer = input(f"{utility.cyan('>>>')}\n").upper().strip()
         if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
-            return answer
+            if answer == "MENU":
+                utility.clear()
+                employee_main(id)
+                break
+            else:
+                title.title_end()
+                sys.exit()
