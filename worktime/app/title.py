@@ -68,24 +68,6 @@ def title_admin():
     utility.clear()
 
 
-def title_help():
-    """Display the title for the help portal."""
-    utility.clear()
-    print("""
-
-                        ██   ██ ███████ ██      ██████
-                        ██   ██ ██      ██      ██   ██
-                        ███████ █████   ██      ██████
-                        ██   ██ ██      ██      ██
-                        ██   ██ ███████ ███████ ██
-
-    """)
-    print(portal)
-    print("\n" + "="*80)
-    time.sleep(3)
-    utility.clear()
-
-
 def title_end():
     """Display an end of the system title."""
     utility.clear()
