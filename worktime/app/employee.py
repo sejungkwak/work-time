@@ -29,7 +29,7 @@ def employee_main(id):
     elif choice == "4":
         display_entitlements(id)
     elif choice == "5":
-        check_avail_hours(id)
+        BookAbsence(id).book_absence()
     elif choice == "6":
         check_cancellable(id)
     else:
@@ -145,7 +145,7 @@ def get_attendance_date(id):
     """
     utility.clear()
     if not display_attendance(id):
-        print("There is no clocking data for this week.")
+        print("No clocking data found for this week.")
 
     while True:
         print(f"Enter a {utility.cyan('date')} to review another week.")
@@ -187,7 +187,7 @@ def display_attendance(id, date=None):
         tables.display_table(table, headers)
     else:
         utility.clear()
-        print("There is no clocking data.")
+        print("No clocking data found.")
     return data
 
 
@@ -210,220 +210,214 @@ def display_entitlements(id):
         sys.exit()
 
 
-def check_avail_hours(id):
-    """Check if the employee has available paid time off hours left.
+class BookAbsence:
+    """Represent Book Absence menu option.
 
     Args:
         id str: Employee ID that was used to log in.
     """
-    utility.clear()
-    unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
+    def __init__(self, id):
+        self.id = id
+        self.unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
+        self.avail_hours = int(self.unallocated)
 
-    if unallocated == "0":
-        print(utility.red("Insufficient paid time off available."))
-    else:
-        print(f"{unallocated} hours available to book absence.\n")
-        get_absence_duration(id)
-
-
-def get_absence_duration(id):
-    """Ask user to choose an option for the absence duration.
-
-    Args:
-        id str: Employee ID that was used to log in.
-    """
-    unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
-    while True:
-        menu.absence_period_menu()
-        print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
-        if answer.upper() == "MENU":
-            utility.clear()
-            employee_main(id)
-            break
-        elif answer.upper() == "QUIT":
-            title.title_end()
-            sys.exit()
-        elif validations.validate_choice_number(answer, range(1, 5)):
-            if ((answer == "4" and float(unallocated) < 16) or
-                    (answer == "3" and float(unallocated) < 8)):
-                print(utility.red("Insufficient paid time off available"),
-                      utility.red("to complete the request."))
-                print("Select a different option or contact your manager.")
+    def book_absence(self):
+        """Get absence request data from a user.
+        Run a while loop until no available paid time off hours left.
+        """
+        while self.avail_hours > 0:
+            self.display_avail_hours()
+            self.duration = self.get_duration()
+            self.start_date = self.get_start_date()
+            if self.duration == 4:
+                self.end_date = self.get_end_date()
             else:
-                get_absence_start_date(id, answer)
-                break
+                self.end_date = self.start_date
 
-
-def get_absence_start_date(id, duration):
-    """Ask user to input the absence (start) date.
-
-    Args:
-        id str: Employee ID that was used to log in.
-        duration str: Absence duration.
-            1. morning, 2. afternoon, 3. full day, 4. 2+ days
-    """
-    utility.clear()
-    while True:
-        if int(duration) in range(1, 4):
-            print(f"\nPlease enter the {utility.cyan('absence date')}.")
-        else:
-            print(f"\nPlease enter the {utility.cyan('start date')}",
-                  "for the absence duration.")
-        print(messages.date_format())
-        print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
-        utility.clear()
-        if answer.upper() == "MENU":
-            utility.clear()
-            employee_main(id)
-            break
-        elif answer.upper() == "QUIT":
-            title.title_end()
-            sys.exit()
-        elif validations.validate_date(answer):
-            request_date = utility.convert_date(answer)
-            today = utility.GetDatetime().tday()
-            request_year = request_date.year
-            this_year = utility.GetDatetime().now_year()
-            if (request_date - today).days <= 0:
-                print(f"\n{utility.red('Please note holidays must be')}",
-                      f"{utility.red('booked in advance.')}")
-                print(f"{utility.red('If you would like to submit')}",
-                      f"{utility.red('absence in the past,')}",
-                      f"{utility.red('please contact your manager.')}")
-            elif request_year != this_year:
-                print(messages.invalid_year())
+            if self.duration == 1:
+                self.start_time = "9:30"
+                self.end_time = "13:30"
+                self.period = f"{self.start_time} - {self.end_time}"
+                self.hours = 4
+            elif self.duration == 2:
+                self.start_time = "13:30"
+                self.end_time = "17:30"
+                self.period = f"{self.start_time} - {self.end_time}"
+                self.hours = 4
+            elif self.duration == 3:
+                self.start_time = ""
+                self.end_time = ""
+                self.period = "1 workday"
+                self.hours = 8
             else:
-                if duration == "4":
-                    get_absence_end_date(id, answer)
-                    break
-                else:
-                    get_confirm_request(id, answer, answer, duration)
-                    break
+                self.start_time = ""
+                self.end_time = ""
+                self.days = (utility.get_num_of_weekdays(self.start_date,
+                                                         self.end_date))
+                self.period = f"{self.days} workdays"
+                self.hours = self.days * 8
 
-
-def get_absence_end_date(id, start_date):
-    """Ask user to input absence end date if they are booking 2+ days.
-
-    Args:
-        id str: Employee ID that was used to log in.
-        start_date str: The absence start date.
-    """
-    unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
-    while True:
-        print(f"\nPlease enter the {utility.cyan('last date')}",
-              "for the absence duration.")
-        print(messages.date_format())
-        print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
-        utility.clear()
-        if answer.upper() == "MENU":
-            utility.clear()
-            employee_main(id)
-            break
-        elif answer.upper() == "QUIT":
-            title.title_end()
-            sys.exit()
-        elif (validations.validate_date(answer) and
-              validations.validate_days(start_date, answer, unallocated)):
-            get_confirm_request(id, start_date, answer, "4")
-            break
-
-
-def get_confirm_request(id, start_date, end_date, duration):
-    """Display absence request summary and ask user to confirm to submit.
-
-    Args:
-        id str: Employee ID that was used to log in.
-        start_date str: The absence start date - DD/MM/YYYY.
-        end_date str: The absence end date - DD/MM/YYYY.
-        duration str: Absence duration.
-            1. morning, 2. afternoon, 3. full day, 4. 2+ days
-    """
-    if duration == "1":
-        period = "9:30 - 13:30"
-        hours = 4
-    elif duration == "2":
-        period = "13:30 - 17:30"
-        hours = 4
-    elif duration == "3":
-        period = "1 workday"
-        hours = 8
-    else:
-        period = utility.get_num_of_weekdays(start_date, end_date)
-        hours = period * 8
-        period = f"{period} workdays"
-    while True:
-        print(f"{utility.yellow('Please confirm your request.')}")
-        print(f"Start date: {start_date}")
-        print(f"End date: {end_date}")
-        print(f"Period: {period}")
-        if duration == "4":
-            print("Please note that weekends are not included.")
-        print("\nSubmit this request?")
-        answer = input(f"{messages.y_or_n()}\n").upper().strip()
-        utility.clear()
-        if validations.validate_choice_letter(answer, ["Y", "N"]):
-            if answer == "Y":
-                add_absence_request(id, start_date, end_date, duration)
-                add_pending_hours(id, hours)
-                break
+            self.confirm = self.get_confirm_request()
+            if self.confirm == "Y":
+                self.add_absence_request()
+                self.add_pending_hours()
+                self.avail_hours -= self.hours
             else:
                 print(utility.green("No requests were submitted."))
-                print("Returning to the menu...")
-                time.sleep(2)
+            print("\nReturning to the beginning...")
+            time.sleep(3)
+            utility.clear()
+        else:
+            self.display_avail_hours()
+            menu_quit = menu_or_quit()
+            if menu_quit == "MENU":
                 utility.clear()
-                employee_main(id)
-                break
+                employee_main(self.id)
+            else:
+                title.title_end()
+                sys.exit()
 
-
-def add_absence_request(id, start_date, end_date, duration):
-    """Update the absence_requests worksheet.
-
-    Args:
-        id str: Employee ID that was used to log in.
-        start_date str: The absence start date.
-        end_date str: The absence end date.
-        duration str: Absence duration.
-            1. morning, 2. afternoon, 3. full day, 4. 2+ days
-    """
-    print("\nSubmitting your absence request...")
-    request_id = requests.Requests().generate_req_id()
-    today = utility.GetDatetime().tday_str()
-    data = [request_id, id, start_date, today, "/", "False"]
-    if duration == "1":
-        data[3:3] = [start_date, "9:30", "13:30", "0.5"]
-    elif duration == "2":
-        data[3:3] = [start_date, "13:30", "17:30", "0.5"]
-    elif duration == "3":
-        data[3:3] = [start_date, "", "", "1"]
-    else:
-        days = str(utility.get_num_of_weekdays(start_date, end_date))
-        data[3:3] = [end_date, "", "", days]
-    requests.Requests().add_request(data)
-    print(f"\n{utility.green('Absence request submitted successfully.')}")
-
-
-def add_pending_hours(id, hours):
-    """Update pending value on the entitlements worksheet.
-
-    Args:
-        id str: Employee ID that was used to log in.
-        hours int: The number of requested absence hours.
-    """
-    print("\nUpdating absence entitlements...")
-    time.sleep(1)
-    entitle_sheet = entitlements.Entitlements(id)
-    entitle_sheet.update_hours(hours, "unallocated_to_pending")
-    print(f"\n{utility.green('Absence entitlements updated successfully.')}\n")
-    menu_quit = menu_or_quit()
-    if menu_quit == "MENU":
+    def display_avail_hours(self):
+        """Display the employee's available paid time off hours."""
         utility.clear()
-        employee_main(id)
-    else:
-        title.title_end()
-        sys.exit()
+        if self.avail_hours == 0:
+            print(utility.red("Insufficient paid time off available"),
+                  utility.red("to book absence.\n"))
+        else:
+            print(f"{self.avail_hours} hours available to book absence.\n")
+
+    def get_duration(self):
+        """Ask user to choose an option for the absence duration.
+        Run a while loop until the user input is between 1 and 4, and
+        not exceeding their available paid time off hours.
+
+        Return:
+            int: User input if successful.
+                 1(9:30AM-1:30PM), 2(1:30PM-5:30PM), 3(Full day), 4(2+ days)
+        """
+        while True:
+            menu.absence_period_menu()
+            print(f"({messages.to_menu()})")
+            answer = input(f"{utility.cyan('>>>')}\n").strip()
+            utility.clear()
+            if answer.upper() == "MENU":
+                employee_main(self.id)
+                break
+            elif answer.upper() == "QUIT":
+                title.title_end()
+                sys.exit()
+            elif validations.validate_choice_number(answer, range(1, 5)):
+                if ((answer == "4" and self.avail_hours < 16) or
+                        (answer == "3" and self.avail_hours < 8)):
+                    print(utility.red("Insufficient paid time off available"),
+                          utility.red("to complete the request."))
+                    print("Select a different option or contact your manager.")
+                else:
+                    return int(answer)
+
+    def get_start_date(self):
+        """Ask user to input the absence (start) date.
+
+        Return:
+            str: User input if successful.
+        """
+        utility.clear()
+        while True:
+            if self.duration in range(1, 4):
+                print(f"Please enter the {utility.cyan('absence date')}.")
+            else:
+                print(f"Please enter the {utility.cyan('start date')}",
+                      "for the absence duration.")
+            print(messages.date_format())
+            print(f"({messages.to_menu()})")
+            answer = input(f"{utility.cyan('>>>')}\n").strip()
+            utility.clear()
+            if answer.upper() == "MENU":
+                employee_main(self.id)
+                break
+            elif answer.upper() == "QUIT":
+                title.title_end()
+                sys.exit()
+            elif validations.validate_date(answer):
+                request_date = utility.convert_date(answer)
+                today = utility.GetDatetime().tday()
+                request_year = request_date.year
+                this_year = utility.GetDatetime().now_year()
+                if (request_date - today).days <= 0:
+                    print(f"\n{utility.red('Please note holidays must be')}",
+                          f"{utility.red('booked in advance.')}")
+                    print(f"{utility.red('If you would like to submit')}",
+                          f"{utility.red('absence in the past,')}",
+                          f"{utility.red('please contact your manager.')}")
+                elif request_year != this_year:
+                    print(messages.invalid_year())
+                else:
+                    return answer
+
+    def get_end_date(self):
+        """Ask user to input absence end date if they are booking 2+ days.
+
+        Return:
+            str: User input if successful.
+        """
+        utility.clear()
+        while True:
+            print(f"Please enter the {utility.cyan('last date')}",
+                  "for the absence duration.")
+            print(messages.date_format())
+            print(f"({messages.to_menu()})")
+            answer = input(f"{utility.cyan('>>>')}\n").strip()
+            utility.clear()
+            if answer.upper() == "MENU":
+                employee_main(self.id)
+                break
+            elif answer.upper() == "QUIT":
+                title.title_end()
+                sys.exit()
+            elif (validations.validate_date(answer) and
+                    (validations.validate_days(self.start_date, answer,
+                                               self.avail_hours))):
+                return answer
+
+    def get_confirm_request(self):
+        """Display absence request summary and ask user to confirm to submit.
+
+        Returns:
+            str: User input - Y or N.
+        """
+        while True:
+            print(f"{utility.yellow('Please confirm your request.')}")
+            print(f"Start date: {self.start_date}")
+            print(f"End date: {self.end_date}")
+            print(f"Period: {self.period}")
+            if self.duration == 4:
+                print("Please note that weekends are not included.")
+            print("\nSubmit this request?")
+            answer = input(f"{messages.y_or_n()}\n").upper().strip()
+            utility.clear()
+            if validations.validate_choice_letter(answer, ["Y", "N"]):
+                return answer
+
+    def add_absence_request(self):
+        """Update the absence_requests worksheet."""
+        print("Submitting your absence request...\n")
+        self.request_sheet = requests.Requests()
+        self.req_id = self.request_sheet.generate_req_id()
+        self.today = utility.GetDatetime().tday_str()
+        data = ([self.req_id, self.id, self.start_date, self.end_date,
+                 self.start_time, self.end_time,
+                 self.hours / 8, self.today, "/", "False"])
+        self.request_sheet.add_request(data)
+        print(f"{utility.green('Absence request submitted successfully.')}")
+        time.sleep(3)
+        utility.clear()
+
+    def add_pending_hours(self):
+        """Update the entitlements worksheet."""
+        print("Updating absence entitlements...\n")
+        (entitlements.Entitlements(self.id)
+                     .update_hours(self.hours, "unallocated_to_pending"))
+        print(f"{utility.green('Absence entitlements updated successfully.')}")
 
 
 def check_cancellable(id):
