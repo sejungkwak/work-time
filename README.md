@@ -23,6 +23,7 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 [Deployment](#deployment)
 - [Heroku](#heroku)
 - [Making a Local Clone](#making-a-local-clone)
+- [Forking this Repository](#forking-this-repository)
 
 <br>
 
@@ -142,7 +143,7 @@ This project was deployed automatically from _GitHub_ to _Heroku_ using the foll
         <img src="documentation/deployment/deployment-step6.png">
     </details>
 
-7. Copy the entire creds.json file.
+7. Copy the entire `creds.json` file.
 8. Input __CREDS__ in the key field, paste the copied text in step 7 to the value field and then click the __ADD__ button.
 
     <details>
@@ -251,8 +252,42 @@ These steps demonstrate how I cloned my repository to create a local copy on my 
         <img src="documentation/deployment/clone-step8.png">
     </details>
 
-9. Copy the existing service account key from the creds.json file.
-10. Create a new file called creds.json in the root directory and then paste the key I copied in step 9.
+9. Copy the existing service account key from the `creds.json` file.
+10. Create a new file called `creds.json` in the root directory and then paste the key I copied in step 9.
+
+## Forking this Repository
+
+These steps demonstrate how to make a copy of this repository on your _GitHub_ account to make changes without affecting this repository or to deploy the site yourself.
+
+1. Log in to your _GitHub_ account.
+2. Navigate to [this Work Time repository](https://github.com/sejungkwak/work-time).
+3. Click the __fork__ button on the top right side of the repository.
+
+    <details>
+        <summary>Fork Step 3 Screenshot</summary>
+        <img src="documentation/deployment/fork.png">
+        The button in the image is disabled since the repository belongs to me. It should be active if you logged on your account.
+    </details>
+
+4. You should now have a copy of this repository in your _GitHub_ account.
+
+    To make the application work, a few more steps are required.
+
+5. Go to [_Google Cloud Platform_](https://console.cloud.google.com).
+6. Create a new project and enable three APIs: _Google Drive_, _Google Sheets_ and _Google Calendar_.
+7. Generate service account credentials and download the JSON file.
+8. Add the downloaded JSON file to the root directory and rename it `creds.json`.
+9. Copy the value of `client_email` in `creds.json`.
+10. Make a copy of [this project's spreadsheet](https://docs.google.com/spreadsheets/d/1yBUMfb2aVQdtDsvj2FyMLVSAgK2HFpPF_FO3ZXAN37s/edit?usp=sharing).
+11. Click __Share__ and paste `client_email` you copied in step 9 as an Editor.
+12. Replace the calendar link with your own calendar in `views/layout.html`.
+13. Run the following command in the Terminal to install dependencies listed in `requirements.txt`.
+
+    ```
+    pip3 install -r requirements.txt
+    ```
+
+14. You can make a local clone from the copied repository on your computer using the steps demonstrated in [Making a Local Clone](#making-a-local-clone) and/or deploy to _Heroku_ using the steps demonstrated in [Heroku](#heroku).
 
 [Back To **Table of Contents**](#table-of-contents)
 
