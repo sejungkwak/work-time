@@ -65,7 +65,7 @@ def clock_in(id):
             utility.clear()
             if answer == "Y":
                 print("Updating today's clock in time...")
-                clock_sheet.update_clock_in(clock_in_at)
+                clock_sheet.update_clock_in(today, clock_in_at)
                 print(f"{utility.green('Clock in time has been updated to')}",
                       f"{utility.green(clock_in_at + '.')}")
             else:
@@ -110,7 +110,7 @@ def clock_out(id):
             print("Please contact your manager",
                   "to update your clock out time.")
         else:
-            clock_sheet.update_clock_out(clock_out_at)
+            clock_sheet.update_clock_out(today, clock_out_at)
             print(utility.green("Successfully clocked out at"),
                   utility.green(clock_out_at + "."))
     else:
