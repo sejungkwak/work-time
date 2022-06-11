@@ -86,13 +86,7 @@ def handle_request(new_request):
         if num_requests > 0:
             print("Returning to the list...")
     else:
-        menu_quit = menu_or_quit()
-        if menu_quit == "MENU":
-            utility.clear()
-            admin_main()
-        else:
-            title.title_end()
-            sys.exit()
+        menu_or_quit()
 
 
 def get_confirm_decision(req_id, requests_, decision):
@@ -170,7 +164,7 @@ def new_request_notification(new_request):
         print(f"{utility.yellow('You have ' + str(len(new_request)))}",
               f"{utility.yellow(word_form + ' to review.')}\n")
     else:
-        print("There are no more requests to review right now.\n")
+        print("No more requests to review right now.\n")
 
 
 def sort_new_request(req_list):
@@ -302,7 +296,7 @@ def display_attendance(date=None):
         data = True
     else:
         utility.clear()
-        print(f"There is no clocking data for {date}.")
+        print(f"No clocking data found for {date}.")
     if table:
         utility.clear()
         print(f"Clock cards for {date}")
@@ -411,13 +405,7 @@ def add_absence(id, from_date, to_date, duration, hours, fullname):
     print(utility.green(fullname + "\'s absence details"),
           utility.green("updated successfully."))
 
-    menu_quit = menu_or_quit()
-    utility.clear()
-    if menu_quit == "MENU":
-        admin_main()
-    else:
-        title.title_end()
-        sys.exit()
+    menu_or_quit()
 
 
 def add_entitlement(id, from_date, hours, fullname):
@@ -556,7 +544,7 @@ def get_absence_start_date(type, duration):
             title.title_end()
             sys.exit()
         elif validations.validate_date(answer):
-            this_year = utility.GetDatetime().now_year()
+            this_year = str(utility.GetDatetime().now_year())
             if answer[-4:] != this_year and type == "1":
                 print(messages.invalid_year())
             else:
@@ -629,9 +617,9 @@ def update_clocking():
             elif data is None and in_or_out == "OUT":
                 clocking_sheet.add_clocking([id_, date_, "", f"{time_}:00"])
             elif data and in_or_out == "IN":
-                clocking_sheet.update_clock_in(f"{time_}:00")
+                clocking_sheet.update_clock_in(date_, f"{time_}:00")
             else:
-                clocking_sheet.update_clock_out(f"{time_}:00")
+                clocking_sheet.update_clock_out(date_, f"{time_}:00")
             print(utility.green("Data updated successfully."))
             print("Returning to the beginning...")
             time.sleep(2)
@@ -795,4 +783,9 @@ def menu_or_quit():
         answer = input(f"{utility.cyan('>>>')}\n").upper().strip()
         utility.clear()
         if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
-            return answer
+            if answer == "MENU":
+                admin_main()
+                break
+            else:
+                title.title_end()
+                sys.exit()
