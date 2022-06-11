@@ -544,9 +544,12 @@ def get_absence_start_date(type, duration):
             title.title_end()
             sys.exit()
         elif validations.validate_date(answer):
+            request_date = utility.convert_date(answer)
             this_year = str(utility.GetDatetime().now_year())
             if answer[-4:] != this_year and type == "1":
                 print(messages.invalid_year())
+            elif request_date.weekday() > 4:
+                print(utility.red("No absence updates required for weekends."))
             else:
                 return answer
 
