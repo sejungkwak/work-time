@@ -31,7 +31,7 @@ def admin_main():
     if answer == "1":
         handle_request(new_request)
     elif answer == "2":
-        get_attendance_date()
+        ReviewAttendace().get_attendance_date()
     elif answer == "3":
         get_absence_data()
     elif answer == "4":
@@ -248,60 +248,65 @@ def find_ee_id(request_id, new_request):
             return ee_id
 
 
-def get_attendance_date():
-    """Display today's clock cards of all employees and then ask if the user wants
-    to review other days. Run a while loop until they input a valid answer.
-    """
-    utility.clear()
-    display_attendance()
+class ReviewAttendace:
+    """Represent Review Attendace menu option."""
 
-    while True:
-        print(f"\nEnter a {utility.cyan('date')} to review another day.")
-        print(messages.date_format())
-        print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
+    def __init__(self):
+        self.clock_cards = clockings.Clockings().clockings
+        self.all_employees = employees.Employees().employees
+
+    def get_attendance_date(self):
+        """Display today's clock cards of all employees and then
+        ask if the user wants to review other days.
+        Run a while loop until they input a valid answer.
+        """
         utility.clear()
-        if answer.upper() == "MENU":
-            admin_main()
-            break
-        elif answer.upper() == "QUIT":
-            title.title_end()
-            sys.exit()
-        elif validations.validate_date(answer):
+        self.display_attendance()
+
+        while True:
+            print(f"\nEnter a {utility.cyan('date')} to review another day.")
+            print(messages.date_format())
+            print(f"({messages.to_menu()})")
+            answer = input(f"{utility.cyan('>>>')}\n").strip()
             utility.clear()
-            display_attendance(answer)
+            if answer.upper() == "MENU":
+                admin_main()
+                break
+            elif answer.upper() == "QUIT":
+                title.title_end()
+                sys.exit()
+            elif validations.validate_date(answer):
+                if len(answer) != 10:
+                    print(utility.red("Invalid format: " + answer))
+                else:
+                    self.display_attendance(answer)
 
+    def display_attendance(self, date_=None):
+        """Check if there is any clock in/out data, and then display the result.
 
-def display_attendance(date=None):
-    """Check if there is any clock in/out data, and then display the result.
-
-    Args:
-        date str: A DD/MM/YYYY formatted date, today if None.
-    Returns:
-        bool: True if there are clock cards.
-    """
-    utility.clear()
-    print("Getting clocking data...")
-    today = utility.GetDatetime().tday_str()
-    date = today if date is None else date
-    data = False
-    headers = ["Name", "Date", "Clock In", "Clock Out"]
-    table = []
-    clock_sheet = clockings.Clockings()
-    cards = clock_sheet.get_one_all_employee(date)
-    if cards:
-        for card in cards:
-            card[0] = employees.Employees(card[0]).get_fullname()
-            table.append(card)
-        data = True
-    else:
-        utility.clear()
-        print(f"No clocking data found for {date}.")
-    if table:
-        utility.clear()
-        print(f"Clock cards for {date}")
-        tables.display_table(table, headers)
-    return data
+        Args:
+            date_ str: A DD/MM/YYYY formatted date, today if None.
+        """
+        print("Getting clocking data...")
+        today = utility.GetDatetime().tday_str()
+        date_ = today if date_ is None else date_
+        headers = ["Name", "Date", "Clock In", "Clock Out"]
+        table = []
+        for clocking in self.clock_cards:
+            ee_id, date, clock_in, clock_out = clocking
+            if date == date_:
+                for ee in self.all_employees:
+                    if ee_id == ee[0]:
+                        fullname = f"{ee[1]} {ee[2]}"
+                clocking[0] = fullname
+                table.append(clocking)
+            else:
+                utility.clear()
+                print(f"No clocking data found for {date_}.")
+        if table:
+            utility.clear()
+            print(f"Clock cards for {date_}")
+            tables.display_table(table, headers)
 
 
 def get_absence_data():

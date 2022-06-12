@@ -80,20 +80,3 @@ class Clockings:
                 lists.pop("row")
                 result.append([values for keys, values in lists.items()])
         return result
-
-    def get_one_all_employee(self, target_date):
-        """Iterate through the sheet to find row values that match the date
-        for all employees.
-
-        Args:
-            target_date str: A DD/MM/YYYY format date.
-        Returns:
-            list: A list of lists containing all employees' clocking
-                  data for a day.
-        """
-        result = []
-        for clocking in self.clockings:
-            ee_id, date, clock_in, clock_out = clocking
-            if date == target_date:
-                result.append(clocking)
-        return result
