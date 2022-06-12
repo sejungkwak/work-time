@@ -1,8 +1,11 @@
+"""Tables Module
+"""
+
 # Third-party Package
 from tabulate import tabulate
 
 # Custom Package
-from worktime.worksheets import clockings, employees, entitlements, requests
+from worktime.worksheets import employees, entitlements
 
 
 def display_table(table, headers=None):
@@ -10,6 +13,7 @@ def display_table(table, headers=None):
 
     Args:
         table list: A list of lists - The Content of the table.
+                    If headers is None, all cotents display in a box.
         headers list: Names of the columns.
     """
     if headers is None:
@@ -18,13 +22,13 @@ def display_table(table, headers=None):
         print(tabulate(table, headers, tablefmt="fancy_grid"))
 
 
-def display_entitlements(id):
+def display_entitlements(id_):
     """Retrieve absence entitlements from the entitlements module and display it.
 
     Args:
-        id str: An employee ID.
+        id_ str: An employee ID.
     """
-    data = entitlements.Entitlements(id).get_entitlements()
+    data = entitlements.Entitlements(id_).get_entitlements()
     table = [[item for item in data]]
     headers = ["Total Hours", "Taken", "Planned", "Pending", "Unallocated"]
     display_table(table, headers)

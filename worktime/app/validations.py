@@ -1,3 +1,8 @@
+"""Validations Module
+
+This module provides functions that validate a user input.
+"""
+
 # Built-in Modules
 from datetime import datetime
 
@@ -6,6 +11,7 @@ from passlib.hash import pbkdf2_sha256
 
 # Custom Packages
 from worktime.app import utility
+from worktime.app.utility import print_in_colour as colour
 
 
 def validate_id(id_, ids):
@@ -23,7 +29,7 @@ def validate_id(id_, ids):
         if id_ not in ids:
             raise ValueError()
     except ValueError:
-        print(utility.red("Invalid ID: " + id_))
+        print(colour("RED", "Invalid ID: " + id_))
         return False
     else:
         return True
@@ -46,7 +52,7 @@ def validate_pw(entered_pw, password):
         if not valid:
             raise ValueError()
     except ValueError:
-        print(utility.red("Incorrect password."))
+        print(colour("RED", "Incorrect password."))
         return False
     else:
         return True
@@ -68,7 +74,7 @@ def validate_choice_number(choice, numbers):
         if choice not in numbers:
             raise ValueError()
     except ValueError:
-        print(utility.red("Invalid value: " + str(choice)))
+        print(colour("RED", "Invalid value: " + str(choice)))
         return False
     else:
         return True
@@ -89,7 +95,7 @@ def validate_choice_letter(choice, choices):
         if choice not in choices:
             raise ValueError()
     except ValueError:
-        print(utility.red("Invalid value: " + choice))
+        print(colour("RED", "Invalid value: " + choice))
         return False
     else:
         return True
@@ -111,7 +117,7 @@ def validate_date(date_):
         date_format = "%d/%m/%Y"
         new_date = datetime.strptime(date_, date_format).date()
     except ValueError:
-        print(utility.red("Invalid value: " + date_))
+        print(colour("RED", "Invalid value: " + date_))
         return False
     else:
         return new_date
@@ -132,7 +138,7 @@ def validate_time(time_):
         time_format = "%H:%M"
         datetime.strptime(time_, time_format).time()
     except ValueError:
-        print(utility.red("Invalid value: " + time_))
+        print(colour("RED", "Invalid value: " + time_))
         return False
     else:
         return True
@@ -157,12 +163,12 @@ def validate_days(date1, date2, unallocated):
         num_of_hours = num_of_days * 8
         if num_of_hours > int(unallocated):
             raise ValueError(
-                print(utility.red("Insufficient paid time off available."))
+                print(colour("RED", "Insufficient paid time off available."))
             )
         elif num_of_days < 2:
             raise ValueError(
-                print(utility.red("Absence end date must be"),
-                      utility.red("after absence start date."))
+                print(colour("RED", "Absence end date must be" +
+                      "after absence start date."))
             )
     except ValueError:
         return False
@@ -186,8 +192,8 @@ def validate_unpaid_days(date1, date2):
         num_of_days = utility.get_num_of_weekdays(date1, date2)
         if num_of_days < 2:
             raise ValueError(
-                print(utility.red("Absence end date must be"),
-                      utility.red("after absence start date."))
+                print(colour("RED", "Absence end date must be" +
+                      "after absence start date."))
             )
     except ValueError:
         return False

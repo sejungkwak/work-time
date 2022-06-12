@@ -11,6 +11,7 @@ import stdiomask
 
 # Custom Packages
 from worktime.app import admin, employee, tables, title, utility, validations
+from worktime.app.utility import print_in_colour as colour
 from worktime.worksheets import credentials
 
 
@@ -22,11 +23,12 @@ def get_employee_id():
     help_typed = False
 
     while True:
-        print(f"Please enter {utility.cyan('Employee ID.')}")
+        print(
+            f"Please enter {colour('CYAN', 'Employee ID.')}")
         if not help_typed:
             print("For more information about Work Time,",
-                  f"type {utility.cyan('help')} and press enter.")
-        entered_id = input(f"{utility.cyan('>>>')}\n").upper().strip()
+                  f"type {colour('CYAN', 'help')} and press enter.")
+        entered_id = input(colour("CYAN", ">>>\n")).upper().strip()
         utility.clear()
 
         if entered_id == "HELP":
@@ -46,8 +48,8 @@ def get_pw(id_):
     """
     pw_ = credentials.Credentials().pw(id_)
     while True:
-        print(f"Please enter {utility.cyan('Password')}.")
-        password = stdiomask.getpass(prompt=f"{utility.cyan('>>>')}\n")
+        print(f"Please enter {colour('CYAN', 'Password')}.")
+        password = stdiomask.getpass(prompt=colour("CYAN", ">>>\n"))
         utility.clear()
 
         if validations.validate_pw(password, pw_):
@@ -63,19 +65,19 @@ def get_pw(id_):
 def help_():
     """Print application information."""
     text = f"""
-{utility.cyan('About the application')}
+{colour('CYAN', 'About the application')}
 Work Time is an employee time management system. It provides an employee
 clocking system, attendance tracking and absence management.
 
-{utility.cyan('Employee Portal')}
+{colour('CYAN', 'Employee Portal')}
 It offers the following 6 options to choose from: Clock In, Clock Out, View
 Clock Card, View Absence Entitlements, Book Absence, Cancel Absence.
 
-{utility.cyan('Admin Portal')}
+{colour('CYAN', 'Admin Portal')}
 It offers the following 4 options to choose from: Review Requests, Review
 Attendance, Add absence, Update Clock Card.
 
-{utility.cyan('Contact the developer')}
+{colour('CYAN', 'Contact the developer')}
 If you would like to report a bug, suggest an idea or require additional help,
 please email me at kwak.sejung@gmail.com
 """

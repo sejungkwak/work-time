@@ -1,5 +1,11 @@
+"""Menu Module
+
+This module provides functions that display numbered menu options in a box.
+"""
+
 # Custom Package
-from worktime.app import tables, utility
+from worktime.app import tables
+from worktime.app.utility import print_in_colour as colour
 
 
 def employee_menu():
@@ -48,9 +54,9 @@ def format_menu(numbers, options):
         numbers object: A sequence of numbers.
         options list: A list of menu options.
     """
-    items = f"Enter a {utility.cyan('number')} to select "
+    items = f"Enter a {colour('CYAN', 'number')} to select "
     items += "one of the following options.\n\n"
     for number, option in zip(numbers, options):
-        items += f"{utility.cyan(str(number))} {option}\n"
+        items += f"{colour('CYAN', str(number))}  {option}\n"
     table = [[items]]
     tables.display_table(table)

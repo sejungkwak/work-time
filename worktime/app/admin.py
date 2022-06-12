@@ -10,6 +10,7 @@ from itertools import groupby
 
 # Custom Packages
 from worktime.app import menu, messages, tables, title, utility, validations
+from worktime.app.utility import print_in_colour as colour
 from worktime.worksheets import (clockings, credentials, employees,
                                  entitlements, requests)
 
@@ -28,7 +29,7 @@ def admin_main():
     new_request_notification(new_request)
     while True:
         menu.admin_menu()
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        answer = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
         if validations.validate_choice_number(answer, range(1, 6)):
             break
@@ -113,7 +114,7 @@ def get_confirm_decision(req_id, requests_, decision):
                 period = f"{days} day" if days == "1" else f"{days} days"
     utility.clear()
     while True:
-        print(f"{utility.yellow('Please confirm the details.')}")
+        print(colour("YELLOW", "Please confirm the details."))
         print(f"Employee ID: {id_}")
         print(f"Employee Name: {fullname}")
         print(f"Start date: {fromdate}")
@@ -153,7 +154,7 @@ def update_decision(req_id, requests_, decision):
     else:
         entitle_sheet.update_hours(hours, "pending_to_unallocated")
     utility.clear()
-    print(utility.green("Data updated successfully."))
+    print(colour("GREEN", "Data updated successfully."))
     time.sleep(2)
 
 
@@ -165,8 +166,8 @@ def new_request_notification(new_request):
     """
     if len(new_request) > 0:
         word_form = "request" if len(new_request) == 1 else "requests"
-        print(f"{utility.yellow('You have ' + str(len(new_request)))}",
-              f"{utility.yellow(word_form + ' to review.')}\n")
+        print(colour("YELLOW", "You have " + str(len(new_request))),
+              colour("YELLOW", word_form + " to review.\n"))
     else:
         print("No more requests to review right now.\n")
 
@@ -200,10 +201,10 @@ def get_request_id(new_request):
     """
     while True:
         id_list = [int(item[0]) for item in new_request]
-        print(f"\nEnter a {utility.cyan('request ID')}",
+        print(f"\nEnter a {colour('CYAN', 'request ID')}",
               "from the first column to approve or reject.")
         print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        answer = input(colour("CYAN", ">>>\n")).strip()
         if answer.upper() == "MENU":
             admin_main()
             break
@@ -221,11 +222,11 @@ def get_decision():
         str: User input value - Approve or reject.
     """
     while True:
-        print(f"\nEnter {utility.cyan('approve')}",
+        print(f"\nEnter {colour('CYAN', 'approve')}",
               "to approve the request",
-              f"or {utility.cyan('reject')} to reject.")
+              f"or {colour('CYAN', 'reject')} to reject.")
         print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").upper().strip()
+        answer = input(colour("CYAN", ">>>\n")).upper().strip()
         if answer == "MENU":
             admin_main()
             break
@@ -268,20 +269,20 @@ class ReviewAttendace:
         self.display_attendance()
 
         while True:
-            print(f"\nEnter a {utility.cyan('date')} to review another day.")
+            print(f"\nEnter a {colour('CYAN', 'date')} to review another day.")
             print(messages.date_format())
             print(f"({messages.to_menu()})")
-            answer = input(f"{utility.cyan('>>>')}\n").strip()
+            answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
             if answer.upper() == "MENU":
                 admin_main()
                 break
-            elif answer.upper() == "QUIT":
+            if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
             elif validations.validate_date(answer):
                 if len(answer) != 10:
-                    print(utility.red("Invalid format: " + answer))
+                    print(colour("RED", "Invalid format: " + answer))
                 else:
                     self.display_attendance(answer)
 
@@ -356,7 +357,7 @@ def get_confirm_absence(id_, type_, from_date, to_date, duration):
         period = f"{period} workdays"
 
     while True:
-        print(f"{utility.yellow('Please confirm the details.')}")
+        print(colour("YELLOW", "Please confirm the details."))
         print(f"Employee ID: {id_}")
         print(f"Employee Name: {fullname}")
         print(f"Absence Type: {is_paid}")
@@ -375,7 +376,7 @@ def get_confirm_absence(id_, type_, from_date, to_date, duration):
                             fullname)
                 break
             utility.clear()
-            print(utility.green('No changes were made.'))
+            print(colour("GREEN", "No changes were made."))
             print("Returning to the menu...")
             time.sleep(2)
             utility.clear()
@@ -410,8 +411,8 @@ def add_absence(id_, from_date, to_date, duration, hours, fullname):
     data = ([req_id, id_, from_date, to_date,
             start_time, end_time, days, "", "True", "False"])
     req_sheet.add_request(data)
-    print(utility.green(fullname + "\'s absence details"),
-          utility.green("updated successfully."))
+    print(colour("GREEN", fullname + "\'s absence details"),
+          colour("GREEN", "updated successfully."))
     menu_or_quit()
 
 
@@ -433,8 +434,8 @@ def add_entitlement(id_, from_date, hours, fullname):
         entitle_sheet.update_hours(hours, "unallocated_to_planned")
     else:
         entitle_sheet.update_hours(hours, "unallocated_to_taken")
-    print(utility.green(fullname + "\'s absence entitlements"),
-          utility.green("updated successfully."))
+    print(colour("GREEN", fullname + "\'s absence"),
+          colour("GREEN", "entitlements updated successfully."))
 
 
 def get_employee_id(text):
@@ -448,10 +449,10 @@ def get_employee_id(text):
     utility.clear()
     ids = credentials.Credentials().ids()
     while True:
-        print(f"Enter an {utility.cyan('employee ID')}",
+        print(f"Enter an {colour('CYAN', 'employee ID')}",
               text)
         print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").upper().strip()
+        answer = input(colour("CYAN", ">>>\n")).upper().strip()
         utility.clear()
         if answer == "MENU":
             admin_main()
@@ -460,7 +461,7 @@ def get_employee_id(text):
             title.display_goodbye()
             sys.exit()
         elif answer == "ADMIN":
-            print(f"{utility.red('Unable to amend ADMIN data.')}\n")
+            print(colour("RED", "Unable to amend ADMIN data.\n"))
             continue
         elif validations.validate_id(answer, ids):
             return answer
@@ -478,7 +479,7 @@ def get_absence_type(hours):
     while True:
         menu.absence_paid_menu()
         print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        answer = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -488,7 +489,7 @@ def get_absence_type(hours):
             sys.exit()
         elif validations.validate_choice_number(answer, range(1, 3)):
             if answer == "1" and hours <= 0:
-                print(utility.red("Insufficient paid time off available."))
+                print(colour("RED", "Insufficient paid time off available."))
             else:
                 return answer
 
@@ -505,7 +506,7 @@ def get_absence_duration(type_, hours):
     while True:
         menu.absence_period_menu()
         print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        answer = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -517,7 +518,8 @@ def get_absence_duration(type_, hours):
             if type_ == "1":
                 if ((answer == "4" and hours < 16) or
                         (answer == "3" and hours < 8)):
-                    print(utility.red("Insufficient paid time off available."))
+                    print(colour("RED", "Insufficient paid time off" +
+                          "available."))
                 else:
                     return answer
             else:
@@ -536,13 +538,13 @@ def get_absence_start_date(type_, duration):
     utility.clear()
     while True:
         if int(duration) in range(1, 4):
-            print(f"\nPlease enter the {utility.cyan('absence date')}.")
+            print(f"\nPlease enter the {colour('CYAN', 'absence date')}.")
         else:
-            print(f"\nPlease enter the {utility.cyan('start date')}",
+            print(f"\nPlease enter the {colour('CYAN', 'start date')}",
                   "for the absence duration.")
         print(messages.date_format())
         print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        answer = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -556,7 +558,8 @@ def get_absence_start_date(type_, duration):
             if answer[-4:] != this_year and type_ == "1":
                 print(messages.invalid_year())
             elif request_date.weekday() > 4:
-                print(utility.red("No absence updates required for weekends."))
+                print(colour("RED", "No absence updates required for" +
+                      "weekends."))
             else:
                 return answer
 
@@ -573,11 +576,11 @@ def get_absence_end_date(type_, date, hours):
     """
     utility.clear()
     while True:
-        print(f"\nPlease enter the {utility.cyan('last date')}",
+        print(f"\nPlease enter the {colour('CYAN', 'last date')}",
               "for the absence duration.")
         print(messages.date_format())
         print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        answer = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -630,11 +633,11 @@ def update_clocking():
                 clocking_sheet.update_clock_in(date_, f"{time_}:00")
             else:
                 clocking_sheet.update_clock_out(date_, f"{time_}:00")
-            print(utility.green("Data updated successfully."))
+            print(colour("GREEN", "Data updated successfully."))
             print("Returning to the beginning...")
             time.sleep(2)
         else:
-            print(utility.green("No changes were made."))
+            print(colour("GREEN", "No changes were made."))
             print("Returning to the beginning...")
             time.sleep(2)
 
@@ -646,10 +649,10 @@ def get_date():
         str: A DD/MM/YYYY format date.
     """
     while True:
-        print(f"Enter a {utility.cyan('date')} to update.")
+        print(f"Enter a {colour('CYAN', 'date')} to update.")
         print(messages.date_format())
         print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        answer = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -661,11 +664,11 @@ def get_date():
             today = utility.GetDatetime().tday()
             today_str = utility.GetDatetime().tday_str()
             if utility.convert_date(answer) > today:
-                print(utility.red("Unable to set clocking time"),
-                      utility.red("in the future."))
+                print(colour("RED", "Unable to set clocking time" +
+                      "in the future."))
             elif answer[3:5] != today_str[3:5]:
-                print(utility.red("Unable to update clocking time"),
-                      utility.red("after payroll has been processed."))
+                print(colour("RED", "Unable to update clocking time" +
+                      "after payroll has been processed."))
             else:
                 return answer
 
@@ -690,12 +693,12 @@ def clock_in_or_out(id_, date_, fullname, data):
         headers = ["Name", "Date", "Clock In", "Clock Out"]
         tables.display_table(table, headers)
     else:
-        print(utility.yellow("No clock in / out data found for"),
-              utility.yellow(f"{id_}({fullname}) on {date_}.\n"))
+        print(colour("YELLOW", "No clock in / out data found for"),
+              colour("YELLOW", id_ + f"({fullname}) on {date_}.\n"))
     while True:
         menu.update_clocking_menu()
         print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        answer = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -720,14 +723,14 @@ def get_time(data, type_):
     if data is not None:
         *_, from_time, to_time = data.values()
     while True:
-        print(f"Enter {utility.cyan('time')} to update",
-              f"{utility.cyan('clock ' + type_.lower())} time.")
+        print(f"Enter {colour('CYAN', 'time')} to update",
+              f"{colour('CYAN', 'clock ' + type_.lower())} time.")
         print("The time should be in the 24-hour notation:",
-              f"{utility.cyan('Hour:Minute')}.")
+              f"{colour('CYAN', 'Hour:Minute')}.")
         print("For example, 9:00 is the nine o\'clock in the morning",
               "and 17:00 is the five o\'clock in the evening.")
         print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        answer = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
         if answer.upper() == "MENU":
             admin_main()
@@ -739,15 +742,15 @@ def get_time(data, type_):
             if type_ == "IN" and data is not None and to_time != "":
                 if (utility.convert_time(answer) >=
                         utility.convert_time(to_time)):
-                    print(utility.red("Clock in time must be"),
-                          utility.red("before clock out time."))
+                    print(colour("RED", "Clock in time must be" +
+                          "before clock out time."))
                 else:
                     return answer
             elif type_ == "OUT" and data is not None and from_time != "":
                 if (utility.convert_time(answer) <=
                         utility.convert_time(from_time)):
-                    print(utility.red("Clock out time must be"),
-                          utility.red("after clock in time."))
+                    print(colour("RED", "Clock out time must be" +
+                          "after clock in time."))
                 else:
                     return answer
             else:
@@ -768,7 +771,7 @@ def get_confirm_clocking(id_, date_, in_out, time_, fullname):
     """
     in_out = in_out.capitalize()
     while True:
-        print(f"{utility.yellow('Please confirm the details.')}")
+        print(colour("YELLOW", "Please confirm the details."))
         print(f"Employee ID: {id_}")
         print(f"Employee Name: {fullname}")
         print(f"Update Date: {date_}")
@@ -790,7 +793,7 @@ def menu_or_quit():
     """
     while True:
         print(messages.to_menu())
-        answer = input(f"{utility.cyan('>>>')}\n").upper().strip()
+        answer = input(colour("CYAN", ">>>\n")).upper().strip()
         utility.clear()
         if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
             if answer == "MENU":

@@ -8,8 +8,9 @@ import sys
 import time
 
 # Custom Packages
-from worktime.worksheets import clockings, entitlements, requests
 from worktime.app import menu, messages, tables, title, utility, validations
+from worktime.app.utility import print_in_colour as colour
+from worktime.worksheets import clockings, entitlements, requests
 
 
 def employee_main(id_):
@@ -28,7 +29,7 @@ def employee_main(id_):
     """
     while True:
         menu.employee_menu()
-        choice = input(f"{utility.cyan('>>>')}\n").strip()
+        choice = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
         if validations.validate_choice_number(choice, range(1, 8)):
             break
@@ -64,30 +65,30 @@ def clock_in(id_):
     if clocking:
         if clocking["end_time"]:
             clocked_out_at = clocking["end_time"]
-            print(f"{utility.red(id_ + ' already clocked out at')}",
-                  f"{utility.red(clocked_out_at + '.')}")
-            print(f"{utility.red('To update the clock in time,')}",
-                  f"{utility.red('please contact your manager.')}")
+            print(colour("RED", id_ + " already clocked out at" +
+                  clocked_out_at + "."))
+            print(colour("RED", "To update the clock in time," +
+                  "please contact your manager."))
         else:
             clocked_in_at = clocking["start_time"]
-            print(f"{utility.yellow(id_ + ' already clocked in for today')}",
-                  f"at {utility.yellow(clocked_in_at + '.')}")
+            print(colour("YELLOW", id_ + " already clocked in for today at" +
+                  clocked_in_at + "."))
             print("Overwrite it?")
             answer = check_for_overwrite()
             utility.clear()
             if answer == "Y":
                 print("Updating today's clock in time...")
                 clock_sheet.update_clock_in(today, clock_in_at)
-                print(f"{utility.green('Clock in time has been updated to')}",
-                      f"{utility.green(clock_in_at + '.')}")
+                print(colour("GREEN", "Clock in time has been" +
+                      "updated to" + clock_in_at + "."))
             else:
-                print(f"{utility.green('No changes were made.')}")
+                print(colour("GREEN", "No changes were made."))
     else:
         print("Submitting today's clock in time...")
         data = [id_, today, clock_in_at]
         clock_sheet.add_clocking(data)
-        print(f"{utility.green('Successfully clocked in at')}",
-              f"{utility.green(clock_in_at + '.')}")
+        print(colour("GREEN", "Successfully clocked in at" +
+              clock_in_at + "."))
     menu_or_quit(id_)
 
 
@@ -116,22 +117,22 @@ def clock_out(id_):
     if clocking:
         if clocking["end_time"]:
             clocked_out_at = clocking["end_time"]
-            print(utility.red(id_ + ' already clocked out at ' +
+            print(colour("RED", id_ + " already clocked out at " +
                   clocked_out_at + '.'))
             print("Please contact your manager",
                   "to update your clock out time.")
         else:
             clock_sheet.update_clock_out(today, clock_out_at)
-            print(utility.green("Successfully clocked out at"),
-                  utility.green(clock_out_at + "."))
+            print(colour("GREEN", "Successfully clocked out at" +
+                  clock_out_at + "."))
     else:
         data = [id_, today, "", clock_out_at]
         clock_sheet.add_clocking(data)
-        print(f"{utility.red('No clock in data for today.')}")
+        print(colour("RED", "No clock in data for today."))
         print("Please contact your manager",
               "to add your clock in time.")
-        print(utility.green("Successfully clocked out at"),
-              utility.green(clock_out_at + "."))
+        print(colour("GREEN", "Successfully clocked out at"),
+              colour("GREEN", clock_out_at + "."))
     menu_or_quit(id_)
 
 
@@ -146,10 +147,10 @@ def get_attendance_date(id_):
         print("No clocking data found for this week.")
 
     while True:
-        print(f"Enter a {utility.cyan('date')} to review another week.")
+        print(f"Enter a {colour('CYAN', 'date')} to review another week.")
         print(messages.date_format())
         print(f"({messages.to_menu()})")
-        answer = input(f"{utility.cyan('>>>')}\n").strip()
+        answer = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
         if answer.upper() == "MENU":
             employee_main(id_)
@@ -258,7 +259,7 @@ class BookAbsence:
                 self.add_pending_hours()
                 self.avail_hours -= self.hours
             else:
-                print(utility.green("No requests were submitted."))
+                print(colour("GREEN", "No requests were submitted."))
             print("\nReturning to the beginning...")
             time.sleep(3)
             utility.clear()
@@ -268,8 +269,8 @@ class BookAbsence:
     def display_avail_hours(self):
         """Display the employee's available paid time off hours."""
         if self.avail_hours == 0:
-            print(utility.red("Insufficient paid time off available"),
-                  utility.red("to book absence.\n"))
+            print(colour("RED", "Insufficient paid time off available" +
+                  "to book absence.\n"))
         else:
             print(f"{self.avail_hours} hours available to book absence.\n")
 
@@ -285,7 +286,7 @@ class BookAbsence:
         while True:
             menu.absence_period_menu()
             print(f"({messages.to_menu()})")
-            answer = input(f"{utility.cyan('>>>')}\n").strip()
+            answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
             if answer.upper() == "MENU":
                 employee_main(self.id_)
@@ -296,8 +297,8 @@ class BookAbsence:
             elif validations.validate_choice_number(answer, range(1, 5)):
                 if ((answer == "4" and self.avail_hours < 16) or
                         (answer == "3" and self.avail_hours < 8)):
-                    print(utility.red("Insufficient paid time off available"),
-                          utility.red("to complete the request."))
+                    print(colour("RED", "Insufficient paid time off" +
+                          "available to complete the request."))
                     print("Select a different option or contact your manager.")
                 else:
                     return int(answer)
@@ -311,13 +312,13 @@ class BookAbsence:
         utility.clear()
         while True:
             if self.duration in range(1, 4):
-                print(f"Please enter the {utility.cyan('absence date')}.")
+                print(f"Please enter the {colour('CYAN', 'absence date')}.")
             else:
-                print(f"Please enter the {utility.cyan('start date')}",
+                print(f"Please enter the {colour('CYAN', 'start date')}",
                       "for the absence duration.")
             print(messages.date_format())
             print(f"({messages.to_menu()})")
-            answer = input(f"{utility.cyan('>>>')}\n").strip()
+            answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
             if answer.upper() == "MENU":
                 employee_main(self.id_)
@@ -331,16 +332,15 @@ class BookAbsence:
                 request_year = request_date.year
                 this_year = utility.GetDatetime().now_year()
                 if (request_date - today).days <= 0:
-                    print(f"\n{utility.red('Please note holidays must be')}",
-                          f"{utility.red('booked in advance.')}")
-                    print(f"{utility.red('If you would like to submit')}",
-                          f"{utility.red('absence in the past,')}",
-                          f"{utility.red('please contact your manager.')}")
+                    print(colour("RED", "\nPlease note holidays must be" +
+                          "booked in advance."))
+                    print(colour("RED", "If you would like to submit absence" +
+                          "in the past, please contact your manager."))
                 elif request_year != this_year:
                     print(messages.invalid_year())
                 elif request_date.weekday() > 4:
-                    print(utility.red("No absence requests required"),
-                          utility.red("for weekends."))
+                    print(colour("RED", "No absence requests required for" +
+                          "weekends."))
                 else:
                     return answer
 
@@ -352,11 +352,11 @@ class BookAbsence:
         """
         utility.clear()
         while True:
-            print(f"Please enter the {utility.cyan('last date')}",
+            print(f"Please enter the {colour('CYAN', 'last date')}",
                   "for the absence duration.")
             print(messages.date_format())
             print(f"({messages.to_menu()})")
-            answer = input(f"{utility.cyan('>>>')}\n").strip()
+            answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
             if answer.upper() == "MENU":
                 employee_main(self.id_)
@@ -376,7 +376,7 @@ class BookAbsence:
             str: User input - Y or N.
         """
         while True:
-            print(f"{utility.yellow('Please confirm your request.')}")
+            print(colour("YELLOW", "Please confirm your request."))
             print(f"Start date: {self.start_date}")
             print(f"End date: {self.end_date}")
             print(f"Period: {self.period}")
@@ -398,7 +398,7 @@ class BookAbsence:
                  self.start_time, self.end_time,
                  self.hours / 8, today, "/", "False"])
         request_sheet.add_request(data)
-        print(f"{utility.green('Absence request submitted successfully.')}")
+        print(colour("GREEN", "Absence request submitted successfully."))
         time.sleep(3)
         utility.clear()
 
@@ -407,7 +407,7 @@ class BookAbsence:
         print("Updating absence entitlements...\n")
         (entitlements.Entitlements(self.id_)
                      .update_hours(self.hours, "unallocated_to_pending"))
-        print(f"{utility.green('Absence entitlements updated successfully.')}")
+        print(colour("GREEN", "Absence entitlements updated successfully."))
 
 
 class CancelAbsence:
@@ -436,11 +436,11 @@ class CancelAbsence:
                     if self.req_id == absence[0]:
                         self.absences.pop(self.absences.index(absence))
             else:
-                print(utility.green("No Absence cancelled.\n"))
-            print("Returning to the beginning...")
+                print(colour("GREEN", "No Absence cancelled."))
+            print("\nReturning to the beginning...")
             time.sleep(3)
             utility.clear()
-        print(utility.red("No planned/pending absence to cancel."))
+        print(colour("RED", "No planned/pending absence to cancel."))
         menu_or_quit(self.id_)
 
     def display_allocated_absences(self):
@@ -462,10 +462,10 @@ class CancelAbsence:
         while True:
             self.display_allocated_absences()
             id_list = [int(item[0]) for item in self.absences]
-            print(f"\nEnter a {utility.cyan('request ID')}",
+            print(f"\nEnter a {colour('CYAN', 'request ID')}",
                   "from the first column to cancel.")
             print(f"({messages.to_menu()})")
-            answer = input(f"{utility.cyan('>>>')}\n").strip()
+            answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
             if answer.upper() == "MENU":
                 employee_main(self.id_)
@@ -486,7 +486,7 @@ class CancelAbsence:
         else:
             period = f"{absence_details[6]} day(s)"
         while True:
-            print(f"{utility.yellow('Please confirm the cancellation.')}")
+            print(colour("YELLOW", "Please confirm the cancellation."))
             print(f"Start date: {absence_details[2]}")
             print(f"End date: {absence_details[3]}")
             print(f"Period: {period}")
@@ -515,7 +515,7 @@ class CancelAbsence:
             entitle_sheet.update_hours(absence_hours, "planned_to_unallocated")
         else:
             entitle_sheet.update_hours(absence_hours, "pending_to_unallocated")
-        print(f"{utility.green('Absence cancelled successfully.')}\n")
+        print(colour("GREEN", "Absence cancelled successfully."))
 
 
 def menu_or_quit(id_):
@@ -529,7 +529,7 @@ def menu_or_quit(id_):
     """
     while True:
         print(messages.to_menu())
-        answer = input(f"{utility.cyan('>>>')}\n").upper().strip()
+        answer = input(colour("CYAN", ">>>\n")).upper().strip()
         if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
             if answer == "MENU":
                 utility.clear()

@@ -1,5 +1,12 @@
+"""Utility module
+
+This module provides functions for clearing the console, changing
+text colour, and getting and converting a date and time.
+"""
+
 # Built-in Modules
 from datetime import date, datetime, time, timedelta
+from enum import Enum
 from os import name, system
 
 # Third-party Package
@@ -16,24 +23,23 @@ def clear():
     system("cls" if name == "nt" else "clear")
 
 
-def green(text):
-    """Change the text colour to green."""
-    return Fore.GREEN + text + Style.RESET_ALL
+class Colours(Enum):
+    """Represent collection of colorama font colours."""
+    GREEN = Fore.GREEN
+    YELLOW = Fore.YELLOW
+    RED = Fore.RED
+    CYAN = Fore.CYAN
+    RESET = Style.RESET_ALL
 
 
-def yellow(text):
-    """Change the text colour to yellow."""
-    return Fore.YELLOW + text + Style.RESET_ALL
+def print_in_colour(colour, text):
+    """Print the text in a different colour.
 
-
-def red(text):
-    """Change the text colour to red."""
-    return Fore.RED + text + Style.RESET_ALL
-
-
-def cyan(text):
-    """Change the text colour to cyan."""
-    return Fore.CYAN + text + Style.RESET_ALL
+    Args:
+        colour str: The colour the text changes to.
+        text str: Content of text.
+    """
+    return Colours[colour].value + text + Colours.RESET.value
 
 
 class GetDatetime:
@@ -41,8 +47,8 @@ class GetDatetime:
 
     def __init__(self):
         """Set a time zone to Dublin."""
-        self.DUBLIN = pytz.timezone("Europe/Dublin")
-        self.now = datetime.now(self.DUBLIN)
+        self.dublin = pytz.timezone("Europe/Dublin")
+        self.now = datetime.now(self.dublin)
 
     def now_year(self):
         """Return int: the current year."""
