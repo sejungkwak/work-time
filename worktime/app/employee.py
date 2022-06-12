@@ -1,3 +1,8 @@
+"""Employee Portal module
+
+This module provides functions to handle employee portal options.
+"""
+
 # Built-in Modules
 import sys
 import time
@@ -7,7 +12,7 @@ from worktime.worksheets import clockings, entitlements, requests
 from worktime.app import menu, messages, tables, title, utility, validations
 
 
-def employee_main(id):
+def employee_main(id_):
     """Request a number between 1 and 7, the numbered options.
         1. Clock In
         2. Clock Out
@@ -19,54 +24,54 @@ def employee_main(id):
     Run a while loop until the user inputs a valid number.
 
     Args:
-        id str: Employee ID that was used to log in.
+        id_ str: Employee ID that was used to log in.
     """
     while True:
         menu.employee_menu()
         choice = input(f"{utility.cyan('>>>')}\n").strip()
+        utility.clear()
         if validations.validate_choice_number(choice, range(1, 8)):
             break
 
     if choice == "1":
-        clock_in(id)
+        clock_in(id_)
     elif choice == "2":
-        clock_out(id)
+        clock_out(id_)
     elif choice == "3":
-        get_attendance_date(id)
+        get_attendance_date(id_)
     elif choice == "4":
-        display_entitlements(id)
+        display_entitlements(id_)
     elif choice == "5":
-        BookAbsence(id).book_absence()
+        BookAbsence(id_)
     elif choice == "6":
-        CancelAbsence(id).cancel_absence()
+        CancelAbsence(id_)
     else:
         title.title_end()
         sys.exit()
 
 
-def clock_in(id):
+def clock_in(id_):
     """Run when the user chooses the clock in option.
     Send the clock in data to the worksheet.
 
     Args:
-        id str: Employee ID that was used to log in.
+        id_ str: Employee ID that was used to log in.
     """
-    utility.clear()
     today = utility.GetDatetime().tday_str()
     clock_in_at = utility.GetDatetime().now_time_str()
-    clock_sheet = clockings.Clockings(id)
+    clock_sheet = clockings.Clockings(id_)
     clocking = clock_sheet.get_one_clocking()
     if clocking:
         if clocking["end_time"]:
             clocked_out_at = clocking["end_time"]
-            print(f"{utility.red(id + ' already clocked out at')}",
+            print(f"{utility.red(id_ + ' already clocked out at')}",
                   f"{utility.red(clocked_out_at + '.')}")
             print(f"{utility.red('To update the clock in time,')}",
                   f"{utility.red('please contact your manager.')}")
         else:
             clocked_in_at = clocking["start_time"]
-            print(f"{utility.yellow(id + ' already clocked in for today at')}",
-                  f"{utility.yellow(clocked_in_at + '.')}")
+            print(f"{utility.yellow(id_ + ' already clocked in for today')}",
+                  f"at {utility.yellow(clocked_in_at + '.')}")
             print("Overwrite it?")
             answer = check_for_overwrite()
             utility.clear()
@@ -79,11 +84,11 @@ def clock_in(id):
                 print(f"{utility.green('No changes were made.')}")
     else:
         print("Submitting today's clock in time...")
-        data = [id, today, clock_in_at]
+        data = [id_, today, clock_in_at]
         clock_sheet.add_clocking(data)
         print(f"{utility.green('Successfully clocked in at')}",
               f"{utility.green(clock_in_at + '.')}")
-    menu_or_quit(id)
+    menu_or_quit(id_)
 
 
 def check_for_overwrite():
@@ -98,21 +103,20 @@ def check_for_overwrite():
             return answer
 
 
-def clock_out(id):
+def clock_out(id_):
     """Check if there is clocking data for today already and update worksheet.
 
     Args:
-        id str: Employee ID that was used to log in.
+        id_ str: Employee ID that was used to log in.
     """
-    utility.clear()
     today = utility.GetDatetime().tday_str()
     clock_out_at = utility.GetDatetime().now_time_str()
-    clock_sheet = clockings.Clockings(id)
+    clock_sheet = clockings.Clockings(id_)
     clocking = clock_sheet.get_one_clocking()
     if clocking:
         if clocking["end_time"]:
             clocked_out_at = clocking["end_time"]
-            print(utility.red(id + ' already clocked out at ' +
+            print(utility.red(id_ + ' already clocked out at ' +
                   clocked_out_at + '.'))
             print("Please contact your manager",
                   "to update your clock out time.")
@@ -121,25 +125,24 @@ def clock_out(id):
             print(utility.green("Successfully clocked out at"),
                   utility.green(clock_out_at + "."))
     else:
-        data = [id, today, "", clock_out_at]
+        data = [id_, today, "", clock_out_at]
         clock_sheet.add_clocking(data)
         print(f"{utility.red('No clock in data for today.')}")
         print("Please contact your manager",
               "to add your clock in time.")
         print(utility.green("Successfully clocked out at"),
               utility.green(clock_out_at + "."))
-    menu_or_quit(id)
+    menu_or_quit(id_)
 
 
-def get_attendance_date(id):
+def get_attendance_date(id_):
     """Display this week's clock cards and then ask if the user wants
     to review other weeks. Run a while loop until they input a valid answer.
 
     Args:
-        id str: Employee ID that was used to log in.
+        id_ str: Employee ID that was used to log in.
     """
-    utility.clear()
-    if not display_attendance(id):
+    if not display_attendance(id_):
         print("No clocking data found for this week.")
 
     while True:
@@ -149,20 +152,21 @@ def get_attendance_date(id):
         answer = input(f"{utility.cyan('>>>')}\n").strip()
         utility.clear()
         if answer.upper() == "MENU":
-            employee_main(id)
+            employee_main(id_)
             break
-        elif answer.upper() == "QUIT":
+        if answer.upper() == "QUIT":
             title.title_end()
             sys.exit()
         elif validations.validate_date(answer):
             utility.clear()
-            display_attendance(id, answer)
+            display_attendance(id_, answer)
 
 
-def display_attendance(id, date=None):
+def display_attendance(id_, date=None):
     """Check if there is any clock in/out data, and then display the result.
 
     Args:
+        id_ str: An employee ID.
         date str: A DD/MM/YYYY formatted date. Today if none.
     Returns:
         bool: True if there are clock cards.
@@ -173,7 +177,7 @@ def display_attendance(id, date=None):
     date = today if date is None else date
     data = False
     headers = ["ID", "Date", "Clock In", "Clock Out"]
-    clock_sheet = clockings.Clockings(id)
+    clock_sheet = clockings.Clockings(id_)
     table = clock_sheet.get_week_clockings(date)
     if table:
         data = True
@@ -186,29 +190,31 @@ def display_attendance(id, date=None):
     return data
 
 
-def display_entitlements(id):
+def display_entitlements(id_):
     """Display absence entitlements for the logged in employee
 
     Args:
-        id str: Employee ID that was used to log in.
+        id_ str: Employee ID that was used to log in.
     """
-    utility.clear()
     this_year = utility.GetDatetime().now_year()
     print(f"\nAbsence entitlements for {this_year}.")
-    tables.display_entitlements(id)
-    menu_or_quit(id)
+    tables.display_entitlements(id_)
+    menu_or_quit(id_)
 
 
 class BookAbsence:
     """Represent Book Absence menu option.
 
     Args:
-        id str: Employee ID that was used to log in.
+        id_ str: Employee ID that was used to log in.
     """
-    def __init__(self, id):
-        self.id = id
-        self.unallocated = entitlements.Entitlements(id).get_entitlements()[-1]
+
+    def __init__(self, id_):
+        self.id_ = id_
+        self.unallocated = entitlements.Entitlements(
+            id_).get_entitlements()[-1]
         self.avail_hours = int(self.unallocated)
+        self.book_absence()
 
     def book_absence(self):
         """Get absence request data from a user.
@@ -256,13 +262,11 @@ class BookAbsence:
             print("\nReturning to the beginning...")
             time.sleep(3)
             utility.clear()
-        else:
-            self.display_avail_hours()
-            menu_or_quit(self.id)
+        self.display_avail_hours()
+        menu_or_quit(self.id_)
 
     def display_avail_hours(self):
         """Display the employee's available paid time off hours."""
-        utility.clear()
         if self.avail_hours == 0:
             print(utility.red("Insufficient paid time off available"),
                   utility.red("to book absence.\n"))
@@ -284,9 +288,9 @@ class BookAbsence:
             answer = input(f"{utility.cyan('>>>')}\n").strip()
             utility.clear()
             if answer.upper() == "MENU":
-                employee_main(self.id)
+                employee_main(self.id_)
                 break
-            elif answer.upper() == "QUIT":
+            if answer.upper() == "QUIT":
                 title.title_end()
                 sys.exit()
             elif validations.validate_choice_number(answer, range(1, 5)):
@@ -316,9 +320,9 @@ class BookAbsence:
             answer = input(f"{utility.cyan('>>>')}\n").strip()
             utility.clear()
             if answer.upper() == "MENU":
-                employee_main(self.id)
+                employee_main(self.id_)
                 break
-            elif answer.upper() == "QUIT":
+            if answer.upper() == "QUIT":
                 title.title_end()
                 sys.exit()
             elif validations.validate_date(answer):
@@ -355,9 +359,9 @@ class BookAbsence:
             answer = input(f"{utility.cyan('>>>')}\n").strip()
             utility.clear()
             if answer.upper() == "MENU":
-                employee_main(self.id)
+                employee_main(self.id_)
                 break
-            elif answer.upper() == "QUIT":
+            if answer.upper() == "QUIT":
                 title.title_end()
                 sys.exit()
             elif (validations.validate_date(answer) and
@@ -387,13 +391,13 @@ class BookAbsence:
     def add_absence_request(self):
         """Update the absence_requests worksheet."""
         print("Submitting your absence request...\n")
-        self.request_sheet = requests.Requests()
-        self.req_id = self.request_sheet.generate_req_id()
-        self.today = utility.GetDatetime().tday_str()
-        data = ([self.req_id, self.id, self.start_date, self.end_date,
+        request_sheet = requests.Requests()
+        req_id = request_sheet.generate_req_id()
+        today = utility.GetDatetime().tday_str()
+        data = ([req_id, self.id_, self.start_date, self.end_date,
                  self.start_time, self.end_time,
-                 self.hours / 8, self.today, "/", "False"])
-        self.request_sheet.add_request(data)
+                 self.hours / 8, today, "/", "False"])
+        request_sheet.add_request(data)
         print(f"{utility.green('Absence request submitted successfully.')}")
         time.sleep(3)
         utility.clear()
@@ -401,7 +405,7 @@ class BookAbsence:
     def add_pending_hours(self):
         """Update the entitlements worksheet."""
         print("Updating absence entitlements...\n")
-        (entitlements.Entitlements(self.id)
+        (entitlements.Entitlements(self.id_)
                      .update_hours(self.hours, "unallocated_to_pending"))
         print(f"{utility.green('Absence entitlements updated successfully.')}")
 
@@ -410,19 +414,19 @@ class CancelAbsence:
     """Represent cancel Absence menu option.
 
     Args:
-        id str: Employee ID that was used to log in.
+        id_ str: Employee ID that was used to log in.
     """
 
-    def __init__(self, id):
-        self.id = id
-        self.absence_sheet = requests.Requests(id)
+    def __init__(self, id_):
+        self.id_ = id_
+        self.absence_sheet = requests.Requests(id_)
         self.absences = self.absence_sheet.get_cancellable_absence()
+        self.cancel_absence()
 
     def cancel_absence(self):
         """Get absence request data from a user.
         Run a while loop until no cancellable absence left.
         """
-        utility.clear()
         while len(self.absences) > 0:
             self.req_id = self.get_cancel_id()
             self.confirm = self.get_confirm_cancel()
@@ -436,9 +440,8 @@ class CancelAbsence:
             print("Returning to the beginning...")
             time.sleep(3)
             utility.clear()
-        else:
-            print(utility.red("No planned/pending absence to cancel."))
-            menu_or_quit(self.id)
+        print(utility.red("No planned/pending absence to cancel."))
+        menu_or_quit(self.id_)
 
     def display_allocated_absences(self):
         """Display absence requests that can be cancelled by the user."""
@@ -465,9 +468,9 @@ class CancelAbsence:
             answer = input(f"{utility.cyan('>>>')}\n").strip()
             utility.clear()
             if answer.upper() == "MENU":
-                employee_main(id)
+                employee_main(self.id_)
                 break
-            elif answer.upper() == "QUIT":
+            if answer.upper() == "QUIT":
                 title.title_end()
                 sys.exit()
             elif validations.validate_choice_number(answer, id_list):
@@ -487,7 +490,7 @@ class CancelAbsence:
             print(f"Start date: {absence_details[2]}")
             print(f"End date: {absence_details[3]}")
             print(f"Period: {period}")
-            print("\nCanel this absence?")
+            print("\nCancel this absence?")
             answer = input(f"{messages.y_or_n()}\n").upper().strip()
             utility.clear()
             if validations.validate_choice_letter(answer, ["Y", "N"]):
@@ -507,7 +510,7 @@ class CancelAbsence:
         absence_days = self.absences[list_index][6]
         absence_hours = int(float(absence_days) * 8)
         is_approved = self.absences[list_index][8]
-        entitle_sheet = entitlements.Entitlements(self.id)
+        entitle_sheet = entitlements.Entitlements(self.id_)
         if is_approved == "True":
             entitle_sheet.update_hours(absence_hours, "planned_to_unallocated")
         else:
@@ -515,12 +518,12 @@ class CancelAbsence:
         print(f"{utility.green('Absence cancelled successfully.')}\n")
 
 
-def menu_or_quit(id):
+def menu_or_quit(id_):
     """Ask the user if they want to go back to the menu or quit.
     Run a while loop until the user inputs a valid option.
 
     Args:
-        id str: Employee ID that was used to log in.
+        id_ str: Employee ID that was used to log in.
     Returns:
         str: The user input - menu or quit.
     """
@@ -530,8 +533,7 @@ def menu_or_quit(id):
         if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
             if answer == "MENU":
                 utility.clear()
-                employee_main(id)
+                employee_main(id_)
                 break
-            else:
-                title.title_end()
-                sys.exit()
+            title.title_end()
+            sys.exit()
