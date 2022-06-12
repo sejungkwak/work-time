@@ -167,7 +167,7 @@ def validate_days(date1, date2, unallocated):
             )
         elif num_of_days < 2:
             raise ValueError(
-                print(colour("RED", "Absence end date must be" +
+                print(colour("RED", "Absence end date must be " +
                       "after absence start date."))
             )
     except ValueError:
@@ -192,7 +192,7 @@ def validate_unpaid_days(date1, date2):
         num_of_days = utility.get_num_of_weekdays(date1, date2)
         if num_of_days < 2:
             raise ValueError(
-                print(colour("RED", "Absence end date must be" +
+                print(colour("RED", "Absence end date must be " +
                       "after absence start date."))
             )
     except ValueError:
