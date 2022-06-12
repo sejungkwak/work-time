@@ -1,4 +1,4 @@
-"""Work Time main module
+"""Work Time Initial Module
 
 This module handles the login process.
 """
@@ -10,7 +10,7 @@ import sys
 import stdiomask
 
 # Custom Packages
-from worktime.app import admin, employee, tables, title, utility, validations
+from worktime.app import admin, employee, title, utility, validations
 from worktime.app.utility import print_in_colour as colour
 from worktime.worksheets import credentials
 
@@ -23,8 +23,7 @@ def get_employee_id():
     help_typed = False
 
     while True:
-        print(
-            f"Please enter {colour('CYAN', 'Employee ID.')}")
+        print("Please enter " + colour("CYAN", "Employee ID."))
         if not help_typed:
             print("For more information about Work Time,",
                   f"type {colour('CYAN', 'help')} and press enter.")
@@ -81,7 +80,7 @@ Attendance, Add absence, Update Clock Card.
 If you would like to report a bug, suggest an idea or require additional help,
 please email me at kwak.sejung@gmail.com
 """
-    tables.display_table([[text]])
+    utility.display_table([[text]])
 
 
 def main():

@@ -8,7 +8,7 @@ import sys
 import time
 
 # Custom Packages
-from worktime.app import menu, messages, tables, title, utility, validations
+from worktime.app import menu, messages, title, utility, validations
 from worktime.app.utility import print_in_colour as colour
 from worktime.worksheets import clockings, entitlements, requests
 
@@ -65,13 +65,13 @@ def clock_in(id_):
     if clocking:
         if clocking["end_time"]:
             clocked_out_at = clocking["end_time"]
-            print(colour("RED", id_ + " already clocked out at" +
+            print(colour("RED", id_ + " already clocked out at " +
                   clocked_out_at + "."))
-            print(colour("RED", "To update the clock in time," +
+            print(colour("RED", "To update the clock in time, " +
                   "please contact your manager."))
         else:
             clocked_in_at = clocking["start_time"]
-            print(colour("YELLOW", id_ + " already clocked in for today at" +
+            print(colour("YELLOW", id_ + " already clocked in for today at " +
                   clocked_in_at + "."))
             print("Overwrite it?")
             answer = check_for_overwrite()
@@ -79,15 +79,15 @@ def clock_in(id_):
             if answer == "Y":
                 print("Updating today's clock in time...")
                 clock_sheet.update_clock_in(today, clock_in_at)
-                print(colour("GREEN", "Clock in time has been" +
-                      "updated to" + clock_in_at + "."))
+                print(colour("GREEN", "Clock in time has been " +
+                      "updated to " + clock_in_at + "."))
             else:
                 print(colour("GREEN", "No changes were made."))
     else:
         print("Submitting today's clock in time...")
         data = [id_, today, clock_in_at]
         clock_sheet.add_clocking(data)
-        print(colour("GREEN", "Successfully clocked in at" +
+        print(colour("GREEN", "Successfully clocked in at " +
               clock_in_at + "."))
     menu_or_quit(id_)
 
@@ -123,7 +123,7 @@ def clock_out(id_):
                   "to update your clock out time.")
         else:
             clock_sheet.update_clock_out(today, clock_out_at)
-            print(colour("GREEN", "Successfully clocked out at" +
+            print(colour("GREEN", "Successfully clocked out at " +
                   clock_out_at + "."))
     else:
         data = [id_, today, "", clock_out_at]
@@ -184,7 +184,7 @@ def display_attendance(id_, date=None):
         data = True
         utility.clear()
         print("Clock cards display from Monday to Sunday.")
-        tables.display_table(table, headers)
+        utility.display_table(table, headers)
     else:
         utility.clear()
         print("No clocking data found.")
@@ -192,14 +192,17 @@ def display_attendance(id_, date=None):
 
 
 def display_entitlements(id_):
-    """Display absence entitlements for the logged in employee
+    """Display absence entitlements for the logged in employee.
 
     Args:
         id_ str: Employee ID that was used to log in.
     """
     this_year = utility.GetDatetime().now_year()
+    data = entitlements.Entitlements(id_).get_entitlements()
+    table = [[item for item in data]]
+    headers = ["Total Hours", "Taken", "Planned", "Pending", "Unallocated"]
     print(f"\nAbsence entitlements for {this_year}.")
-    tables.display_entitlements(id_)
+    utility.display_table(table, headers)
     menu_or_quit(id_)
 
 
@@ -269,7 +272,7 @@ class BookAbsence:
     def display_avail_hours(self):
         """Display the employee's available paid time off hours."""
         if self.avail_hours == 0:
-            print(colour("RED", "Insufficient paid time off available" +
+            print(colour("RED", "Insufficient paid time off available " +
                   "to book absence.\n"))
         else:
             print(f"{self.avail_hours} hours available to book absence.\n")
@@ -297,7 +300,7 @@ class BookAbsence:
             elif validations.validate_choice_number(answer, range(1, 5)):
                 if ((answer == "4" and self.avail_hours < 16) or
                         (answer == "3" and self.avail_hours < 8)):
-                    print(colour("RED", "Insufficient paid time off" +
+                    print(colour("RED", "Insufficient paid time off " +
                           "available to complete the request."))
                     print("Select a different option or contact your manager.")
                 else:
@@ -332,14 +335,14 @@ class BookAbsence:
                 request_year = request_date.year
                 this_year = utility.GetDatetime().now_year()
                 if (request_date - today).days <= 0:
-                    print(colour("RED", "\nPlease note holidays must be" +
+                    print(colour("RED", "\nPlease note holidays must be " +
                           "booked in advance."))
-                    print(colour("RED", "If you would like to submit absence" +
-                          "in the past, please contact your manager."))
+                    print(colour("RED", "If you would like to submit " +
+                          "absence in the past, please contact your manager."))
                 elif request_year != this_year:
                     print(messages.invalid_year())
                 elif request_date.weekday() > 4:
-                    print(colour("RED", "No absence requests required for" +
+                    print(colour("RED", "No absence requests required for " +
                           "weekends."))
                 else:
                     return answer
@@ -453,7 +456,7 @@ class CancelAbsence:
             table.append(item)
         headers = (["ID", "Start Date", "End Date",
                     "Start Time", "End Time", "Duration"])
-        tables.display_table(table, headers)
+        utility.display_table(table, headers)
 
     def get_cancel_id(self):
         """Ask the user to input absence request ID to cancel."""

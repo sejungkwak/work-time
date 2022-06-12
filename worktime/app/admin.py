@@ -4,12 +4,12 @@ This module provides functions to handle admin portal options.
 """
 
 # Built-in Modules
+from itertools import groupby
 import sys
 import time
-from itertools import groupby
 
 # Custom Packages
-from worktime.app import menu, messages, tables, title, utility, validations
+from worktime.app import menu, messages, title, utility, validations
 from worktime.app.utility import print_in_colour as colour
 from worktime.worksheets import (clockings, credentials, employees,
                                  entitlements, requests)
@@ -79,7 +79,7 @@ def handle_request(new_request):
         print("Loading data...")
         request_list = sort_new_request(new_request)
         utility.clear()
-        tables.display_new_requests(request_list)
+        display_new_requests(request_list)
         req_id = get_request_id(new_request)
         decision = get_decision()
         confirmed = get_confirm_decision(req_id, new_request, decision)
@@ -92,6 +92,30 @@ def handle_request(new_request):
         if num_requests != 0:
             print("Returning to the list...")
     menu_or_quit()
+
+
+def display_new_requests(data):
+    """Display new absence requests grouped by employee ID.
+
+    Args:
+        data list: A list of lists of lists containing new requests.
+    """
+    fullname = ""
+    headers = (["ID", "Start Date", "End Date",
+                "Start Time", "End Time", "Duration"])
+    for new_request in data:
+        table = []
+        for item in new_request:
+            item = item[:7]
+            employee_id = item.pop(1)
+            fullname = employees.Employees(employee_id).get_fullname()
+            item[-1] = f"{item[-1]} Day(s)"
+            table.append(item)
+        if len(table) > 1:
+            print(f"\nNew requests from {fullname}")
+        else:
+            print(f"\nNew request from {fullname}")
+        utility.display_table(table, headers)
 
 
 def get_confirm_decision(req_id, requests_, decision):
@@ -195,7 +219,7 @@ def get_request_id(new_request):
     """Run a while loop until the user inputs a valid value.
 
     Args:
-        new_request list: A list of list containing new absence requests.
+        new_request list: A list of lists containing new absence requests.
     Returns:
         str: User input value - Request ID.
     """
@@ -205,6 +229,7 @@ def get_request_id(new_request):
               "from the first column to approve or reject.")
         print(f"({messages.to_menu()})")
         answer = input(colour("CYAN", ">>>\n")).strip()
+        utility.clear()
         if answer.upper() == "MENU":
             admin_main()
             break
@@ -311,7 +336,7 @@ class ReviewAttendace:
         if table:
             utility.clear()
             print(f"Clock cards for {date_}")
-            tables.display_table(table, headers)
+            utility.display_table(table, headers)
 
 
 def get_absence_data():
@@ -518,7 +543,7 @@ def get_absence_duration(type_, hours):
             if type_ == "1":
                 if ((answer == "4" and hours < 16) or
                         (answer == "3" and hours < 8)):
-                    print(colour("RED", "Insufficient paid time off" +
+                    print(colour("RED", "Insufficient paid time off " +
                           "available."))
                 else:
                     return answer
@@ -558,7 +583,7 @@ def get_absence_start_date(type_, duration):
             if answer[-4:] != this_year and type_ == "1":
                 print(messages.invalid_year())
             elif request_date.weekday() > 4:
-                print(colour("RED", "No absence updates required for" +
+                print(colour("RED", "No absence updates required for " +
                       "weekends."))
             else:
                 return answer
@@ -664,10 +689,10 @@ def get_date():
             today = utility.GetDatetime().tday()
             today_str = utility.GetDatetime().tday_str()
             if utility.convert_date(answer) > today:
-                print(colour("RED", "Unable to set clocking time" +
+                print(colour("RED", "Unable to set clocking time " +
                       "in the future."))
             elif answer[3:5] != today_str[3:5]:
-                print(colour("RED", "Unable to update clocking time" +
+                print(colour("RED", "Unable to update clocking time " +
                       "after payroll has been processed."))
             else:
                 return answer
@@ -691,7 +716,7 @@ def clock_in_or_out(id_, date_, fullname, data):
         table = ([[fullname, data["date"], data["start_time"],
                  data["end_time"]]])
         headers = ["Name", "Date", "Clock In", "Clock Out"]
-        tables.display_table(table, headers)
+        utility.display_table(table, headers)
     else:
         print(colour("YELLOW", "No clock in / out data found for"),
               colour("YELLOW", id_ + f"({fullname}) on {date_}.\n"))
@@ -742,14 +767,14 @@ def get_time(data, type_):
             if type_ == "IN" and data is not None and to_time != "":
                 if (utility.convert_time(answer) >=
                         utility.convert_time(to_time)):
-                    print(colour("RED", "Clock in time must be" +
+                    print(colour("RED", "Clock in time must be " +
                           "before clock out time."))
                 else:
                     return answer
             elif type_ == "OUT" and data is not None and from_time != "":
                 if (utility.convert_time(answer) <=
                         utility.convert_time(from_time)):
-                    print(colour("RED", "Clock out time must be" +
+                    print(colour("RED", "Clock out time must be " +
                           "after clock in time."))
                 else:
                     return answer

@@ -4,7 +4,7 @@ This module provides functions that display numbered menu options in a box.
 """
 
 # Custom Package
-from worktime.app import tables
+from worktime.app import utility
 from worktime.app.utility import print_in_colour as colour
 
 
@@ -59,4 +59,4 @@ def format_menu(numbers, options):
     for number, option in zip(numbers, options):
         items += f"{colour('CYAN', str(number))}  {option}\n"
     table = [[items]]
-    tables.display_table(table)
+    utility.display_table(table)

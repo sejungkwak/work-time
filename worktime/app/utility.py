@@ -1,7 +1,7 @@
 """Utility module
 
 This module provides functions for clearing the console, changing
-text colour, and getting and converting a date and time.
+text colour, getting and converting a date and time and displaying a table.
 """
 
 # Built-in Modules
@@ -10,8 +10,9 @@ from enum import Enum
 from os import name, system
 
 # Third-party Package
-import pytz
 from colorama import init, Fore, Style
+import pytz
+from tabulate import tabulate
 
 # colorama method to enable it on Windows
 init()
@@ -136,3 +137,17 @@ def get_num_of_weekdays(date1, date2):
     days = (date1 + timedelta(n) for n in range((date2 - date1).days + 1))
     total_weekdays = sum(1 for day in days if day.weekday() < 5)
     return total_weekdays
+
+
+def display_table(table, headers=None):
+    """Display a table with a solid border.
+
+    Args:
+        table list: A list of lists - The Content of the table.
+                    If headers is None, all cotents display in a box.
+        headers list: Names of the columns.
+    """
+    if headers is None:
+        print(tabulate(table, tablefmt="fancy_grid"))
+    else:
+        print(tabulate(table, headers, tablefmt="fancy_grid"))
