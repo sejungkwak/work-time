@@ -1,3 +1,8 @@
+"""Work Time main module
+
+This module handles the login process.
+"""
+
 # Built-in Modules
 import sys
 
@@ -14,11 +19,11 @@ def get_employee_id():
     Run a while loop until the user types "help" or a valid ID.
     """
     ids = credentials.Credentials().ids()
-    infor_printed = False
+    help_typed = False
 
     while True:
         print(f"Please enter {utility.cyan('Employee ID.')}")
-        if not infor_printed:
+        if not help_typed:
             print("For more information about Work Time,",
                   f"type {utility.cyan('help')} and press enter.")
         entered_id = input(f"{utility.cyan('>>>')}\n").upper().strip()
@@ -26,34 +31,33 @@ def get_employee_id():
 
         if entered_id == "HELP":
             help_()
-            infor_printed = True
+            help_typed = True
         elif validations.validate_id(entered_id, ids):
             get_pw(entered_id)
             break
 
 
-def get_pw(id):
+def get_pw(id_):
     """Request password and validate the user input.
     Run a while loop until the user types "help" or a correct password.
 
     Args:
-        id str: Employee ID that was entered to log in.
+        id_ str: Employee ID that was entered to log in.
     """
-    pw = credentials.Credentials().pw(id)
+    pw_ = credentials.Credentials().pw(id_)
     while True:
         print(f"Please enter {utility.cyan('Password')}.")
         password = stdiomask.getpass(prompt=f"{utility.cyan('>>>')}\n")
         utility.clear()
 
-        if validations.validate_pw(password, pw):
-            if id == "ADMIN":
-                title.title_admin()
+        if validations.validate_pw(password, pw_):
+            if id_ == "ADMIN":
+                title.display_admin_title()
                 admin.admin_main()
                 break
-            else:
-                title.title_employee(id)
-                employee.employee_main(id)
-                break
+            title.display_employee_title(id_)
+            employee.employee_main(id_)
+            break
 
 
 def help_():
@@ -78,10 +82,18 @@ please email me at kwak.sejung@gmail.com
     tables.display_table([[text]])
 
 
-if __name__ == "__main__":
+def main():
+    """In the try block, call functions to display the title and a login prompt.
+    In the except block, catch KeyboardInterrupt which is caused by a user
+    pressing Ctrl + C, and exit the application.
+    """
     try:
-        title.title_main()
+        title.display_main_title()
         get_employee_id()
     except KeyboardInterrupt:
-        title.title_end()
+        title.display_goodbye()
         sys.exit()
+
+
+if __name__ == "__main__":
+    main()

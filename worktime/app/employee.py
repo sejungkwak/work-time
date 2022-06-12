@@ -46,7 +46,7 @@ def employee_main(id_):
     elif choice == "6":
         CancelAbsence(id_)
     else:
-        title.title_end()
+        title.display_goodbye()
         sys.exit()
 
 
@@ -155,7 +155,7 @@ def get_attendance_date(id_):
             employee_main(id_)
             break
         if answer.upper() == "QUIT":
-            title.title_end()
+            title.display_goodbye()
             sys.exit()
         elif validations.validate_date(answer):
             utility.clear()
@@ -291,7 +291,7 @@ class BookAbsence:
                 employee_main(self.id_)
                 break
             if answer.upper() == "QUIT":
-                title.title_end()
+                title.display_goodbye()
                 sys.exit()
             elif validations.validate_choice_number(answer, range(1, 5)):
                 if ((answer == "4" and self.avail_hours < 16) or
@@ -323,7 +323,7 @@ class BookAbsence:
                 employee_main(self.id_)
                 break
             if answer.upper() == "QUIT":
-                title.title_end()
+                title.display_goodbye()
                 sys.exit()
             elif validations.validate_date(answer):
                 request_date = utility.convert_date(answer)
@@ -362,7 +362,7 @@ class BookAbsence:
                 employee_main(self.id_)
                 break
             if answer.upper() == "QUIT":
-                title.title_end()
+                title.display_goodbye()
                 sys.exit()
             elif (validations.validate_date(answer) and
                     (validations.validate_days(self.start_date, answer,
@@ -471,7 +471,7 @@ class CancelAbsence:
                 employee_main(self.id_)
                 break
             if answer.upper() == "QUIT":
-                title.title_end()
+                title.display_goodbye()
                 sys.exit()
             elif validations.validate_choice_number(answer, id_list):
                 return answer
@@ -535,5 +535,5 @@ def menu_or_quit(id_):
                 utility.clear()
                 employee_main(id_)
                 break
-            title.title_end()
+            title.display_goodbye()
             sys.exit()

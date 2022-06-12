@@ -42,7 +42,7 @@ def admin_main():
     elif answer == "4":
         update_clocking()
     else:
-        title.title_end()
+        title.display_goodbye()
         sys.exit()
 
 
@@ -208,7 +208,7 @@ def get_request_id(new_request):
             admin_main()
             break
         if answer.upper() == "QUIT":
-            title.title_end()
+            title.display_goodbye()
             sys.exit()
         elif validations.validate_choice_number(answer, id_list):
             return answer
@@ -230,7 +230,7 @@ def get_decision():
             admin_main()
             break
         if answer == "QUIT":
-            title.title_end()
+            title.display_goodbye()
             sys.exit()
         elif validations.validate_choice_letter(answer, ["APPROVE", "REJECT"]):
             return answer
@@ -277,7 +277,7 @@ class ReviewAttendace:
                 admin_main()
                 break
             elif answer.upper() == "QUIT":
-                title.title_end()
+                title.display_goodbye()
                 sys.exit()
             elif validations.validate_date(answer):
                 if len(answer) != 10:
@@ -457,7 +457,7 @@ def get_employee_id(text):
             admin_main()
             break
         if answer == "QUIT":
-            title.title_end()
+            title.display_goodbye()
             sys.exit()
         elif answer == "ADMIN":
             print(f"{utility.red('Unable to amend ADMIN data.')}\n")
@@ -484,7 +484,7 @@ def get_absence_type(hours):
             admin_main()
             break
         if answer.upper() == "QUIT":
-            title.title_end()
+            title.display_goodbye()
             sys.exit()
         elif validations.validate_choice_number(answer, range(1, 3)):
             if answer == "1" and hours <= 0:
@@ -511,7 +511,7 @@ def get_absence_duration(type_, hours):
             admin_main()
             break
         if answer.upper() == "QUIT":
-            title.title_end()
+            title.display_goodbye()
             sys.exit()
         elif validations.validate_choice_number(answer, range(1, 5)):
             if type_ == "1":
@@ -548,7 +548,7 @@ def get_absence_start_date(type_, duration):
             admin_main()
             break
         if answer.upper() == "QUIT":
-            title.title_end()
+            title.display_goodbye()
             sys.exit()
         elif validations.validate_date(answer):
             request_date = utility.convert_date(answer)
@@ -583,7 +583,7 @@ def get_absence_end_date(type_, date, hours):
             admin_main()
             break
         if answer.upper() == "QUIT":
-            title.title_end()
+            title.display_goodbye()
             sys.exit()
         elif validations.validate_date(answer):
             if ((type_ == "1" and
@@ -655,7 +655,7 @@ def get_date():
             admin_main()
             break
         if answer.upper() == "QUIT":
-            title.title_end()
+            title.display_goodbye()
             sys.exit()
         elif validations.validate_date(answer):
             today = utility.GetDatetime().tday()
@@ -701,7 +701,7 @@ def clock_in_or_out(id_, date_, fullname, data):
             admin_main()
             break
         if answer.upper() == "QUIT":
-            title.title_end()
+            title.display_goodbye()
             sys.exit()
         elif validations.validate_choice_number(answer, range(1, 3)):
             in_out = "IN" if answer == "1" else "OUT"
@@ -733,7 +733,7 @@ def get_time(data, type_):
             admin_main()
             break
         if answer.upper() == "QUIT":
-            title.title_end()
+            title.display_goodbye()
             sys.exit()
         elif validations.validate_time(answer):
             if type_ == "IN" and data is not None and to_time != "":
@@ -796,5 +796,5 @@ def menu_or_quit():
             if answer == "MENU":
                 admin_main()
                 break
-            title.title_end()
+            title.display_goodbye()
             sys.exit()

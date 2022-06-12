@@ -1,3 +1,8 @@
+"""Title module
+
+This module displays title arts for the application main, employee portal,
+admin portal and exit screen.
+"""
 # Built-in Modules
 import time
 
@@ -5,7 +10,7 @@ import time
 from worktime.app import utility
 from worktime.worksheets.employees import Employees
 
-portal = """
+PORTAL = """
                 ██████   ██████  ██████  ████████  █████  ██
                 ██   ██ ██    ██ ██   ██    ██    ██   ██ ██
                 ██████  ██    ██ ██████     ██    ███████ ██
@@ -14,7 +19,7 @@ portal = """
 """
 
 
-def title_main():
+def display_main_title():
     """Display the application name at the start of the system."""
     utility.clear()
     print("""
@@ -26,17 +31,17 @@ def title_main():
  ▀▀▀▀▄▄▄▀▄▄▄▀▀▀▄▄▄▄▄▄▀▀▄▄▀▀▀▄▄▀▄▄▀▀▀▄▄▀▀▀▀▀▀▀▀▄▄▀▀▀▀▄▄▀▄▄▀▀▀▀▀▀▄▄▀▄▄▄▄▄▄▄▀▀▀▀▀▀
     """)
     print("\n" + "Time Management System".center(80))
-    print("\n" + "="*80 + "\n")
+    print("\n" + "=" * 80 + "\n")
 
 
-def title_employee(id):
+def display_employee_title(id_):
     """Display the title and welcome message for the employee portal.
 
     Args:
-        :id str: Employee ID that was used to log in.
+        id_ str: Employee ID that was used to log in.
     """
     utility.clear()
-    fname = Employees(id).get_fname()
+    fname = Employees(id_).get_fname()
     print("""
       ███████ ███    ███ ██████  ██       ██████  ██    ██ ███████ ███████
       ██      ████  ████ ██   ██ ██      ██    ██  ██  ██  ██      ██
@@ -44,14 +49,14 @@ def title_employee(id):
       ██      ██  ██  ██ ██      ██      ██    ██    ██    ██      ██
       ███████ ██      ██ ██      ███████  ██████     ██    ███████ ███████
     """)
-    print(portal)
+    print(PORTAL)
     print(f"Welcome back, {fname}!".center(80))
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     time.sleep(3)
     utility.clear()
 
 
-def title_admin():
+def display_admin_title():
     """Display the title and welcome message for the admin portal."""
     utility.clear()
     print("""
@@ -61,17 +66,17 @@ def title_admin():
                     ██   ██ ██   ██ ██  ██  ██ ██ ██  ██ ██
                     ██   ██ ██████  ██      ██ ██ ██   ████
     """)
-    print(portal)
+    print(PORTAL)
     print("Welcome back!".center(80))
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     time.sleep(3)
     utility.clear()
 
 
-def title_end():
+def display_goodbye():
     """Display an end of the system title."""
     utility.clear()
-    print("\n"*8)
+    print("\n" * 8)
     print("""
         ██████   ██████   ██████  ██████      ██████  ██    ██ ███████ ██
        ██       ██    ██ ██    ██ ██   ██     ██   ██  ██  ██  ██      ██
