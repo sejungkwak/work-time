@@ -30,6 +30,11 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 - [Making a Local Clone](#making-a-local-clone)
 - [Forking this Repository](#forking-this-repository)
 
+[Credits](#credits)
+- [Code](#code)
+- [Inspiration](#inspiration)
+- [Acknowledgements](#acknowledgements)
+
 <br>
 
 # User Experience (UX)
@@ -115,11 +120,11 @@ The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUM
 ## Languages
 
 - [Python](https://www.python.org/) was used as the main scripting language.
-- [HTML5](https://en.wikipedia.org/wiki/HTML5) was used to embed the calendar iframe.
-- [CSS3](https://en.wikipedia.org/wiki/CSS) was used to style the layout of elements to the centre and adjust the terminal height.
-- [JavaScript](https://en.wikipedia.org/wiki/JavaScript) was used to auto-refresh the calendar.
+- [HTML5](https://en.wikipedia.org/wiki/HTML5) was used to embed the calendar iframe.*
+- [CSS3](https://en.wikipedia.org/wiki/CSS) was used to style the layout of elements to the centre and adjust the terminal height.*
+- [JavaScript](https://en.wikipedia.org/wiki/JavaScript) was used to auto-refresh the calendar.*
 
-This project used the _Code Institute_ Python template to display a simulated terminal. For _HTML5_, _CSS3_ and _JavaScript_, other than the code mentioned above, all code is part of the template.
+    *This project used the _Code Institute_ Python template to display a simulated terminal. Other than the code mentioned, all code is part of the template.
 
 ## Libraries
 
@@ -356,3 +361,52 @@ These steps demonstrate how to make a copy of this repository on your _GitHub_ a
 [Back To **Table of Contents**](#table-of-contents)
 
 <br>
+
+# Credits
+
+## Code
+
+- I highly relied upon the [Python documentation](https://docs.python.org/3/) for Python built-in modules’ usages and the [gspread documentation](https://docs.gspread.org/en/v5.4.0/) for _Google Sheets_ API’s usages.
+- I referenced the [W3schools](https://www.w3schools.com/) and [Stack Overflow](https://stackoverflow.com/) to find appropriate modules or solutions for specific issues.
+
+- Clearing the terminal
+    - Source: GeeksforGeeks’s article [How to clear screen in python?](https://www.geeksforgeeks.org/clear-screen-python/)
+    - Method: Defining a function to clearing the terminal using the `os` module.
+    - Usage: I used this method to clear the terminal after user input.
+
+- Sorting a list of lists by an index
+    - Source: mouad's answer on [Stack Overflow](https://stackoverflow.com/questions/4174941)
+    - Method: Sorting a list of lists by a specific index using `sort` and `lambda`.
+    - Usage: I used this method to sort a list of lists containing new absence requests for the admin portal before grouping them into another list.
+
+- Grouping lists by a value
+    - Source: Robert Rossney's answer on [Stack Overflow](https://stackoverflow.com/questions/5695208)
+    - Method: Grouping lists by a specific value using `itertools.groupby`.
+    - Usage: I used this method to group new requests by an employee to fix an issue on a table width.
+
+- Docstrings
+    - Source: [_Google_ Python Style Guide](https://google.github.io/styleguide/pyguide.html)
+    - Usage: I used the _Google_’s docstring style. I found its format is the most readable style because of the indentation after I read daouzli’s answer on [Stack Overflow](https://stackoverflow.com/questions/3898572).
+
+- Auto-refresh iframe / JavaScript
+    - Source: Vikas Sardana's answer on [Stack Overflow](https://stackoverflow.com/questions/43661695/)
+    - Method: Refresh the iframe automatically every certain time using `setInterval` and set the `src` attribute again inside the `setInterval`’s callback function.
+    - Usage: I used this method to refresh the calendar every 20 seconds as otherwise the page needs to be reloaded to see the updated calendar.
+
+- Displaying a favicon / HTML
+    - Source: `layout.html` on MattBCoding’s repository [calico-jack](https://github.com/MattBCoding/calico-jack/blob/main/views/layout.html)
+    - Method: Using a web-hosted file enables the display of the favicon.
+    - Usage: I used this method to fix an issue where the static favicon file did not display.
+
+## Inspiration
+
+- Employee time management system
+
+    I developed the idea of building this project from a software company [Mitrefinch](https://www.mitrefinch.co.uk/)’s time management system that I use at work.
+
+## Acknowledgements
+
+- My fiancé Ciarán Maher for his feedback and proofreading.
+- My mentor Narender Singh for his guidance and advice.
+
+[Back To **Table of Contents**](#table-of-contents)
