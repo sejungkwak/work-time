@@ -49,7 +49,7 @@ def display_employee_title(id_):
     """)
     print(PORTAL)
     print(f"Welcome back, {fname}!".center(80))
-    print("\n" + "=" * 80)
+    print("\n")
 
 
 def display_admin_title():
@@ -64,13 +64,13 @@ def display_admin_title():
     """)
     print(PORTAL)
     print("Welcome back!".center(80))
-    print("\n" + "=" * 80)
+    print("\n")
 
 
 def display_goodbye():
     """Display an end of the system title."""
     utility.clear()
-    print("\n" * 8)
+    print("\n" * 12)
     print("""
         ██████   ██████   ██████  ██████  ██████  ██    ██ ███████ ██
        ██       ██    ██ ██    ██ ██   ██ ██   ██  ██  ██  ██      ██
