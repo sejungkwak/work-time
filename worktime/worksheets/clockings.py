@@ -1,10 +1,20 @@
+"""Clockings Worksheet Module
+
+This module provides functions to add and update
+clock in/out time in the worksheet.
+"""
+
 # Custom Package
 from worktime.worksheets import auth
 from worktime.app import utility
 
 
 class Clockings:
-    """Represent the clockings worksheet.
+    """Represent the clockings worksheet:
+        Column A: employee_id
+        Column B: date
+        Column C: clocked_in_at
+        Column D: clocked_out_at
 
     Args:
         ee_id str: An employee ID
@@ -61,22 +71,3 @@ class Clockings:
             if ee_id == self.ee_id and date == target_date:
                 return ({"row": row, "id": ee_id, "date": date,
                         "start_time": clock_in, "end_time": clock_out})
-
-    def get_week_clockings(self, target_date=None):
-        """Iterate through the sheet to find week's values that match the date.
-
-        Args:
-            target_date str: A DD/MM/YYYY format date. Today if none.
-        Returns:
-            list: A list of lists containing a week's clocking data.
-        """
-        target_date = self.today if target_date is None else target_date
-        target_date = utility.convert_date(target_date)
-        dates = utility.get_week(target_date, "week")
-        result = []
-        for date in dates:
-            if self.get_one_clocking(date) is not None:
-                lists = self.get_one_clocking(date)
-                lists.pop("row")
-                result.append([values for keys, values in lists.items()])
-        return result

@@ -39,7 +39,7 @@ def employee_main(id_):
     elif choice == "2":
         clock_out(id_)
     elif choice == "3":
-        get_attendance_date(id_)
+        ViewClockCard(id_)
     elif choice == "4":
         display_entitlements(id_)
     elif choice == "5":
@@ -136,59 +136,75 @@ def clock_out(id_):
     menu_or_quit(id_)
 
 
-def get_attendance_date(id_):
-    """Display this week's clock cards and then ask if the user wants
-    to review other weeks. Run a while loop until they input a valid answer.
+class ViewClockCard:
+    """Represent View Clock Card menu option.
 
     Args:
         id_ str: Employee ID that was used to log in.
     """
-    if not display_attendance(id_):
-        print("No clocking data found for this week.")
 
-    while True:
-        print(f"Enter a {colour('CYAN', 'date')} to review another week.")
-        print(messages.date_format())
-        print(f"({messages.to_menu()})")
-        answer = input(colour("CYAN", ">>>\n")).strip()
-        utility.clear()
-        if answer.upper() == "MENU":
-            employee_main(id_)
-            break
-        if answer.upper() == "QUIT":
-            title.display_goodbye()
-            sys.exit()
-        elif validations.validate_date(answer):
+    def __init__(self, id_):
+        self.id_ = id_
+        self.attendance_data = clockings.Clockings().clockings
+        self.today = utility.GetDatetime().tday_str()
+        self.display_attendance()
+        self.get_attendance_date()
+
+    def get_attendance_date(self):
+        """Ask the user input a date to review other weeks clock cards.
+        Run a while loop until they input a valid answer.
+        """
+        while True:
+            print(f"Enter a {colour('CYAN', 'date')} to review another week.")
+            print(messages.date_format())
+            print(f"({messages.to_menu()})")
+            answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
-            display_attendance(id_, answer)
+            if answer.upper() == "MENU":
+                employee_main(self.id_)
+                break
+            if answer.upper() == "QUIT":
+                title.display_goodbye()
+                sys.exit()
+            elif validations.validate_date(answer):
+                utility.clear()
+                self.display_attendance(answer)
 
+    def display_attendance(self, date_=None):
+        """Check if there is any clock in/out data, and then display the result.
 
-def display_attendance(id_, date=None):
-    """Check if there is any clock in/out data, and then display the result.
-
-    Args:
-        id_ str: An employee ID.
-        date str: A DD/MM/YYYY formatted date. Today if none.
-    Returns:
-        bool: True if there are clock cards.
-    """
-    utility.clear()
-    print("Getting clocking data...")
-    today = utility.GetDatetime().tday_str()
-    date = today if date is None else date
-    data = False
-    headers = ["ID", "Date", "Clock In", "Clock Out"]
-    clock_sheet = clockings.Clockings(id_)
-    table = clock_sheet.get_week_clockings(date)
-    if table:
-        data = True
+        Args:
+            date_ str: A DD/MM/YYYY formatted date. Today if none.
+        """
         utility.clear()
-        print("Clock cards display from Monday to Sunday.")
-        utility.display_table(table, headers)
-    else:
+        print("Getting clocking data...")
+        text = "this week" if date_ is None else f"the week of {date_}"
+        date_ = self.today if date_ is None else date_
+        headers = ["ID", "Date", "Clock In", "Clock Out"]
+        table = self.get_week_clockings(date_)
         utility.clear()
-        print("No clocking data found.")
-    return data
+        if table:
+            print(f"Clock cards for {text}.")
+            utility.display_table(table, headers)
+        else:
+            print(f"No clocking data found for {text}.")
+
+    def get_week_clockings(self, date_=None):
+        """Iterate through the sheet to find week's values that match the date.
+
+        Args:
+            date_ str: A DD/MM/YYYY formatted date. Today if none.
+        """
+        date_ = self.today if date_ is None else date_
+        date_ = utility.convert_date(date_)
+        dates = utility.get_week(date_, "week")
+        result = []
+        for day in dates:
+            for clocking in self.attendance_data:
+                ee_id, date, *_ = clocking
+                if ee_id == self.id_ and date == day:
+                    result.append(clocking)
+        return result
 
 
 def display_entitlements(id_):
@@ -201,7 +217,7 @@ def display_entitlements(id_):
     data = entitlements.Entitlements(id_).get_entitlements()
     table = [[item for item in data]]
     headers = ["Total Hours", "Taken", "Planned", "Pending", "Unallocated"]
-    print(f"\nAbsence entitlements for {this_year}.")
+    print(f"Absence entitlements for {this_year}.")
     utility.display_table(table, headers)
     menu_or_quit(id_)
 
