@@ -20,6 +20,11 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 - [Flowchart](#flowchart)
 - [Data Model](#data-model)
 
+[Technologies Used](#technologies-used)
+- [Languages](#languages)
+- [Libraries](#libraries)
+- [Programs](#programs)
+
 [Deployment](#deployment)
 - [Heroku](#heroku)
 - [Making a Local Clone](#making-a-local-clone)
@@ -91,13 +96,72 @@ The application will be structured as shown in the following diagram.
 ## Data Model
 
 _Google Sheets_ was chosen to store and retrieve data as most small/start-up companies typically have this tool available and the volume of the data for this project will be small. The python implementation will be able to support a SQL or NoSQL database with minimal refactoring when the volume of data requires it.
-The spreadsheet has 5 main worksheets: login_credentials, employees, clockings, absences and entitlements and 1 supporting worksheet for reporting issues to the system administrator.
+The spreadsheet has 5 worksheets: login_credentials, employees, clockings, absences_requests and entitlements.
  
 Each employee’s login id will be stored in the login_credentials sheet and will be the key to link to other worksheets to CRUD(create, read, update, delete) data when the user interacts with the application.
  
 I have created a diagram to visualise each sheet and its columns.
- 
+
 ![Data model](documentation/technical-design/data-model.png)
+
+The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUMfb2aVQdtDsvj2FyMLVSAgK2HFpPF_FO3ZXAN37s/edit?usp=sharing)
+
+[Back To **Table of Contents**](#table-of-contents)
+
+<br>
+
+# Technologies Used
+
+## Languages
+
+- [Python](https://www.python.org/) was used as the main scripting language.
+- [HTML5](https://en.wikipedia.org/wiki/HTML5) was used to embed the calendar iframe.
+- [CSS3](https://en.wikipedia.org/wiki/CSS) was used to style the layout of elements to the centre and adjust the terminal height.
+- [JavaScript](https://en.wikipedia.org/wiki/JavaScript) was used to auto-refresh the calendar.
+
+This project used the _Code Institute_ Python template to display a simulated terminal. For _HTML5_, _CSS3_ and _JavaScript_, other than the code mentioned above, all code is part of the template.
+
+## Libraries
+
+### Built-in Modules
+
+- [datetime](https://docs.python.org/3/library/datetime.html) was used to get the current year, date and time as well as calculate (week)days between two dates.
+- [enum](https://docs.python.org/3/library/enum.html) was used to create enumerated constants for the colorama font colours.
+- [itertools](https://docs.python.org/3/library/itertools.html) was used to group a list of lists by employee IDs.
+- [os](https://docs.python.org/3/library/os.html) was used to clear the terminal.
+- [sys](https://docs.python.org/3/library/sys.html) was used to exit the system for the KeyboardInterrupt exception.
+- [time](https://docs.python.org/3/library/time.html) was used to add delay in the execution before clearing the screen.
+
+### Third-party Packages
+
+- [colorama](https://pypi.org/project/colorama/) was used to highlight texts by printing in different colours.
+- [google-auth](https://google-auth.readthedocs.io/en/master/) was used to authenticate for the Google APIs.
+- [gspread](https://docs.gspread.org/en/v5.3.2/#) was used to access and manipulate data in Google Sheets.
+- [passlib](https://passlib.readthedocs.io/en/stable/) was used to store users’ passwords securely.
+- [pytz](https://pypi.org/project/pytz/) was used to set a Timezone to Dublin, Ireland.
+- [stdiomask](https://pypi.org/project/stdiomask/) was used for password masking.
+- [tabulate](https://pypi.org/project/tabulate/) was used to display tables.
+
+## Programs
+
+- [Balsamiq](https://balsamiq.com/) was used to create the wireframes.
+- [Canva](https://www.canva.com/) was used to create the strategy table and diagram, and design the favicon.
+- [Chrome DevTools](https://developer.chrome.com/docs/devtools/) was used to check runtime performance.
+- [Diagrams.net](https://app.diagrams.net/) was used to create the flowchart and diagrams.
+- [Favicon.io](https://favicon.io/) was used to create the favicon.
+- [Git](https://git-scm.com/) was used for version control.
+- [GitHub](https://github.com/) was used to store the project's code and link to Heroku for auto-deployment.
+- [Gitpod](https://www.gitpod.io/) was used to develop and test my code.
+- [Google Apps Script](https://developers.google.com/apps-script) was used to write code to enable updating the calendar from the absence_requests worksheet.
+- [Google Calendar](https://www.google.com/calendar/about/) was used to embed the calendar in `index.html`.
+- [Google Sheets](https://www.google.com/sheets/about/) was used to create/read/update/delete all data.
+- [Grammarly](https://app.grammarly.com/) was used to check for errors in the README.
+- [PEP8](http://pep8online.com/) was used to check the Python script validity.
+- [Text to ASCII Art Generator (TAAG)](https://patorjk.com/software/taag/) was used for the title text: “Work Time”, “Admin Portal”, “Employee Portal” and “Goodbye” in ANSI Regular(font name).
+- [Visual Studio Code](https://code.visualstudio.com/) was used to edit my code.
+- [W3C CSS Validation Service](https://jigsaw.w3.org/css-validator/) was used to check the CSS validity.
+- [W3C Markup Validation Service](https://validator.w3.org/) was used to check the HTML markup validity.
+- [Zapier](https://zapier.com/) was used to send notifications for new absence requests automatically.
 
 [Back To **Table of Contents**](#table-of-contents)
 
@@ -237,7 +301,7 @@ These steps demonstrate how I cloned my repository to create a local copy on my 
 7. Type `git clone ` and then paste the URL I copied in step 4.
 
     ```
-    $ git clone https://github.com/sejungkwak/work-time.git
+    git clone https://github.com/sejungkwak/work-time.git
     ```
 
     <details>
