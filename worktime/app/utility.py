@@ -9,8 +9,8 @@ from datetime import date, datetime, time, timedelta
 from enum import Enum
 from os import name, system
 
-# Third-party Package
-from colorama import init, Fore, Style
+# Third-party Packages
+from colorama import init, Back, Fore, Style
 import pytz
 from tabulate import tabulate
 
@@ -25,10 +25,10 @@ def clear():
 
 
 class Colours(Enum):
-    """Represent collection of colorama font colours."""
+    """Represent collection of colorama font or background colours."""
     GREEN = Fore.GREEN
     YELLOW = Fore.YELLOW
-    RED = Fore.RED
+    RED = Back.RED
     CYAN = Fore.CYAN
     RESET = Style.RESET_ALL
 
