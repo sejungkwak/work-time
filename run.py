@@ -65,20 +65,22 @@ def help_():
     """Print application information."""
     text = f"""
 {colour('CYAN', 'About the application')}
-Work Time is an employee time management system. It provides an employee
-clocking system, attendance tracking and absence management.
+Work Time is an employee time management system. It provides
+an employee clocking system, attendance tracking and absence
+management.
 
 {colour('CYAN', 'Employee Portal')}
-It offers the following 6 options to choose from: Clock In, Clock Out, View
-Clock Card, View Absence Entitlements, Book Absence, Cancel Absence.
+It offers the following 6 options to choose from: Clock In,
+Clock Out, View Clock Card, View Absence Entitlements, Book
+Absence, Cancel Absence.
 
 {colour('CYAN', 'Admin Portal')}
-It offers the following 4 options to choose from: Review Requests, Review
-Attendance, Add absence, Update Clock Card.
+It offers the following 4 options to choose from: Review
+Requests, Review Attendance, Add absence, Update Clock Card.
 
 {colour('CYAN', 'Contact the developer')}
-If you would like to report a bug, suggest an idea or require additional help,
-please email me at kwak.sejung@gmail.com
+If you would like to report a bug, suggest an idea or require
+additional help, please email me at kwak.sejung@gmail.com
 """
     utility.display_table([[text]])
 
