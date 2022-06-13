@@ -23,12 +23,11 @@ def get_employee_id():
     help_typed = False
 
     while True:
-        print("Please enter " + colour("CYAN", "Employee ID."))
+        print("Please enter " + colour("CYAN", "Employee ID") + ".")
         if not help_typed:
             print("For more information about Work Time,",
                   f"type {colour('CYAN', 'help')} and press enter.")
         entered_id = input(colour("CYAN", ">>>\n")).upper().strip()
-        utility.clear()
 
         if entered_id == "HELP":
             help_()
@@ -47,13 +46,13 @@ def get_pw(id_):
     """
     pw_ = credentials.Credentials().pw(id_)
     while True:
-        print(f"Please enter {colour('CYAN', 'Password')}.")
+        print(f"\nPlease enter {colour('CYAN', 'Password')}.")
         password = stdiomask.getpass(prompt=colour("CYAN", ">>>\n"))
-        utility.clear()
 
         if validations.validate_pw(password, pw_):
             if id_ == "ADMIN":
                 title.display_admin_title()
+                admin.ReviewRequests()
                 admin.admin_main()
                 break
             title.display_employee_title(id_)

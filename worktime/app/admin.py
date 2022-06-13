@@ -24,9 +24,6 @@ def admin_main():
         5. Exit
     Run a while loop until the user inputs a valid number.
     """
-    all_requests = requests.Requests().requests
-    new_request = get_new_requests(all_requests)
-    new_request_notification(new_request)
     while True:
         menu.admin_menu()
         answer = input(colour("CYAN", ">>>\n")).strip()
@@ -35,9 +32,9 @@ def admin_main():
             break
 
     if answer == "1":
-        handle_request(new_request)
+        ReviewRequests().handle_request()
     elif answer == "2":
-        ReviewAttendace().get_attendance_date()
+        ReviewAttendace()
     elif answer == "3":
         get_absence_data()
     elif answer == "4":
@@ -47,235 +44,228 @@ def admin_main():
         sys.exit()
 
 
-def get_new_requests(data):
-    """Retrieve data that meets conditions: start date is in the future,
-    not approved or rejected, not cancelled.
+class ReviewRequests:
+    """Represent Review Requests menu option."""
 
-    Args:
-        data list: The absence_requests worksheet values.
-    Returns:
-        list: A list of lists containing new request data.
-    """
-    today = utility.GetDatetime().tday()
-    new_requests = []
-    for item in data:
-        date_ = utility.convert_date(item[2])
-        if ((date_ - today).days > 0 and
-                item[-2] == "/" and item[-1] == "False"):
-            new_requests.append(item)
-    return new_requests
+    def __init__(self):
+        self.all_requests = requests.Requests().requests
+        self.all_employees = employees.Employees().employees
+        self.new_request = self.get_new_requests()
+        self.new_request_notification()
 
+    def get_new_requests(self):
+        """Retrieve data that meets conditions: start date is in the future,
+        not approved or rejected, not cancelled.
 
-def handle_request(new_request):
-    """Display new requests and take user input.
-    Run a while loop until there are no new requests left.
+        Returns:
+            list: A list of lists containing new request data.
+        """
+        today = utility.GetDatetime().tday()
+        new_requests = []
+        for item in self.all_requests:
+            date_ = utility.convert_date(item[2])
+            if ((date_ - today).days > 0 and
+                    item[-2] == "/" and item[-1] == "False"):
+                new_requests.append(item)
+        return new_requests
 
-    Args:
-        new_request list: A list of lists containing new absence requests.
-    """
-    new_request_notification(new_request)
-    num_requests = len(new_request)
-    while num_requests > 0:
-        print("Loading data...")
-        request_list = sort_new_request(new_request)
-        utility.clear()
-        display_new_requests(request_list)
-        req_id = get_request_id(new_request)
-        decision = get_decision()
-        confirmed = get_confirm_decision(req_id, new_request, decision)
-        if confirmed == "Y":
-            num_requests -= 1
-            update_decision(req_id, new_request, decision)
-            for i, req in enumerate(new_request):
-                if req[0] == req_id:
-                    new_request.pop(i)
-        if num_requests != 0:
-            print("Returning to the list...")
-    menu_or_quit()
-
-
-def display_new_requests(data):
-    """Display new absence requests grouped by employee ID.
-
-    Args:
-        data list: A list of lists of lists containing new requests.
-    """
-    fullname = ""
-    headers = (["ID", "Start Date", "End Date",
-                "Start Time", "End Time", "Duration"])
-    for new_request in data:
-        table = []
-        for item in new_request:
-            item = item[:7]
-            employee_id = item.pop(1)
-            fullname = employees.Employees(employee_id).get_fullname()
-            item[-1] = f"{item[-1]} Day(s)"
-            table.append(item)
-        if len(table) > 1:
-            print(f"\nNew requests from {fullname}")
+    def new_request_notification(self):
+        """Check if there are new absence requests and display the result."""
+        if len(self.new_request) > 0:
+            word_form = "request" if len(self.new_request) == 1 else "requests"
+            print(colour("YELLOW", "You have " + str(len(self.new_request))),
+                  colour("YELLOW", word_form + " to review.\n"))
         else:
-            print(f"\nNew request from {fullname}")
-        utility.display_table(table, headers)
+            print("No more requests to review right now.\n")
 
+    def handle_request(self):
+        """Call other functions to take user input
+        and run a while loop until there are no new requests left."""
+        num_requests = len(self.new_request)
+        while num_requests > 0:
+            print("Loading data...")
+            utility.clear()
+            self.display_new_requests()
+            request_id = self.get_request_id()
+            decision = self.get_decision()
+            confirmed = self.get_confirm_decision(request_id, decision)
+            if confirmed == "Y":
+                num_requests -= 1
+                self.update_decision(request_id, decision)
+                for i, req in enumerate(self.new_request):
+                    if req[0] == request_id:
+                        self.new_request.pop(i)
+            if num_requests != 0:
+                print("Returning to the list...")
+        menu_or_quit()
 
-def get_confirm_decision(req_id, requests_, decision):
-    """Display a request review summary and ask user to confirm to proceed.
+    def sort_new_request(self):
+        """Sort and combine lists with the same employee ID to display
+        new absence requests.
 
-    Args:
-        req_id str: Request ID.
-        requests_ list: A list of lists containing all new requests.
-        decision str: Approve or Reject.
-    Returns:
-        str: User input - Y or N.
-    """
-    for request in requests_:
-        if request[0] == req_id:
-            req_id, id_, fromdate, todate, fromtime, totime, days, *_ = request
-            fullname = employees.Employees(id_).get_fullname()
-            if fromtime:
-                period = f"{fromtime} - {totime}"
+        Returns:
+            new_req_list list: A list sorted by the employee ID.
+        """
+        # Source: mouad's answer on Stack Overflow
+        # https://stackoverflow.com/questions/4174941
+        self.new_request.sort(key=lambda req: req[1])
+        # Source: Robert Rossney's answer on Stack Overflow
+        # https://stackoverflow.com/questions/5695208
+        groups = groupby(self.new_request, lambda req: req[1])
+        new_req_list = [[item for item in data] for (key, data) in groups]
+        return new_req_list
+
+    def display_new_requests(self):
+        """Display new absence requests grouped by employee ID."""
+        sorted_new_request = self.sort_new_request()
+        headers = (["ID", "Start Date", "End Date",
+                    "Start Time", "End Time", "Duration"])
+        for new_request in sorted_new_request:
+            table = []
+            for item in new_request:
+                item = item[:7]
+                employee_id = item.pop(1)
+                fullname = get_fullname(employee_id, self.all_employees)
+                item[-1] = f"{item[-1]} Day(s)"
+                table.append(item)
+            if len(table) > 1:
+                print(f"\nNew requests from {fullname}")
             else:
-                period = f"{days} day" if days == "1" else f"{days} days"
-    utility.clear()
-    while True:
-        print(colour("YELLOW", "Please confirm the details."))
-        print(f"Employee ID: {id_}")
-        print(f"Employee Name: {fullname}")
-        print(f"Start date: {fromdate}")
-        print(f"End date: {todate}")
-        print(f"Period: {period}")
+                print(f"\nNew request from {fullname}")
+            utility.display_table(table, headers)
+
+    def get_request_id(self):
+        """Run a while loop until the user inputs a valid value.
+
+        Returns:
+            str: User input value - Request ID.
+        """
+        while True:
+            id_list = [int(item[0]) for item in self.new_request]
+            print(f"\nEnter a {colour('CYAN', 'request ID')}",
+                  "from the first column to approve or reject.")
+            print(f"({messages.to_menu()})")
+            answer = input(colour("CYAN", ">>>\n")).strip()
+            if answer.upper() == "MENU":
+                utility.clear()
+                admin_main()
+                break
+            if answer.upper() == "QUIT":
+                title.display_goodbye()
+                sys.exit()
+            elif validations.validate_choice_number(answer, id_list):
+                return answer
+
+    @staticmethod
+    def get_decision():
+        """Run a while loop until the user types "approve" or "reject".
+
+        Returns:
+            str: User input value - Approve or reject.
+        """
+        while True:
+            print(f"\nEnter {colour('CYAN', 'approve')}",
+                  "to approve the request",
+                  f"or {colour('CYAN', 'reject')} to reject.")
+            print(f"({messages.to_menu()})")
+            answer = input(colour("CYAN", ">>>\n")).upper().strip()
+            if answer == "MENU":
+                utility.clear()
+                admin_main()
+                break
+            if answer == "QUIT":
+                title.display_goodbye()
+                sys.exit()
+            elif (validations.validate_choice_letter(answer,
+                                                     ["APPROVE", "REJECT"])):
+                return answer
+
+    def get_confirm_decision(self, request_id, decision):
+        """Display a request review summary and ask user to confirm to proceed.
+
+        Args:
+            request_id str: Absence request ID.
+            decision str: Approve or Reject.
+        Returns:
+            str: User input - Y or N.
+        """
+        for request in self.new_request:
+            req_id, id_, fromdate, todate, fromtime, totime, days, *_ = request
+            if req_id == request_id:
+                fullname = get_fullname(id_, self.all_employees)
+                if fromtime:
+                    period = f"{fromtime} - {totime}"
+                else:
+                    period = f"{days} day" if days == "1" else f"{days} days"
+        utility.clear()
+        while True:
+            print(colour("YELLOW", "Please confirm the details."))
+            print(f"Employee ID: {id_}")
+            print(f"Employee Name: {fullname}")
+            print(f"Start date: {fromdate}")
+            print(f"End date: {todate}")
+            print(f"Period: {period}")
+            if decision == "APPROVE":
+                print("\nApprove this request?")
+            else:
+                print("\nReject this request?")
+            answer = input(f"{messages.y_or_n()}\n").upper().strip()
+            utility.clear()
+            if validations.validate_choice_letter(answer, ["Y", "N"]):
+                return answer
+
+    def update_decision(self, request_id, decision):
+        """Update the absence_requests and entitlements worksheets
+        depending on the user input(approve or reject).
+
+        Args:
+            request_id str: Request ID.
+            decision str: Approve or Reject.
+        """
+        print("Processing...")
+        employee_id, absence_days = self.get_request_details(request_id)
+        requests_row_index = int(request_id)
+
+        request_sheet = requests.Requests()
+        hours = int(float(absence_days) * 8)
+        request_sheet.update_approved(requests_row_index, decision)
+
+        entitle_sheet = entitlements.Entitlements(employee_id)
         if decision == "APPROVE":
-            print("\nApprove this request?")
+            entitle_sheet.update_hours(hours, "pending_to_planned")
         else:
-            print("\nReject this request?")
-        answer = input(f"{messages.y_or_n()}\n").upper().strip()
+            entitle_sheet.update_hours(hours, "pending_to_unallocated")
         utility.clear()
-        if validations.validate_choice_letter(answer, ["Y", "N"]):
-            return answer
+        print(colour("GREEN", "Data updated successfully."))
+        time.sleep(2)
+
+    def get_request_details(self, request_id):
+        """Iterate through the sheet to find the corresponding data
+        to the absence request ID.
+
+        Args:
+            request_id str: Request ID on the requests worksheet.
+        Returns:
+            list: An employee ID and total absence days.
+        """
+        for request in self.new_request:
+            if request_id == request[0]:
+                ee_id = request[1]
+                total_days = request[6]
+        return [ee_id, total_days]
 
 
-def update_decision(req_id, requests_, decision):
-    """Update the absence_requests and entitlements worksheets
-    depending on the user input(approve or reject).
-
-    Args:
-        req_id str: Request ID.
-        requests_ list: A list of lists containing all new requests.
-        decision str: Approve or Reject.
-    """
-    print("Processing...")
-    employee_id = find_ee_id(req_id, requests_)
-    requests_row_index = int(req_id)
-
-    request_sheet = requests.Requests()
-    absence_days = request_sheet.get_duration(requests_row_index)
-    hours = int(float(absence_days) * 8)
-    request_sheet.update_approved(requests_row_index, decision)
-
-    entitle_sheet = entitlements.Entitlements(employee_id)
-    if decision == "APPROVE":
-        entitle_sheet.update_hours(hours, "pending_to_planned")
-    else:
-        entitle_sheet.update_hours(hours, "pending_to_unallocated")
-    utility.clear()
-    print(colour("GREEN", "Data updated successfully."))
-    time.sleep(2)
-
-
-def new_request_notification(new_request):
-    """Check if there are new absence requests and display the result.
+def get_fullname(id_, employee_list):
+    """Returns an employee's full name.
 
     Args:
-        new_request list: A list of lists containing new absence requests.
+        id_: An employee ID.
+        employee_list: A list of all employees
     """
-    if len(new_request) > 0:
-        word_form = "request" if len(new_request) == 1 else "requests"
-        print(colour("YELLOW", "You have " + str(len(new_request))),
-              colour("YELLOW", word_form + " to review.\n"))
-    else:
-        print("No more requests to review right now.\n")
-
-
-def sort_new_request(req_list):
-    """Sort and combine lists with the same employee ID to display
-    new absence requests.
-
-    Args:
-        req_list list: A list of lists containing new requests.
-    Returns:
-        new_req_list list: A list sorted by the employee ID.
-    """
-    # Source: mouad's answer on Stack Overflow
-    # https://stackoverflow.com/questions/4174941
-    req_list.sort(key=lambda req: req[1])
-    # Source: Robert Rossney's answer on Stack Overflow
-    # https://stackoverflow.com/questions/5695208
-    groups = groupby(req_list, lambda req: req[1])
-    new_req_list = [[item for item in data] for (key, data) in groups]
-    return new_req_list
-
-
-def get_request_id(new_request):
-    """Run a while loop until the user inputs a valid value.
-
-    Args:
-        new_request list: A list of lists containing new absence requests.
-    Returns:
-        str: User input value - Request ID.
-    """
-    while True:
-        id_list = [int(item[0]) for item in new_request]
-        print(f"\nEnter a {colour('CYAN', 'request ID')}",
-              "from the first column to approve or reject.")
-        print(f"({messages.to_menu()})")
-        answer = input(colour("CYAN", ">>>\n")).strip()
-        utility.clear()
-        if answer.upper() == "MENU":
-            admin_main()
-            break
-        if answer.upper() == "QUIT":
-            title.display_goodbye()
-            sys.exit()
-        elif validations.validate_choice_number(answer, id_list):
-            return answer
-
-
-def get_decision():
-    """Run a while loop until the user types "approve" or "reject".
-
-    Returns:
-        str: User input value - Approve or reject.
-    """
-    while True:
-        print(f"\nEnter {colour('CYAN', 'approve')}",
-              "to approve the request",
-              f"or {colour('CYAN', 'reject')} to reject.")
-        print(f"({messages.to_menu()})")
-        answer = input(colour("CYAN", ">>>\n")).upper().strip()
-        if answer == "MENU":
-            admin_main()
-            break
-        if answer == "QUIT":
-            title.display_goodbye()
-            sys.exit()
-        elif validations.validate_choice_letter(answer, ["APPROVE", "REJECT"]):
-            return answer
-
-
-def find_ee_id(request_id, new_request):
-    """Iterate through the sheet to find the corresponding employee ID
-    to the absence request ID.
-
-    Args:
-        request_id str: Request ID on the requests worksheet.
-        new_request list: A list of lists containing new absence requests.
-    Returns:
-        str: An employee ID.
-    """
-    for request in new_request:
-        if request_id == request[0]:
-            ee_id = request[1]
-            return ee_id
+    for employee in employee_list:
+        if employee[0] == id_:
+            fullname = f"{employee[1]} {employee[2]}"
+    return fullname
 
 
 class ReviewAttendace:
@@ -284,6 +274,7 @@ class ReviewAttendace:
     def __init__(self):
         self.clock_cards = clockings.Clockings().clockings
         self.all_employees = employees.Employees().employees
+        self.get_attendance_date()
 
     def get_attendance_date(self):
         """Display today's clock cards of all employees and then
