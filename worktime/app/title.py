@@ -1,12 +1,10 @@
-"""Title module
+"""Title Module
 
 This module displays title arts for the application main, employee portal,
 admin portal and exit screen.
 """
-# Built-in Modules
-import time
 
-# Custom Package
+# Custom Packages
 from worktime.app import utility
 from worktime.worksheets.employees import Employees
 
@@ -52,8 +50,6 @@ def display_employee_title(id_):
     print(PORTAL)
     print(f"Welcome back, {fname}!".center(80))
     print("\n" + "=" * 80)
-    time.sleep(3)
-    utility.clear()
 
 
 def display_admin_title():
@@ -69,8 +65,6 @@ def display_admin_title():
     print(PORTAL)
     print("Welcome back!".center(80))
     print("\n" + "=" * 80)
-    time.sleep(3)
-    utility.clear()
 
 
 def display_goodbye():
@@ -78,9 +72,9 @@ def display_goodbye():
     utility.clear()
     print("\n" * 8)
     print("""
-        ██████   ██████   ██████  ██████      ██████  ██    ██ ███████ ██
-       ██       ██    ██ ██    ██ ██   ██     ██   ██  ██  ██  ██      ██
-       ██   ███ ██    ██ ██    ██ ██   ██     ██████    ████   █████   ██
-       ██    ██ ██    ██ ██    ██ ██   ██     ██   ██    ██    ██
-        ██████   ██████   ██████  ██████      ██████     ██    ███████ ██
+        ██████   ██████   ██████  ██████  ██████  ██    ██ ███████ ██
+       ██       ██    ██ ██    ██ ██   ██ ██   ██  ██  ██  ██      ██
+       ██   ███ ██    ██ ██    ██ ██   ██ ██████    ████   █████   ██
+       ██    ██ ██    ██ ██    ██ ██   ██ ██   ██    ██    ██
+        ██████   ██████   ██████  ██████  ██████     ██    ███████ ██
     """)
