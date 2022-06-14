@@ -36,7 +36,7 @@ def admin_main():
     elif answer == "2":
         ReviewAttendace()
     elif answer == "3":
-        get_absence_data()
+        AddAbsence()
     elif answer == "4":
         update_clocking()
     else:
@@ -330,128 +330,237 @@ class ReviewAttendace:
             utility.display_table(table, headers)
 
 
-def get_absence_data():
-    """Get an employee ID, absence type(Paid or Unpaid),
-    duration, start and end date from the user.
-    """
-    ee_id = get_employee_id("to add absence.")
-    avail_hours = int(get_avail_hours(ee_id))
-    absence_type = get_absence_type(avail_hours)
-    absence_duration = get_absence_duration(absence_type, avail_hours)
-    start_date = get_absence_start_date(absence_type, absence_duration)
-    if absence_duration == "4":
-        end_date = get_absence_end_date(absence_type, start_date, avail_hours)
-    else:
-        end_date = start_date
-    get_confirm_absence(ee_id, absence_type, start_date, end_date,
-                        absence_duration)
+class AddAbsence:
+    """Represent Add Employee Absence menu option."""
 
+    def __init__(self):
+        self.all_employees = employees.Employees().employees
+        self.get_absence_data()
 
-def get_confirm_absence(id_, type_, from_date, to_date, duration):
-    """Display the absence summary and ask user to confirm to update.
+    def get_absence_data(self):
+        """Get an employee ID, absence type(Paid or Unpaid),
+        duration, start and end date from the user.
+        """
+        while True:
+            self.ee_id = get_employee_id("to add absence.")
+            self.fullname = get_fullname(self.ee_id, self.all_employees)
+            entitlements_sheet = entitlements.Entitlements(self.ee_id)
+            self.entitle_data = entitlements_sheet.get_entitlements()
+            self.display_entitle_data()
+            self.avail_hours = int(self.entitle_data[-1])
+            self.absence_type = self.get_absence_type()
+            self.duration = self.get_absence_duration()
+            self.start_date = self.get_absence_start_date()
+            if self.duration == "4":
+                self.end_date = self.get_absence_end_date()
+            else:
+                self.end_date = self.start_date
 
-    Args:
-        id_ str: An employee ID.
-        type_ str: 1. Paid, 2. Unpaid.
-        from_date str: The absence start date - DD/MM/YYYY.
-        to_date str: The absence end date - DD/MM/YYYY.
-        duration str: 1. morning, 2. afternoon, 3. full day, 4. 2+ days
-    """
-    fullname = employees.Employees(id_).get_fullname()
-    total_hours = 4
-    is_paid = "Paid absence" if type_ == "1" else "Unpaid absence"
-    if duration == "1":
-        period = "9:30 - 13:30"
-    elif duration == "2":
-        period = "13:30 - 17:30"
-    elif duration == "3":
-        period = "1 workday"
-        total_hours = 8
-    else:
-        period = utility.get_num_of_weekdays(from_date, to_date)
-        total_hours = period * 8
-        period = f"{period} workdays"
+            if self.duration == "1":
+                self.start_time = "9:30"
+                self.end_time = "13:30"
+                self.period = f"{self.start_time} - {self.end_time}"
+                self.hours = 4
+            elif self.duration == "2":
+                self.start_time = "13:30"
+                self.end_time = "17:30"
+                self.period = f"{self.start_time} - {self.end_time}"
+                self.hours = 4
+            elif self.duration == "3":
+                self.start_time = ""
+                self.end_time = ""
+                self.period = "1 workday"
+                self.hours = 8
+            else:
+                self.start_time = ""
+                self.end_time = ""
+                self.days = (utility.get_num_of_weekdays(self.start_date,
+                                                         self.end_date))
+                self.period = f"{self.days} workdays"
+                self.hours = self.days * 8
 
-    while True:
-        print(colour("YELLOW", "Please confirm the details."))
-        print(f"Employee ID: {id_}")
-        print(f"Employee Name: {fullname}")
-        print(f"Absence Type: {is_paid}")
-        print(f"Start date: {from_date}")
-        print(f"End date: {to_date}")
-        print(f"Period: {period}")
-        if duration == "4":
-            print("Please note that weekends are not included.")
-        print("\nUpdate this absence?")
-        answer = input(f"{messages.y_or_n()}\n").upper().strip()
-        if validations.validate_choice_letter(answer, ["Y", "N"]):
-            if answer == "Y":
-                if type_ == "1":
-                    add_entitlement(id_, from_date, total_hours, fullname)
-                add_absence(id_, from_date, to_date, duration, total_hours,
-                            fullname)
+            confirm_update = self.get_confirm_absence()
+            if confirm_update == "Y":
+                if self.absence_type == "1":  # Paid time off
+                    self.add_entitlement()
+                self.add_absence()
+            else:
+                print(colour("GREEN", "No changes were made."))
+            print("\nReturning to the beginning...")
+            time.sleep(3)
+            utility.clear()
+
+    def display_entitle_data(self):
+        """Display the target employee's absence entitlements."""
+        this_year = str(utility.GetDatetime().now_year())
+        headers = ["Total", "Taken", "Planned", "Pending", "Unallocated"]
+        table = [self.entitle_data]
+        print(f"{self.fullname}'s absence entitlements for {this_year}")
+        utility.display_table(table, headers)
+
+    def get_absence_type(self):
+        """Run a while loop until the user inputs a valid digit.
+
+        Returns:
+            str: A digit - 1. Paid time off 2. Unpaid time off.
+        """
+        while True:
+            menu.absence_paid_menu()
+            print(f"({messages.to_menu()})")
+            answer = input(colour("CYAN", ">>>\n")).strip()
+            utility.clear()
+            if answer.upper() == "MENU":
+                admin_main()
                 break
+            if answer.upper() == "QUIT":
+                title.display_goodbye()
+                sys.exit()
+            elif validations.validate_choice_number(answer, range(1, 3)):
+                if answer == "1" and self.avail_hours <= 0:
+                    print(colour("RED", "Insufficient paid time " +
+                                 "off available."))
+                else:
+                    return answer
+
+    def get_absence_duration(self):
+        """Run a while loop until the user inputs a valid digit.
+
+        Returns:
+            str: A digit - 1. Morning, 2. Afternoon, 3. A full day, 4. 2+ days
+        """
+        while True:
+            menu.absence_period_menu()
+            print(f"({messages.to_menu()})")
+            answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
-            print(colour("GREEN", "No changes were made."))
-            print("Returning to the menu...")
-            time.sleep(2)
+            if answer.upper() == "MENU":
+                admin_main()
+                break
+            if answer.upper() == "QUIT":
+                title.display_goodbye()
+                sys.exit()
+            elif validations.validate_choice_number(answer, range(1, 5)):
+                if self.absence_type == "1":
+                    if ((answer == "4" and self.avail_hours < 16) or
+                            (answer == "3" and self.avail_hours < 8)):
+                        print(colour("RED", "Insufficient paid time off " +
+                                     "available."))
+                    else:
+                        return answer
+                else:
+                    return answer
+
+    def get_absence_start_date(self):
+        """Run while loop until the user inputs a valid date.
+
+        Returns:
+            str: A DD/MM/YYYY format date.
+        """
+        while True:
+            if int(self.duration) in range(1, 4):
+                print(f"Please enter the {colour('CYAN', 'absence date')}.")
+            else:
+                print(f"Please enter the {colour('CYAN', 'start date')}",
+                      "for the absence duration.")
+            print(messages.date_format())
+            print(f"({messages.to_menu()})")
+            answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
-            admin_main()
-            break
+            if answer.upper() == "MENU":
+                admin_main()
+                break
+            if answer.upper() == "QUIT":
+                title.display_goodbye()
+                sys.exit()
+            elif validations.validate_date(answer):
+                request_date = utility.convert_date(answer)
+                this_year = str(utility.GetDatetime().now_year())
+                if answer[-4:] != this_year and self.absence_type == "1":
+                    print(messages.invalid_year())
+                elif request_date.weekday() > 4:
+                    print(colour("RED", "No absence updates required for " +
+                                 "weekends."))
+                else:
+                    return answer
 
+    def get_absence_end_date(self):
+        """Run a while loop until the user inputs a valid date.
 
-def add_absence(id_, from_date, to_date, duration, hours, fullname):
-    """Update absence data to the absence_requests worksheet.
+        Returns:
+            str: Absence end date.
+        """
+        while True:
+            print(f"Please enter the {colour('CYAN', 'last date')}",
+                  "for the absence duration.")
+            print(messages.date_format())
+            print(f"({messages.to_menu()})")
+            answer = input(colour("CYAN", ">>>\n")).strip()
+            utility.clear()
+            if answer.upper() == "MENU":
+                admin_main()
+                break
+            if answer.upper() == "QUIT":
+                title.display_goodbye()
+                sys.exit()
+            elif validations.validate_date(answer):
+                if ((validations
+                        .validate_days(self.start_date, answer,
+                                       self.avail_hours) and
+                    self.absence_type == "1") or
+                    (validations
+                        .validate_unpaid_days(self.start_date, answer) and
+                        self.absence_type == "2")):
+                    return answer
 
-    Args:
-        id_ str: An employee ID.
-        from_date str: The absence start date - DD/MM/YYYY.
-        to_date str: The absence end date - DD/MM/YYYY.
-        duration str: 1. morning, 2. afternoon, 3. full day, 4. 2+ days
-        hours int: Total number of the absence hours.
-        fullname str: An employee name.
-    """
-    print(f"\nUpdating {fullname}'s absence details...")
-    time.sleep(1)
-    req_sheet = requests.Requests(id_)
-    req_id = req_sheet.generate_req_id()
-    days = hours / 8
-    start_time = ""
-    end_time = ""
-    if duration == "1":
-        start_time = "9:30"
-        end_time = "13:30"
-    if duration == "2":
-        start_time = "13:30"
-        end_time = "17:30"
-    data = ([req_id, id_, from_date, to_date,
-            start_time, end_time, days, "", "True", "False"])
-    req_sheet.add_request(data)
-    print(colour("GREEN", fullname + "\'s absence details"),
-          colour("GREEN", "updated successfully."))
-    menu_or_quit()
+    def get_confirm_absence(self):
+        """Display the absence summary and ask user to confirm to update."""
+        if self.absence_type == "1":
+            is_paid = "Paid absence"
+        else:
+            is_paid = "Unpaid absence"
+        while True:
+            print(colour("YELLOW", "Please confirm the details."))
+            print(f"Employee ID: {self.ee_id}")
+            print(f"Employee Name: {self.fullname}")
+            print(f"Absence Type: {is_paid}")
+            print(f"Start date: {self.start_date}")
+            print(f"End date: {self.end_date}")
+            print(f"Period: {self.period}")
+            if self.duration == "4":
+                print("Please note that weekends are not included.")
+            print("\nUpdate this absence?")
+            answer = input(f"{messages.y_or_n()}\n").upper().strip()
+            if validations.validate_choice_letter(answer, ["Y", "N"]):
+                return answer
 
+    def add_absence(self):
+        """Update absence data to the absence_requests worksheet."""
+        today = utility.GetDatetime().tday_str()
+        note = today if self.absence_type == "1" else "unpaid"
+        print(f"\nUpdating {self.fullname}'s absence details...")
+        time.sleep(1)
+        req_sheet = requests.Requests(self.ee_id)
+        req_id = req_sheet.generate_req_id()
+        days = self.hours / 8
+        data = ([req_id, self.ee_id, self.start_date, self.end_date,
+                self.start_time, self.end_time, days, note, "True", "False"])
+        req_sheet.add_request(data)
+        print(colour("GREEN", self.fullname + "\'s absence details " +
+                     "updated successfully."))
 
-def add_entitlement(id_, from_date, hours, fullname):
-    """Update absence data to the entitlement worksheet if paid absence.
-
-    Args:
-        id_ str: An employee ID.
-        from_date str: The absence start date - DD/MM/YYYY.
-        hours int: Total number of the absence hours.
-        fullname str: An employee name.
-    """
-    print(f"\nUpdating {fullname}'s absence entitlements...")
-    time.sleep(1)
-    entitle_sheet = entitlements.Entitlements(id_)
-    iso_start_date = utility.convert_date(from_date)
-    today = utility.GetDatetime().tday()
-    if int((iso_start_date - today).days) > 0:
-        entitle_sheet.update_hours(hours, "unallocated_to_planned")
-    else:
-        entitle_sheet.update_hours(hours, "unallocated_to_taken")
-    print(colour("GREEN", fullname + "\'s absence"),
-          colour("GREEN", "entitlements updated successfully."))
+    def add_entitlement(self):
+        """Update absence data to the entitlement worksheet if paid absence."""
+        print(f"\nUpdating {self.fullname}'s absence entitlements...")
+        time.sleep(1)
+        entitle_sheet = entitlements.Entitlements(self.ee_id)
+        iso_start_date = utility.convert_date(self.start_date)
+        today = utility.GetDatetime().tday()
+        if int((iso_start_date - today).days) > 0:
+            entitle_sheet.update_hours(self.hours, "unallocated_to_planned")
+        else:
+            entitle_sheet.update_hours(self.hours, "unallocated_to_taken")
+        print(colour("GREEN", self.fullname + "\'s absence " +
+                     "entitlements updated successfully."))
 
 
 def get_employee_id(text):
@@ -481,148 +590,6 @@ def get_employee_id(text):
             continue
         elif validations.validate_id(answer, ids):
             return answer
-
-
-def get_absence_type(hours):
-    """Run a while loop until the user inputs a valid digit.
-
-    Args:
-        hours int: Available paid time off hours.
-    Returns:
-        str: A digit - 1. Paid time off 2. Unpaid time off.
-    """
-    utility.clear()
-    while True:
-        menu.absence_paid_menu()
-        print(f"({messages.to_menu()})")
-        answer = input(colour("CYAN", ">>>\n")).strip()
-        utility.clear()
-        if answer.upper() == "MENU":
-            admin_main()
-            break
-        if answer.upper() == "QUIT":
-            title.display_goodbye()
-            sys.exit()
-        elif validations.validate_choice_number(answer, range(1, 3)):
-            if answer == "1" and hours <= 0:
-                print(colour("RED", "Insufficient paid time off available."))
-            else:
-                return answer
-
-
-def get_absence_duration(type_, hours):
-    """Run a while loop until the user inputs a valid digit.
-
-    Args:
-        type_ str: Absence type - Paid or unpaid time off.
-        hours int: Available paid time off hours.
-    Returns:
-        str: A digit - 1. Morning, 2. Afternoon, 3. A full day, 4. 2+ days
-    """
-    while True:
-        menu.absence_period_menu()
-        print(f"({messages.to_menu()})")
-        answer = input(colour("CYAN", ">>>\n")).strip()
-        utility.clear()
-        if answer.upper() == "MENU":
-            admin_main()
-            break
-        if answer.upper() == "QUIT":
-            title.display_goodbye()
-            sys.exit()
-        elif validations.validate_choice_number(answer, range(1, 5)):
-            if type_ == "1":
-                if ((answer == "4" and hours < 16) or
-                        (answer == "3" and hours < 8)):
-                    print(colour("RED", "Insufficient paid time off " +
-                          "available."))
-                else:
-                    return answer
-            else:
-                return answer
-
-
-def get_absence_start_date(type_, duration):
-    """Run while loop until the user inputs a valid date.
-
-    Args:
-        type_ str: Absence type - Paid or unpaid time off.
-        duration str: Absence duration - 1 & 2. Half day, 3. A day, 4. 2+ days
-    Returns:
-        str: A DD/MM/YYYY format date.
-    """
-    utility.clear()
-    while True:
-        if int(duration) in range(1, 4):
-            print(f"\nPlease enter the {colour('CYAN', 'absence date')}.")
-        else:
-            print(f"\nPlease enter the {colour('CYAN', 'start date')}",
-                  "for the absence duration.")
-        print(messages.date_format())
-        print(f"({messages.to_menu()})")
-        answer = input(colour("CYAN", ">>>\n")).strip()
-        utility.clear()
-        if answer.upper() == "MENU":
-            admin_main()
-            break
-        if answer.upper() == "QUIT":
-            title.display_goodbye()
-            sys.exit()
-        elif validations.validate_date(answer):
-            request_date = utility.convert_date(answer)
-            this_year = str(utility.GetDatetime().now_year())
-            if answer[-4:] != this_year and type_ == "1":
-                print(messages.invalid_year())
-            elif request_date.weekday() > 4:
-                print(colour("RED", "No absence updates required for " +
-                      "weekends."))
-            else:
-                return answer
-
-
-def get_absence_end_date(type_, date, hours):
-    """Run a while loop until the user inputs a valid date.
-
-    Args:
-        type_ str: 1(Paid time off) or 2(Unpaid time off).
-        date str: A DD/MM/YYYY format absence start date.
-        hours str: Total available absence hours.
-    Returns:
-        str: Absence end date.
-    """
-    utility.clear()
-    while True:
-        print(f"\nPlease enter the {colour('CYAN', 'last date')}",
-              "for the absence duration.")
-        print(messages.date_format())
-        print(f"({messages.to_menu()})")
-        answer = input(colour("CYAN", ">>>\n")).strip()
-        utility.clear()
-        if answer.upper() == "MENU":
-            admin_main()
-            break
-        if answer.upper() == "QUIT":
-            title.display_goodbye()
-            sys.exit()
-        elif validations.validate_date(answer):
-            if ((type_ == "1" and
-                    validations.validate_days(date, answer, hours)) or
-                    (type_ == "2" and
-                        validations.validate_unpaid_days(date, answer))):
-                return answer
-
-
-def get_avail_hours(id_):
-    """Get paid time off hours from the entitlements worksheet.
-
-    Args:
-        id str: An employee ID.
-    Returns:
-        str: A digit - Paid time off hours.
-    """
-    entitle_sheet = entitlements.Entitlements(id_)
-    avail_hours = entitle_sheet.get_hours("unallocated")
-    return avail_hours
 
 
 def update_clocking():
