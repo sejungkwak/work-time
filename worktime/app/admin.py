@@ -644,15 +644,15 @@ def get_date():
             sys.exit()
         elif validations.validate_date(answer):
             today = utility.GetDatetime().tday()
-            today_str = utility.GetDatetime().tday_str()
             if utility.convert_date(answer) > today:
                 print(colour("RED", "Unable to set clocking time " +
-                      "in the future."))
-            elif answer[3:5] != today_str[3:5]:
+                             "in the future."))
+            elif utility.convert_date(answer).month != today.month:
                 print(colour("RED", "Unable to update clocking time " +
-                      "after payroll has been processed."))
+                             "after payroll has been processed."))
             else:
-                return answer
+                date_ = utility.convert_date(answer).strftime("%d/%m/%Y")
+                return date_
 
 
 def clock_in_or_out(id_, date_, fullname, data):
