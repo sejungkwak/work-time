@@ -135,10 +135,11 @@ class ReviewRequests:
                 item[-1] = f"{item[-1]} Day(s)"
                 table.append(item)
             if len(table) > 1:
-                print(f"\nNew requests from {fullname}")
+                print(f"New requests from {fullname}")
             else:
-                print(f"\nNew request from {fullname}")
+                print(f"New request from {fullname}")
             utility.display_table(table, headers)
+            print("\n", end="")
 
     def get_request_id(self):
         """Run a while loop until the user inputs a valid request ID.
@@ -148,7 +149,7 @@ class ReviewRequests:
         """
         while True:
             id_list = [int(item[0]) for item in self.new_request]
-            print(f"\nEnter a {colour('CYAN', 'request ID')}",
+            print(f"Enter a {colour('CYAN', 'request ID')}",
                   "from the first column to approve or reject.")
             print(f"({messages.to_menu()})")
             answer = input(colour("CYAN", ">>>\n")).strip()
@@ -242,8 +243,7 @@ class ReviewRequests:
             entitle_sheet.update_hours(hours, "pending_to_planned")
         else:
             entitle_sheet.update_hours(hours, "pending_to_unallocated")
-        utility.clear()
-        print(colour("GREEN", "Data updated successfully."))
+        print(colour("GREEN", "\nData updated successfully."))
         time.sleep(2)
 
     def get_request_details(self, request_id):
@@ -313,11 +313,11 @@ class ReviewAttendace:
                         # Replace the employee ID with full name
                         clocking[0] = f"{ee_[1]} {ee_[2]}"
                 table.append(clocking)
-            else:
-                print(f"No clocking data found for {text}.")
         if table:
             print(f"Clock cards for {text}")
             utility.display_table(table, headers)
+        else:
+            print(colour("RED", "No clock cards found for" + text))
 
 
 class AddAbsence:
@@ -456,15 +456,15 @@ class AddAbsence:
         """
         while True:
             if int(self.duration) in range(1, 4):
-                print(f"Please enter the {colour('CYAN', 'absence date')}.")
+                print(f"\nEnter the {colour('CYAN', 'absence date')}.")
             else:
-                print(f"Please enter the {colour('CYAN', 'start date')}",
+                print(f"\nEnter the {colour('CYAN', 'start date')}",
                       "for the absence duration.")
             print(messages.date_format())
             print(f"({messages.to_menu()})")
             answer = input(colour("CYAN", ">>>\n")).strip()
-            utility.clear()
             if answer.upper() == "MENU":
+                utility.clear()
                 admin_main()
                 break
             if answer.upper() == "QUIT":
@@ -488,13 +488,13 @@ class AddAbsence:
             str: Absence end date.
         """
         while True:
-            print(f"Please enter the {colour('CYAN', 'last date')}",
+            print(f"Enter the {colour('CYAN', 'last date')}",
                   "for the absence duration.")
             print(messages.date_format())
             print(f"({messages.to_menu()})")
             answer = input(colour("CYAN", ">>>\n")).strip()
-            utility.clear()
             if answer.upper() == "MENU":
+                utility.clear()
                 admin_main()
                 break
             if answer.upper() == "QUIT":
@@ -515,6 +515,7 @@ class AddAbsence:
         else:
             is_paid = "Unpaid absence"
         *_, period = self.generate_absence_summary()
+        utility.clear()
         while True:
             print(colour("YELLOW", "Please confirm the details."))
             print(f"Employee ID: {self.ee_id}")
@@ -527,6 +528,7 @@ class AddAbsence:
                 print("Please note that weekends are not included.")
             print("\nUpdate this absence?")
             answer = input(f"{messages.y_or_n()}\n").upper().strip()
+            utility.clear()
             if validate_choice_letter(answer, ["Y", "N"]):
                 return answer
 
@@ -673,14 +675,14 @@ def clock_in_or_out(id_, date_, fullname, data):
         headers = ["Name", "Date", "Clock In", "Clock Out"]
         utility.display_table(table, headers)
     else:
-        print(colour("YELLOW", "No clock in / out data found for"),
-              colour("YELLOW", id_ + f"({fullname}) on {date_}.\n"))
+        print(colour("RED", "No clock cards found for " + id_ +
+              f"({fullname}) on {date_}.\n"))
     while True:
         menu.update_clocking_menu()
         print(f"({messages.to_menu()})")
         answer = input(colour("CYAN", ">>>\n")).strip()
-        utility.clear()
         if answer.upper() == "MENU":
+            utility.clear()
             admin_main()
             break
         if answer.upper() == "QUIT":
@@ -703,7 +705,7 @@ def get_time(data, type_):
     if data is not None:
         *_, from_time, to_time = data.values()
     while True:
-        print(f"Enter {colour('CYAN', 'time')} to update",
+        print(f"\nEnter a {colour('CYAN', 'time')} to update the",
               f"{colour('CYAN', 'clock ' + type_.lower())} time.")
         print("The time should be in the 24-hour notation:",
               f"{colour('CYAN', 'Hour:Minute')}.")
@@ -711,8 +713,8 @@ def get_time(data, type_):
               "and 17:00 is the five o\'clock in the evening.")
         print(f"({messages.to_menu()})")
         answer = input(colour("CYAN", ">>>\n")).strip()
-        utility.clear()
         if answer.upper() == "MENU":
+            utility.clear()
             admin_main()
             break
         if answer.upper() == "QUIT":
@@ -747,6 +749,7 @@ def get_confirm_clocking(id_, date_, in_out, time_, fullname):
     Returns:
         str: User input - Y or N.
     """
+    utility.clear()
     in_out = in_out.capitalize()
     while True:
         print(colour("YELLOW", "Please confirm the details."))

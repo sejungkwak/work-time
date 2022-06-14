@@ -29,7 +29,7 @@ def validate_id(id_, ids):
         if id_ not in ids:
             raise ValueError()
     except ValueError:
-        print(colour("RED", "Invalid ID: " + id_))
+        print(colour("RED", "Invalid ID: " + id_ + "\n"))
         return False
     else:
         return True
@@ -74,7 +74,7 @@ def validate_choice_number(choice, numbers):
         if choice not in numbers:
             raise ValueError()
     except ValueError:
-        print(colour("RED", "Invalid value: " + str(choice)))
+        print(colour("RED", "Invalid value: " + str(choice)) + "\n")
         return False
     else:
         return True
@@ -165,7 +165,7 @@ def validate_days(date1, date2, unallocated):
             raise ValueError(
                 print(colour("RED", "Insufficient paid time off available."))
             )
-        elif num_of_days < 2:
+        if num_of_days < 2:
             raise ValueError(
                 print(colour("RED", "Absence end date must be " +
                       "after absence start date."))
@@ -193,7 +193,7 @@ def validate_unpaid_days(date1, date2):
         if num_of_days < 2:
             raise ValueError(
                 print(colour("RED", "Absence end date must be " +
-                      "after absence start date."))
+                      "after absence start date.\n"))
             )
     except ValueError:
         return False
