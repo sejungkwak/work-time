@@ -597,10 +597,11 @@ def update_clocking():
     clock in or out, time) and update accordingly.
     Run a while loop until user types menu or quit.
     """
+    all_employees = employees.Employees().employees
     while True:
         id_ = get_employee_id("to update clock cards.")
         date_ = get_date()
-        fullname = employees.Employees(id_).get_fullname()
+        fullname = get_fullname(id_, all_employees)
         data = clockings.Clockings(id_).get_one_clocking(date_)
         in_or_out = clock_in_or_out(id_, date_, fullname, data)
         time_ = get_time(data, in_or_out)
@@ -617,12 +618,10 @@ def update_clocking():
             else:
                 clocking_sheet.update_clock_out(date_, f"{time_}:00")
             print(colour("GREEN", "Data updated successfully."))
-            print("Returning to the beginning...")
-            time.sleep(2)
         else:
             print(colour("GREEN", "No changes were made."))
-            print("Returning to the beginning...")
-            time.sleep(2)
+        print("\nReturning to the beginning...")
+        time.sleep(2)
 
 
 def get_date():
