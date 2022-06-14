@@ -8,8 +8,11 @@ import sys
 import time
 
 # Custom Packages
-from worktime.app import menu, messages, title, utility, validations
-from worktime.app.utility import print_in_colour as colour
+from worktime.app import menu, messages, title, utility
+from worktime.app.utility import get_num_of_weekdays, print_in_colour as colour
+from worktime.app.validations import (validate_choice_letter,
+                                      validate_choice_number,
+                                      validate_days, validate_date)
 from worktime.worksheets import clockings, entitlements, requests
 
 
@@ -31,7 +34,7 @@ def employee_main(id_):
         menu.employee_menu()
         choice = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
-        if validations.validate_choice_number(choice, range(1, 8)):
+        if validate_choice_number(choice, range(1, 8)):
             break
 
     if choice == "1":
@@ -100,7 +103,7 @@ def check_for_overwrite():
     """
     while True:
         answer = input(f"{messages.y_or_n()}\n").upper().strip()
-        if validations.validate_choice_letter(answer, ["Y", "N"]):
+        if validate_choice_letter(answer, ["Y", "N"]):
             return answer
 
 
@@ -166,7 +169,7 @@ class ViewClockCard:
             if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif validations.validate_date(answer):
+            elif validate_date(answer):
                 utility.clear()
                 self.display_attendance(answer)
 
@@ -249,34 +252,12 @@ class BookAbsence:
             else:
                 self.end_date = self.start_date
 
-            if self.duration == 1:
-                self.start_time = "9:30"
-                self.end_time = "13:30"
-                self.period = f"{self.start_time} - {self.end_time}"
-                self.hours = 4
-            elif self.duration == 2:
-                self.start_time = "13:30"
-                self.end_time = "17:30"
-                self.period = f"{self.start_time} - {self.end_time}"
-                self.hours = 4
-            elif self.duration == 3:
-                self.start_time = ""
-                self.end_time = ""
-                self.period = "1 workday"
-                self.hours = 8
-            else:
-                self.start_time = ""
-                self.end_time = ""
-                self.days = (utility.get_num_of_weekdays(self.start_date,
-                                                         self.end_date))
-                self.period = f"{self.days} workdays"
-                self.hours = self.days * 8
-
             self.confirm = self.get_confirm_request()
             if self.confirm == "Y":
                 self.add_absence_request()
                 self.add_pending_hours()
-                self.avail_hours -= self.hours
+                hours = self.generate_absence_summary()[2] * 8
+                self.avail_hours -= hours
             else:
                 print(colour("GREEN", "No requests were submitted."))
             print("\nReturning to the beginning...")
@@ -284,6 +265,36 @@ class BookAbsence:
             utility.clear()
         self.display_avail_hours()
         menu_or_quit(self.id_)
+
+    def generate_absence_summary(self):
+        """Generate absence start time, end time, days, depending on
+        the absence type.
+        """
+        # Half day morning
+        if self.duration == 1:
+            start_time = "9:30"
+            end_time = "13:30"
+            days = 0.5
+            period = f"{start_time} - {end_time}"
+        # Half day afternoon
+        elif self.duration == 2:
+            start_time = "13:30"
+            end_time = "17:30"
+            days = 0.5
+            period = f"{start_time} - {end_time}"
+        # 1 full day
+        elif self.duration == 3:
+            start_time = ""
+            end_time = ""
+            days = 1
+            period = "1 workday"
+        # 2+ days
+        else:
+            start_time = ""
+            end_time = ""
+            days = get_num_of_weekdays(self.start_date, self.end_date)
+            period = f"{days} workdays"
+        return [start_time, end_time, days, period]
 
     def display_avail_hours(self):
         """Display the employee's available paid time off hours."""
@@ -313,7 +324,7 @@ class BookAbsence:
             if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif validations.validate_choice_number(answer, range(1, 5)):
+            elif validate_choice_number(answer, range(1, 5)):
                 if ((answer == "4" and self.avail_hours < 16) or
                         (answer == "3" and self.avail_hours < 8)):
                     print(colour("RED", "Insufficient paid time off " +
@@ -345,7 +356,7 @@ class BookAbsence:
             if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif validations.validate_date(answer):
+            elif validate_date(answer):
                 request_date = utility.convert_date(answer)
                 today = utility.GetDatetime().tday()
                 request_year = request_date.year
@@ -383,9 +394,8 @@ class BookAbsence:
             if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif (validations.validate_date(answer) and
-                    (validations.validate_days(self.start_date, answer,
-                                               self.avail_hours))):
+            elif (validate_date(answer) and
+                    validate_days(self.start_date, answer, self.avail_hours)):
                 return answer
 
     def get_confirm_request(self):
@@ -394,38 +404,39 @@ class BookAbsence:
         Returns:
             str: User input - Y or N.
         """
+        *_, period = self.generate_absence_summary()
         while True:
             print(colour("YELLOW", "Please confirm your request."))
             print(f"Start date: {self.start_date}")
             print(f"End date: {self.end_date}")
-            print(f"Period: {self.period}")
+            print(f"Period: {period}")
             if self.duration == 4:
                 print("Please note that weekends are not included.")
             print("\nSubmit this request?")
             answer = input(f"{messages.y_or_n()}\n").upper().strip()
             utility.clear()
-            if validations.validate_choice_letter(answer, ["Y", "N"]):
+            if validate_choice_letter(answer, ["Y", "N"]):
                 return answer
 
     def add_absence_request(self):
         """Update the absence_requests worksheet."""
-        print("Submitting your absence request...\n")
+        print("Submitting your absence request...")
         request_sheet = requests.Requests()
         req_id = request_sheet.generate_req_id()
         today = utility.GetDatetime().tday_str()
+        start_time, end_time, days, *_ = self.generate_absence_summary()
         data = ([req_id, self.id_, self.start_date, self.end_date,
-                 self.start_time, self.end_time,
-                 self.hours / 8, today, "/", "False"])
+                 start_time, end_time, days, today, "/", "False"])
         request_sheet.add_request(data)
         print(colour("GREEN", "Absence request submitted successfully."))
         time.sleep(3)
-        utility.clear()
 
     def add_pending_hours(self):
         """Update the entitlements worksheet."""
-        print("Updating absence entitlements...\n")
+        print("\nUpdating absence entitlements...")
+        hours = self.generate_absence_summary()[2] * 8
         (entitlements.Entitlements(self.id_)
-                     .update_hours(self.hours, "unallocated_to_pending"))
+                     .update_hours(hours, "unallocated_to_pending"))
         print(colour("GREEN", "Absence entitlements updated successfully."))
 
 
@@ -492,7 +503,7 @@ class CancelAbsence:
             if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif validations.validate_choice_number(answer, id_list):
+            elif validate_choice_number(answer, id_list):
                 return answer
 
     def get_confirm_cancel(self):
@@ -512,7 +523,7 @@ class CancelAbsence:
             print("\nCancel this absence?")
             answer = input(f"{messages.y_or_n()}\n").upper().strip()
             utility.clear()
-            if validations.validate_choice_letter(answer, ["Y", "N"]):
+            if validate_choice_letter(answer, ["Y", "N"]):
                 return answer
 
     def update_cancel_absence(self):
@@ -549,7 +560,7 @@ def menu_or_quit(id_):
     while True:
         print(messages.to_menu())
         answer = input(colour("CYAN", ">>>\n")).upper().strip()
-        if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
+        if validate_choice_letter(answer, ["MENU", "QUIT"]):
             if answer == "MENU":
                 utility.clear()
                 employee_main(id_)
