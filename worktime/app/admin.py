@@ -10,7 +10,13 @@ import time
 
 # Custom Packages
 from worktime.app import menu, messages, title, utility, validations
-from worktime.app.utility import print_in_colour as colour
+from worktime.app.utility import (convert_date, convert_time,
+                                  get_num_of_weekdays,
+                                  print_in_colour as colour)
+from worktime.app.validations import (validate_choice_letter,
+                                      validate_choice_number,
+                                      validate_days, validate_date,
+                                      validate_unpaid_days)
 from worktime.worksheets import (clockings, credentials, employees,
                                  entitlements, requests)
 
@@ -28,7 +34,7 @@ def admin_main():
         menu.admin_menu()
         answer = input(colour("CYAN", ">>>\n")).strip()
         utility.clear()
-        if validations.validate_choice_number(answer, range(1, 6)):
+        if validate_choice_number(answer, range(1, 6)):
             break
 
     if answer == "1":
@@ -63,7 +69,7 @@ class ReviewRequests:
         today = utility.GetDatetime().tday()
         new_requests = []
         for item in self.all_requests:
-            date_ = utility.convert_date(item[2])
+            date_ = convert_date(item[2])
             if ((date_ - today).days > 0 and
                     item[-2] == "/" and item[-1] == "False"):
                 new_requests.append(item)
@@ -90,8 +96,8 @@ class ReviewRequests:
             decision = self.get_decision()
             confirmed = self.get_confirm_decision(request_id, decision)
             if confirmed == "Y":
-                num_requests -= 1
                 self.update_decision(request_id, decision)
+                num_requests -= 1
                 for i, req in enumerate(self.new_request):
                     if req[0] == request_id:
                         self.new_request.pop(i)
@@ -135,7 +141,7 @@ class ReviewRequests:
             utility.display_table(table, headers)
 
     def get_request_id(self):
-        """Run a while loop until the user inputs a valid value.
+        """Run a while loop until the user inputs a valid request ID.
 
         Returns:
             str: User input value - Request ID.
@@ -153,7 +159,7 @@ class ReviewRequests:
             if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif validations.validate_choice_number(answer, id_list):
+            elif validate_choice_number(answer, id_list):
                 return answer
 
     @staticmethod
@@ -176,8 +182,7 @@ class ReviewRequests:
             if answer == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif (validations.validate_choice_letter(answer,
-                                                     ["APPROVE", "REJECT"])):
+            elif validate_choice_letter(answer, ["APPROVE", "REJECT"]):
                 return answer
 
     def get_confirm_decision(self, request_id, decision):
@@ -211,12 +216,12 @@ class ReviewRequests:
                 print("\nReject this request?")
             answer = input(f"{messages.y_or_n()}\n").upper().strip()
             utility.clear()
-            if validations.validate_choice_letter(answer, ["Y", "N"]):
+            if validate_choice_letter(answer, ["Y", "N"]):
                 return answer
 
     def update_decision(self, request_id, decision):
-        """Update the absence_requests and entitlements worksheets
-        depending on the user input(approve or reject).
+        """Update the decision to the absence_requests
+        and entitlements worksheets.
 
         Args:
             request_id str: Request ID.
@@ -224,12 +229,14 @@ class ReviewRequests:
         """
         print("Processing...")
         employee_id, absence_days = self.get_request_details(request_id)
-        requests_row_index = int(request_id)
 
+        # Update absence_requests worksheet
         request_sheet = requests.Requests()
+        requests_row_index = int(request_id)
         hours = int(float(absence_days) * 8)
         request_sheet.update_approved(requests_row_index, decision)
 
+        # Update entitlements worksheet
         entitle_sheet = entitlements.Entitlements(employee_id)
         if decision == "APPROVE":
             entitle_sheet.update_hours(hours, "pending_to_planned")
@@ -253,19 +260,6 @@ class ReviewRequests:
                 ee_id = request[1]
                 total_days = request[6]
         return [ee_id, total_days]
-
-
-def get_fullname(id_, employee_list):
-    """Returns an employee's full name.
-
-    Args:
-        id_: An employee ID.
-        employee_list: A list of all employees
-    """
-    for employee in employee_list:
-        if employee[0] == id_:
-            fullname = f"{employee[1]} {employee[2]}"
-    return fullname
 
 
 class ReviewAttendace:
@@ -296,11 +290,8 @@ class ReviewAttendace:
             if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif validations.validate_date(answer):
-                if len(answer) != 10:
-                    print(colour("RED", "Invalid format: " + answer))
-                else:
-                    self.display_attendance(answer)
+            elif validate_date(answer):
+                self.display_attendance(answer)
 
     def display_attendance(self, date_=None):
         """Check if there is any clock in/out data, and then display the result.
@@ -308,25 +299,24 @@ class ReviewAttendace:
         Args:
             date_ str: A DD/MM/YYYY formatted date, today if None.
         """
-        print("Getting clocking data...")
-        today = utility.GetDatetime().tday_str()
-        date_ = today if date_ is None else date_
+        utility.clear()
+        today = utility.GetDatetime().tday()
+        converted_date = today if date_ is None else convert_date(date_)
+        text = "today" if date_ is None else date_
         headers = ["Name", "Date", "Clock In", "Clock Out"]
         table = []
         for clocking in self.clock_cards:
             ee_id, date, *_ = clocking
-            if date == date_:
+            if convert_date(date) == converted_date:
                 for ee_ in self.all_employees:
                     if ee_id == ee_[0]:
-                        fullname = f"{ee_[1]} {ee_[2]}"
-                clocking[0] = fullname
+                        # Replace the employee ID with full name
+                        clocking[0] = f"{ee_[1]} {ee_[2]}"
                 table.append(clocking)
             else:
-                utility.clear()
-                print(f"No clocking data found for {date_}.")
+                print(f"No clocking data found for {text}.")
         if table:
-            utility.clear()
-            print(f"Clock cards for {date_}")
+            print(f"Clock cards for {text}")
             utility.display_table(table, headers)
 
 
@@ -356,39 +346,47 @@ class AddAbsence:
             else:
                 self.end_date = self.start_date
 
-            if self.duration == "1":
-                self.start_time = "9:30"
-                self.end_time = "13:30"
-                self.period = f"{self.start_time} - {self.end_time}"
-                self.hours = 4
-            elif self.duration == "2":
-                self.start_time = "13:30"
-                self.end_time = "17:30"
-                self.period = f"{self.start_time} - {self.end_time}"
-                self.hours = 4
-            elif self.duration == "3":
-                self.start_time = ""
-                self.end_time = ""
-                self.period = "1 workday"
-                self.hours = 8
-            else:
-                self.start_time = ""
-                self.end_time = ""
-                self.days = (utility.get_num_of_weekdays(self.start_date,
-                                                         self.end_date))
-                self.period = f"{self.days} workdays"
-                self.hours = self.days * 8
-
             confirm_update = self.get_confirm_absence()
             if confirm_update == "Y":
-                if self.absence_type == "1":  # Paid time off
+                if self.absence_type == "1":
+                    # If paid time off, update entitlements hours.
                     self.add_entitlement()
                 self.add_absence()
             else:
-                print(colour("GREEN", "No changes were made."))
+                print(colour("GREEN", "\nNo changes were made."))
             print("\nReturning to the beginning...")
             time.sleep(3)
             utility.clear()
+
+    def generate_absence_summary(self):
+        """Generate absence start time, end time, days, depending on
+        the absence type.
+        """
+        # Half day morning
+        if self.duration == "1":
+            start_time = "9:30"
+            end_time = "13:30"
+            days = 0.5
+            period = f"{start_time} - {end_time}"
+        # Half day afternoon
+        elif self.duration == "2":
+            start_time = "13:30"
+            end_time = "17:30"
+            days = 0.5
+            period = f"{start_time} - {end_time}"
+        # 1 full day
+        elif self.duration == "3":
+            start_time = ""
+            end_time = ""
+            days = 1
+            period = "1 workday"
+        # 2+ days
+        else:
+            start_time = ""
+            end_time = ""
+            days = get_num_of_weekdays(self.start_date, self.end_date)
+            period = f"{days} workdays"
+        return [start_time, end_time, days, period]
 
     def display_entitle_data(self):
         """Display the target employee's absence entitlements."""
@@ -406,7 +404,7 @@ class AddAbsence:
         """
         while True:
             menu.absence_paid_menu()
-            print(f"({messages.to_menu()})")
+            print(messages.to_menu())
             answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
             if answer.upper() == "MENU":
@@ -415,7 +413,7 @@ class AddAbsence:
             if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif validations.validate_choice_number(answer, range(1, 3)):
+            elif validate_choice_number(answer, range(1, 3)):
                 if answer == "1" and self.avail_hours <= 0:
                     print(colour("RED", "Insufficient paid time " +
                                  "off available."))
@@ -430,7 +428,7 @@ class AddAbsence:
         """
         while True:
             menu.absence_period_menu()
-            print(f"({messages.to_menu()})")
+            print(messages.to_menu())
             answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
             if answer.upper() == "MENU":
@@ -439,7 +437,7 @@ class AddAbsence:
             if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif validations.validate_choice_number(answer, range(1, 5)):
+            elif validate_choice_number(answer, range(1, 5)):
                 if self.absence_type == "1":
                     if ((answer == "4" and self.avail_hours < 16) or
                             (answer == "3" and self.avail_hours < 8)):
@@ -472,10 +470,10 @@ class AddAbsence:
             if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif validations.validate_date(answer):
-                request_date = utility.convert_date(answer)
-                this_year = str(utility.GetDatetime().now_year())
-                if answer[-4:] != this_year and self.absence_type == "1":
+            elif validate_date(answer):
+                request_date = convert_date(answer)
+                this_year = utility.GetDatetime().now_year()
+                if request_date.year != this_year and self.absence_type == "1":
                     print(messages.invalid_year())
                 elif request_date.weekday() > 4:
                     print(colour("RED", "No absence updates required for " +
@@ -502,14 +500,12 @@ class AddAbsence:
             if answer.upper() == "QUIT":
                 title.display_goodbye()
                 sys.exit()
-            elif validations.validate_date(answer):
-                if ((validations
-                        .validate_days(self.start_date, answer,
-                                       self.avail_hours) and
-                    self.absence_type == "1") or
-                    (validations
-                        .validate_unpaid_days(self.start_date, answer) and
-                        self.absence_type == "2")):
+            elif validate_date(answer):
+                if ((self.absence_type == "1" and
+                        validate_days(self.start_date, answer,
+                                      self.avail_hours)) or
+                    (self.absence_type == "2" and
+                        validate_unpaid_days(self.start_date, answer))):
                     return answer
 
     def get_confirm_absence(self):
@@ -518,6 +514,7 @@ class AddAbsence:
             is_paid = "Paid absence"
         else:
             is_paid = "Unpaid absence"
+        *_, period = self.generate_absence_summary()
         while True:
             print(colour("YELLOW", "Please confirm the details."))
             print(f"Employee ID: {self.ee_id}")
@@ -525,12 +522,12 @@ class AddAbsence:
             print(f"Absence Type: {is_paid}")
             print(f"Start date: {self.start_date}")
             print(f"End date: {self.end_date}")
-            print(f"Period: {self.period}")
+            print(f"Period: {period}")
             if self.duration == "4":
                 print("Please note that weekends are not included.")
             print("\nUpdate this absence?")
             answer = input(f"{messages.y_or_n()}\n").upper().strip()
-            if validations.validate_choice_letter(answer, ["Y", "N"]):
+            if validate_choice_letter(answer, ["Y", "N"]):
                 return answer
 
     def add_absence(self):
@@ -541,9 +538,9 @@ class AddAbsence:
         time.sleep(1)
         req_sheet = requests.Requests(self.ee_id)
         req_id = req_sheet.generate_req_id()
-        days = self.hours / 8
+        start_time, end_time, days, *_ = self.generate_absence_summary()
         data = ([req_id, self.ee_id, self.start_date, self.end_date,
-                self.start_time, self.end_time, days, note, "True", "False"])
+                start_time, end_time, days, note, "True", "False"])
         req_sheet.add_request(data)
         print(colour("GREEN", self.fullname + "\'s absence details " +
                      "updated successfully."))
@@ -553,12 +550,13 @@ class AddAbsence:
         print(f"\nUpdating {self.fullname}'s absence entitlements...")
         time.sleep(1)
         entitle_sheet = entitlements.Entitlements(self.ee_id)
-        iso_start_date = utility.convert_date(self.start_date)
+        hours = self.generate_absence_summary()[2] * 8
+        iso_start_date = convert_date(self.start_date)
         today = utility.GetDatetime().tday()
         if int((iso_start_date - today).days) > 0:
-            entitle_sheet.update_hours(self.hours, "unallocated_to_planned")
+            entitle_sheet.update_hours(hours, "unallocated_to_planned")
         else:
-            entitle_sheet.update_hours(self.hours, "unallocated_to_taken")
+            entitle_sheet.update_hours(hours, "unallocated_to_taken")
         print(colour("GREEN", self.fullname + "\'s absence " +
                      "entitlements updated successfully."))
 
@@ -642,16 +640,16 @@ def get_date():
         if answer.upper() == "QUIT":
             title.display_goodbye()
             sys.exit()
-        elif validations.validate_date(answer):
+        elif validate_date(answer):
             today = utility.GetDatetime().tday()
-            if utility.convert_date(answer) > today:
+            if convert_date(answer) > today:
                 print(colour("RED", "Unable to set clocking time " +
                              "in the future."))
-            elif utility.convert_date(answer).month != today.month:
+            elif convert_date(answer).month != today.month:
                 print(colour("RED", "Unable to update clocking time " +
                              "after payroll has been processed."))
             else:
-                date_ = utility.convert_date(answer).strftime("%d/%m/%Y")
+                date_ = convert_date(answer).strftime("%d/%m/%Y")
                 return date_
 
 
@@ -688,7 +686,7 @@ def clock_in_or_out(id_, date_, fullname, data):
         if answer.upper() == "QUIT":
             title.display_goodbye()
             sys.exit()
-        elif validations.validate_choice_number(answer, range(1, 3)):
+        elif validate_choice_number(answer, range(1, 3)):
             in_out = "IN" if answer == "1" else "OUT"
             return in_out
 
@@ -722,15 +720,13 @@ def get_time(data, type_):
             sys.exit()
         elif validations.validate_time(answer):
             if type_ == "IN" and data is not None and to_time != "":
-                if (utility.convert_time(answer) >=
-                        utility.convert_time(to_time)):
+                if convert_time(answer) >= convert_time(to_time):
                     print(colour("RED", "Clock in time must be " +
                           "before clock out time."))
                 else:
                     return answer
             elif type_ == "OUT" and data is not None and from_time != "":
-                if (utility.convert_time(answer) <=
-                        utility.convert_time(from_time)):
+                if convert_time(answer) <= convert_time(from_time):
                     print(colour("RED", "Clock out time must be " +
                           "after clock in time."))
                 else:
@@ -762,8 +758,21 @@ def get_confirm_clocking(id_, date_, in_out, time_, fullname):
         print("\nUpdate?")
         answer = input(f"{messages.y_or_n()}\n").upper().strip()
         utility.clear()
-        if validations.validate_choice_letter(answer, ["Y", "N"]):
+        if validate_choice_letter(answer, ["Y", "N"]):
             return answer
+
+
+def get_fullname(id_, employee_list):
+    """Returns an employee's full name.
+
+    Args:
+        id_: An employee ID.
+        employee_list: A list of all employees
+    """
+    for employee in employee_list:
+        if employee[0] == id_:
+            fullname = f"{employee[1]} {employee[2]}"
+    return fullname
 
 
 def menu_or_quit():
@@ -777,7 +786,7 @@ def menu_or_quit():
         print(messages.to_menu())
         answer = input(colour("CYAN", ">>>\n")).upper().strip()
         utility.clear()
-        if validations.validate_choice_letter(answer, ["MENU", "QUIT"]):
+        if validate_choice_letter(answer, ["MENU", "QUIT"]):
             if answer == "MENU":
                 admin_main()
                 break
