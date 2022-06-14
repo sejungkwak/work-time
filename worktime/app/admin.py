@@ -404,7 +404,7 @@ class AddAbsence:
         """
         while True:
             menu.absence_paid_menu()
-            print(messages.to_menu())
+            print(f"({messages.to_menu()})")
             answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
             if answer.upper() == "MENU":
@@ -428,7 +428,7 @@ class AddAbsence:
         """
         while True:
             menu.absence_period_menu()
-            print(messages.to_menu())
+            print(f"({messages.to_menu()})")
             answer = input(colour("CYAN", ">>>\n")).strip()
             utility.clear()
             if answer.upper() == "MENU":
