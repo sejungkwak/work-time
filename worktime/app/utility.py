@@ -63,6 +63,10 @@ class GetDatetime:
         """Return str: a DD/MM/YYYY format date."""
         return self.now.date().strftime("%d/%m/%Y")
 
+    def now_time(self):
+        """Return current time."""
+        return self.now.time()
+
     def now_time_str(self):
         """Return str: a HH:MM:SS format time."""
         return self.now.time().strftime("%H:%M:%S")
