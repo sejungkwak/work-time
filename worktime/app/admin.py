@@ -243,7 +243,7 @@ class ReviewRequests:
             entitle_sheet.update_hours(hours, "pending_to_planned")
         else:
             entitle_sheet.update_hours(hours, "pending_to_unallocated")
-        print(colour("GREEN", "\nData updated successfully."))
+        print(colour("GREEN", "\nData updated successfully.\n"))
         time.sleep(2)
 
     def get_request_details(self, request_id):
@@ -317,7 +317,7 @@ class ReviewAttendace:
             print(f"Clock cards for {text}")
             utility.display_table(table, headers)
         else:
-            print(colour("RED", "No clock cards found for" + text))
+            print(colour("RED", "No clock cards found for " + text))
 
 
 class AddAbsence:
@@ -353,7 +353,7 @@ class AddAbsence:
                     self.add_entitlement()
                 self.add_absence()
             else:
-                print(colour("GREEN", "\nNo changes were made."))
+                print(colour("GREEN", "No changes were made."))
             print("\nReturning to the beginning...")
             time.sleep(3)
             utility.clear()
@@ -488,7 +488,7 @@ class AddAbsence:
             str: Absence end date.
         """
         while True:
-            print(f"Enter the {colour('CYAN', 'last date')}",
+            print(f"\nEnter the {colour('CYAN', 'last date')}",
                   "for the absence duration.")
             print(messages.date_format())
             print(f"({messages.to_menu()})")
@@ -536,7 +536,7 @@ class AddAbsence:
         """Update absence data to the absence_requests worksheet."""
         today = utility.GetDatetime().tday_str()
         note = today if self.absence_type == "1" else "unpaid"
-        print(f"\nUpdating {self.fullname}'s absence details...")
+        print(f"Updating {self.fullname}'s absence details...\n")
         time.sleep(1)
         req_sheet = requests.Requests(self.ee_id)
         req_id = req_sheet.generate_req_id()
@@ -549,7 +549,7 @@ class AddAbsence:
 
     def add_entitlement(self):
         """Update absence data to the entitlement worksheet if paid absence."""
-        print(f"\nUpdating {self.fullname}'s absence entitlements...")
+        print(f"\nUpdating {self.fullname}'s absence entitlements...\n")
         time.sleep(1)
         entitle_sheet = entitlements.Entitlements(self.ee_id)
         hours = self.generate_absence_summary()[2] * 8
@@ -604,7 +604,7 @@ def update_clocking():
         fullname = get_fullname(id_, all_employees)
         data = clockings.Clockings(id_).get_one_clocking(date_)
         in_or_out = clock_in_or_out(id_, date_, fullname, data)
-        time_ = get_time(data, in_or_out)
+        time_ = get_time(data, date_, in_or_out)
         confirm = get_confirm_clocking(id_, date_, in_or_out, time_, fullname)
         if confirm == "Y":
             print(f"Updating clock {in_or_out.lower()} time...")
@@ -693,11 +693,12 @@ def clock_in_or_out(id_, date_, fullname, data):
             return in_out
 
 
-def get_time(data, type_):
+def get_time(data, date_, type_):
     """Run while loop until the user inputs a valid time.
 
     Args:
         data dict: Clocking data or None.
+        date_ str: The date that clock time is updated on.
         type_ str: IN or OUT for clock in or clock out.
     Returns:
         str: A %H:%M format time.
@@ -721,14 +722,21 @@ def get_time(data, type_):
             title.display_goodbye()
             sys.exit()
         elif validations.validate_time(answer):
-            if type_ == "IN" and data is not None and to_time != "":
-                if convert_time(answer) >= convert_time(to_time):
+            tday = utility.GetDatetime().tday()
+            target_date = convert_date(date_)
+            current_time = utility.GetDatetime().now_time()
+            target_time = convert_time(answer)
+            if target_date == tday and target_time > current_time:
+                print(colour("RED", "Unable to set clocking time " +
+                             "in the future."))
+            elif type_ == "IN" and data is not None and to_time != "":
+                if target_time >= convert_time(to_time):
                     print(colour("RED", "Clock in time must be " +
                           "before clock out time."))
                 else:
                     return answer
             elif type_ == "OUT" and data is not None and from_time != "":
-                if convert_time(answer) <= convert_time(from_time):
+                if target_time <= convert_time(from_time):
                     print(colour("RED", "Clock out time must be " +
                           "after clock in time."))
                 else:
