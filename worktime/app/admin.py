@@ -196,8 +196,9 @@ class ReviewRequests:
             str: User input - Y or N.
         """
         for request in self.new_request:
-            req_id, id_, fromdate, todate, fromtime, totime, days, *_ = request
-            if req_id == request_id:
+            if request[0] == request_id:
+                (_, id_, fromdate, todate, fromtime,
+                 totime, days, *_) = request
                 fullname = get_fullname(id_, self.all_employees)
                 if fromtime:
                     period = f"{fromtime} - {totime}"
