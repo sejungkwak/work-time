@@ -1,3 +1,9 @@
+"""Absence Requests Worksheet Module
+
+This module provides functions to add and update
+absence details in the worksheet.
+"""
+
 # Custom Package
 from worktime.worksheets import auth
 from worktime.app import utility
@@ -5,15 +11,25 @@ from worktime.app import utility
 
 class Requests:
     """Represent the absence_requests worksheet.
+        Column A: request_id
+        Column B: employee_id
+        Column C: start_date
+        Column D: end_date
+        Column E: start_time
+        Column F: end_time
+        Column G: total_days
+        Column H: requested_on
+        Column I: approved
+        Column J: cancelled
 
     Args:
-        id str: An employee ID
+        id_ str: An employee ID
     """
 
     today = utility.GetDatetime().tday_str()
 
-    def __init__(self, id=None):
-        self.id = id
+    def __init__(self, id_=None):
+        self.id_ = id_
         self.worksheet = auth.SHEET.worksheet("absence_requests")
         self.requests = self.worksheet.get_all_values()[1:]
         self.req_id_col = "A"
@@ -70,7 +86,7 @@ class Requests:
         today_list = []
         for request in self.requests:
             if (request[2] == self.today and request[-2] == "True" and
-                    not eval(request[-1])):
+                    request[-1] == "False"):
                 today_list.append([request[1], request[6]])
         return today_list
 
@@ -118,7 +134,7 @@ class Requests:
         today = utility.convert_date(self.today)
         for request in self.requests:
             date = utility.convert_date(request[2])
-            if (request[1] == self.id and (date - today).days > 0 and
+            if (request[1] == self.id_ and (date - today).days > 0 and
                     not request[-2] == "False" and request[-1] == "False"):
                 cancellable.append(request)
         return cancellable

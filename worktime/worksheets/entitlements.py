@@ -1,29 +1,41 @@
+"""Absence Entitlements Worksheet Module
+
+This module provides functions to read and update
+absence entitlements in the worksheet.
+"""
+
 # Custom Package
 from worktime.worksheets import auth
 
 
 class Entitlements:
     """Represent the entitlements worksheet.
+        Column A: employee_id
+        Column B: total
+        Column C: taken
+        Column D: planned
+        Column E: pending
+        Column F: unallocated
 
     Args:
-        id str: An employee ID
+        id_ str: An employee ID
     """
 
-    def __init__(self, id):
-        self.id = id
+    def __init__(self, id_=None):
+        self.id_ = id_
         self.worksheet = auth.SHEET.worksheet("entitlements")
         self.entitlements = self.worksheet.get_all_values()[1:]
 
     def get_entitlements(self):
         """Retrieve an employee's entitlements in a list."""
         for entitlement in self.entitlements:
-            if self.id == entitlement[0]:
+            if self.id_ == entitlement[0]:
                 return entitlement[1:]
 
     def get_row(self):
         """Return the worksheet row index which is 1-based."""
         for row, entitlement in enumerate(self.entitlements):
-            if self.id == entitlement[0]:
+            if self.id_ == entitlement[0]:
                 return row + 2
 
     def get_hours(self, code):

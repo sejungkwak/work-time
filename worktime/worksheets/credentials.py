@@ -1,9 +1,18 @@
+"""Login_credentials Worksheet Module
+
+This module provides functions to retrieve login credential data
+from the worksheet.
+"""
+
 # Custom Package
 from worktime.worksheets import auth
 
 
 class Credentials:
-    """Represents the login_credentials worksheet."""
+    """Represents the login_credentials worksheet.
+        Column A: employee_id
+        Column B: password
+    """
 
     def __init__(self):
         self.worksheet = auth.SHEET.worksheet("login_credentials")
@@ -14,14 +23,14 @@ class Credentials:
         ids = [id for id, pw in self.credentials]
         return ids
 
-    def pw(self, id):
+    def pw(self, id_):
         """Returns a matching password for the ID.
 
         Args:
-            :id str: An employee ID
+            :id_ str: An employee ID
         """
         for credential in self.credentials:
-            if id in credential:
+            if id_ in credential:
                 index = self.credentials.index(credential)
-                pw = self.credentials[index][1]
-                return pw
+                password = self.credentials[index][1]
+                return password
