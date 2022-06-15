@@ -4,6 +4,7 @@ This module handles the login process.
 """
 
 # Built-in Modules
+from itertools import groupby
 import sys
 
 # Third-party Packages
@@ -12,7 +13,7 @@ import stdiomask
 # Custom Packages
 from worktime.app import admin, employee, title, utility, validations
 from worktime.app.utility import print_in_colour as colour
-from worktime.worksheets import credentials
+from worktime.worksheets import credentials, entitlements, requests
 
 
 def get_employee_id():
@@ -84,12 +85,61 @@ additional help, please email me at kwak.sejung@gmail.com
     utility.display_table([[text]])
 
 
+def calc_req_hours():
+    """Calculate absence request hours from absence_requests worksheet."""
+    all_req = requests.Requests().requests
+    all_req.sort(key=lambda req: req[1])
+    groups = groupby(all_req, lambda req: req[1])
+    new_list = [[item for item in data] for (key, data) in groups]
+    entitle_list = []
+    for each_employee in new_list:
+        taken = 0
+        planned = 0
+        pending = 0
+        for each_req in each_employee:
+            start_date = utility.convert_date(each_req[2])
+            tday = utility.GetDatetime().tday()
+            if ((start_date - tday).days <= 0 and
+                    each_req[-2] == "True" and
+                    each_req[-1] == "False"):
+                taken += int(float(each_req[-4]) * 8)
+            elif ((start_date - tday).days > 0 and
+                    each_req[-2] == "True" and
+                    each_req[-1] == "False"):
+                planned += int(float(each_req[-4]) * 8)
+            elif ((start_date - tday).days > 0 and
+                    each_req[-2] != "False" and
+                    each_req[-1] == "False"):
+                pending += int(float(each_req[-4]) * 8)
+            unallocated = 200 - (taken + planned + pending)
+            each_entitle = [each_req[1], 200, taken,
+                            planned, pending, unallocated]
+        entitle_list.append(each_entitle)
+    return entitle_list
+
+
+def update_entitlements():
+    """Update entitlements hours to entitlements worksheet."""
+    ent_class = entitlements.Entitlements()
+    ents = ent_class.entitlements
+    updated_ents = calc_req_hours()
+    if ents == updated_ents:
+        return
+    for ent in ents:
+        for updated_ent in updated_ents:
+            if ent[0] == updated_ent[0]:
+                ents[ents.index(ent)] = updated_ent
+    ent_class.worksheet.update("A2:F11", ents)
+
+
 def main():
-    """In the try block, call functions to display the title and a login prompt.
+    """In the try block, call functions to update entitlement hours,
+    display the title and a login prompt.
     In the except block, catch KeyboardInterrupt which is caused by a user
     pressing Ctrl + C, and exit the application.
     """
     try:
+        update_entitlements()
         title.display_main_title()
         get_employee_id()
     except KeyboardInterrupt:
