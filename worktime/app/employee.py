@@ -128,8 +128,7 @@ def clock_out(id_):
         data = [id_, today, "", clock_out_at]
         clock_sheet.add_clocking(data)
         print(colour("RED", "No clock in data for today."))
-        print(colour("RED", "To add the clock in tiem, " +
-              "contact a manager.\n"))
+        print("To add the clock in time, contact a manager.\n")
         print(colour("GREEN", "Successfully clocked out at"),
               colour("GREEN", clock_out_at + ".\n"))
     menu_or_quit(id_)
