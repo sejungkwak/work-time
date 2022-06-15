@@ -2,6 +2,10 @@
 
 _WORK TIME_ is an employee time management system which runs in an SSH terminal in a browser. The application will be targeted towards small business owners that are looking for an effective way to manage their employees' schedules. It provides an employee clocking system, attendance tracking and absence management.
 
+![Main Title Screenshot](documentation/title-screen.png)
+
+### View the live project [here](https://work--time.herokuapp.com/)
+
 __NOTE__: This application can only be operated properly on a desktop computer browser.
 
 <br>
@@ -24,6 +28,9 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 - [Languages](#languages)
 - [Libraries](#libraries)
 - [Programs](#programs)
+
+[Testing](#testing)
+- [Testing User Stories](#testing-user-stories-from-the-user-experience-ux-section)
 
 [Deployment](#deployment)
 - [Heroku](#heroku)
@@ -155,7 +162,7 @@ The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUM
 - [Diagrams.net](https://app.diagrams.net/) was used to create the flowchart and diagrams.
 - [Favicon.io](https://favicon.io/) was used to create the favicon.
 - [Git](https://git-scm.com/) was used for version control.
-- [GitHub](https://github.com/) was used to store the project's code and link to Heroku for auto-deployment.
+- [GitHub](https://github.com/) was used to store the project's code and link to Heroku for auto-deployment. Its project board was also used to organise the list of work separated into documentation(README), development and bug fix and prioritise the work.
 - [Gitpod](https://www.gitpod.io/) was used to develop and test my code.
 - [Google Apps Script](https://developers.google.com/apps-script) was used to write code to enable updating the calendar from the absence_requests worksheet.
 - [Google Calendar](https://www.google.com/calendar/about/) was used to embed the calendar in `index.html`.
@@ -167,6 +174,113 @@ The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUM
 - [W3C CSS Validation Service](https://jigsaw.w3.org/css-validator/) was used to check the CSS validity.
 - [W3C Markup Validation Service](https://validator.w3.org/) was used to check the HTML markup validity.
 - [Zapier](https://zapier.com/) was used to send notifications for new absence requests automatically.
+
+[Back To **Table of Contents**](#table-of-contents)
+
+<br>
+
+# Testing
+
+## Testing User Stories from the User Experience (UX) Section
+
+- As a superuser (business owner / supervisor),
+
+    - [x] I want the login credentials to be secure so that an unauthorised person cannot access the admin account.
+
+        : Stored passwords are hashed and salted using a password hashing library called [Passlib](https://passlib.readthedocs.io/en/stable/).
+
+    - [ ] I want to be able to reset my password so that I can access the system even when I forget it.
+
+        : This feature has not been implemented as mentioned in the [UX strategy section](#strategy-table--diagram). Its importance and viability/feasibility ratings were low to deliver a minimum viable product.
+
+    - [x] I want to be able to review each employee's attendance record so that I can manage the team more effectively.
+
+        : The admin can review all employee’s clock cards for the current day by typing 2 at the admin portal menu. They can type in another day to review them.
+
+        <details>
+            <summary>Attendance Review Screenshot</summary>
+            <img src="documentation/testing/ux/superuser-attendance.png">
+        </details>
+
+    - [x] I want to be able to review a list of all requests easily so that I don't miss anything.
+
+        : Upon login to the admin portal, a request notification displays on top of the menu advising of any new absence requests. The admin can review new absence requests by typing 1 at the admin portal menu.
+
+        <details>
+            <summary>Request Notification and Review Requests Screenshot</summary>
+            <img src="documentation/testing/ux/superuser-notification_portal.png">
+            <img src="documentation/testing/ux/superuser-review-requests.png">
+        </details>
+
+    - [x] I want to be able to see the team's availability so that I can easily determine whether I can approve or reject new absence requests.
+
+        : The calendar displays all employees’ absence schedules that have been approved by the admin.
+
+        <details>
+            <summary>Group Absence Calendar Screenshot</summary>
+            <img src="documentation/testing/ux/superuser-calendar.png">
+        </details>
+
+    - [x] I want to be notified when there's a new request so that I can proceed as soon as possible.
+
+        : An email is sent to the admin automatically when a new row is appended in the `absence_requests` worksheet using [Zapier](https://zapier.com/) service.
+
+        <details>
+            <summary>Request Notification Email Screenshot</summary>
+            <img src="documentation/testing/ux/superuser-notification_email.png">
+        </details>
+
+    - [ ] I want the system to programmatically generate payslips so that I can avoid idle and error-prone routines.
+
+        : This feature has not been implemented as mentioned in the [UX strategy section](#strategy-table--diagram). Its importance and viability/feasibility ratings were low to deliver a minimum viable product.
+
+    - [ ] I want to be able to add a new employee to the system so that they can start using the system immediately.
+
+        : This feature has not been implemented as mentioned in the [UX strategy section](#strategy-table--diagram). Its importance and viability/feasibility ratings were low to deliver a minimum viable product.
+
+<br>
+
+- As a user (employee),
+
+    - [x] I want a simple log-in process so that I can complete my task as quickly as possible.
+
+        : The system only requires an employee ID and its associated password to log in.
+
+    - [x] I want an easy to use system so that I can complete my task as quickly as possible.
+
+        : The application offers clear menu options and guided questions with detailed instructions.
+
+    - [x] I want to be able to check my absence entitlements so that I can plan my holidays as quickly as possible.
+
+        : The user can review their absence entitlements by typing 4 at the employee portal menu. The absence entitlements display in a table with total, taken, planned, pending and unallocated hours.
+
+        <details>
+            <summary>Absence Entitlements Screenshot</summary>
+            <img src="documentation/testing/ux/user-entitlements.png">
+        </details>
+
+    - [x] I want to be able to book and cancel my holidays on the system so that I don't have to email my manager or update it on the Excel spreadsheet.
+
+        : The user can easily cancel their planned/pending absence by typing 6 at the employee portal menu.
+
+        <details>
+            <summary>Absence Cancellation Screenshot</summary>
+            <img src="documentation/testing/ux/user-cancel-absence-step1.png">
+            <img src="documentation/testing/ux/user-cancel-absence-step2.png">
+        </details>
+
+    - [x] I want to be able to review worked hours so that I can flag it to the manager immediately if it's inaccurate.
+
+        : The user can view their clock in and clock out times by typing 3 at the employee portal menu. The information displays a week at a time in a table and the default display is the current week. The user can type in a different date to view another week’s clock cards.
+
+        <details>
+            <summary>Clock cards Screenshot</summary>
+            <img src="documentation/testing/ux/user-attendance.png">
+        </details>
+
+    - [x] I want to be able to check who's out of the office at a glance so that I can arrange meetings / events on a day when the relevant members are in.
+
+        : The calendar displays all employee’s absence schedules that have been approved by the admin.
 
 [Back To **Table of Contents**](#table-of-contents)
 
@@ -407,6 +521,8 @@ These steps demonstrate how to make a copy of this repository on your _GitHub_ a
 ## Acknowledgements
 
 - My fiancé Ciarán Maher for his feedback and proofreading.
+- My friends Hwayoung Kim, Junga Choi, Sena Park and Haeyoung Lee for testing the project.
 - My mentor Narender Singh for his guidance and advice.
+- My Cohort Facilitator Kasia Bogucka at Code Institute for the help.
 
 [Back To **Table of Contents**](#table-of-contents)
