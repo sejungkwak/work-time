@@ -280,7 +280,9 @@ class ReviewAttendace:
         self.display_attendance()
 
         while True:
-            print(f"\nEnter a {colour('CYAN', 'date')} to review another day.")
+            print(
+                f"\nEnter a {colour('CYAN', 'date')} to review",
+                "another day\'s clock cards.")
             print(messages.date_format())
             print(f"({messages.to_menu()})")
             answer = input(colour("CYAN", ">>>\n")).strip()
@@ -600,7 +602,7 @@ def update_clocking():
     """
     all_employees = employees.Employees().employees
     while True:
-        id_ = get_employee_id("to update clock cards.")
+        id_ = get_employee_id("to update a clock card.")
         date_ = get_date()
         fullname = get_fullname(id_, all_employees)
         data = clockings.Clockings(id_).get_one_clocking(date_)

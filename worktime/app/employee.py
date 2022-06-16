@@ -154,7 +154,8 @@ class ViewClockCard:
         """
         while True:
             print(
-                f"\nEnter a {colour('CYAN', 'date')} to review another week.")
+                f"\nEnter a {colour('CYAN', 'date')} to review",
+                "another week\'s clock cards.")
             print(messages.date_format())
             print(f"({messages.to_menu()})")
             answer = input(colour("CYAN", ">>>\n")).strip()
