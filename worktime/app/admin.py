@@ -550,7 +550,7 @@ class AddAbsence:
 
     def add_entitlement(self):
         """Update absence data to the entitlement worksheet if paid absence."""
-        print(f"\nUpdating {self.fullname}'s absence entitlements...\n")
+        print(f"Updating {self.fullname}'s absence entitlements...\n")
         time.sleep(1)
         entitle_sheet = entitlements.Entitlements(self.ee_id)
         hours = self.generate_absence_summary()[2] * 8
@@ -561,7 +561,7 @@ class AddAbsence:
         else:
             entitle_sheet.update_hours(hours, "unallocated_to_taken")
         print(colour("GREEN", self.fullname + "\'s absence " +
-                     "entitlements updated successfully."))
+                     "entitlements updated successfully.\n"))
 
 
 def get_employee_id(text):
