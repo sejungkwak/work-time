@@ -35,6 +35,7 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 
 [Testing](#testing)
 - [Testing User Stories](#testing-user-stories-from-the-user-experience-ux-section)
+- [Code Validation](#code-validation)
 - [Bugs](#bugs)
 
 [Deployment](#deployment)
@@ -115,7 +116,7 @@ The application will be structured as shown in the following diagram.
 _Google Sheets_ was chosen to store and retrieve data as most small/start-up companies typically have this tool available and the volume of the data for this project will be small. The python implementation will be able to support a SQL or NoSQL database with minimal refactoring when the volume of data requires it.
 The spreadsheet has 5 worksheets: login_credentials, employees, clockings, absences_requests and entitlements.
  
-Each employee's login id will be stored in the login_credentials sheet and will be the key to link to other worksheets to CRUD(create, read, update, delete) data when the user interacts with the application.
+Each employee's login ID will be stored in the login_credentials sheet and will be the key to link to other worksheets to CRUD(create, read, update, delete) data when the user interacts with the application.
  
 I have created a diagram to visualise each sheet and its columns.
 
@@ -170,7 +171,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
     - Clock In
 
-        - As soon as the logged-in employee types 1 at the menu, the clock in time is added to the clock cards.
+        - As soon as the logged-in employee types 1 at the menu, the clock in time is added to the worksheet.
 
             <details>
                 <summary>Clock In Screenshot</summary>
@@ -193,7 +194,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
     - Clock out
 
-        - As soon as the logged-in employee types 2 at the menu, the clock out time is added to the clock cards.
+        - As soon as the logged-in employee types 2 at the menu, the clock out time is added to the worksheet.
 
             <details>
                 <summary>Clock Out Screenshot</summary>
@@ -384,7 +385,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
 - Group Absence Calendar
 
-    - A Google Calendar is embedded to help both employee and admin make decisions about absence requests more easily.
+    - A _Google Calendar_ is embedded to help both employee and admin make decisions about absence requests more easily.
 
         <details>
             <summary>Calendar Screenshot</summary>
@@ -462,6 +463,100 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 - [GitHub](https://github.com/) was used to store the project's code and link to Heroku for auto-deployment. Its project board was also used to organise the list of work separated into documentation(README), development and bug fix and prioritise the work.
 - [Gitpod](https://www.gitpod.io/) was used to develop and test my code.
 - [Google Apps Script](https://developers.google.com/apps-script) was used to write code to enable updating the calendar from the absence_requests worksheet.
+
+
+    <details>
+        <summary>View code</summary>
+
+        function addToCalendar() {
+            let calendarId = 'MY_CALEDAR_ID';
+            let eventCal = CalendarApp.getCalendarById(calendarId);
+            let spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+            let requestsSheet = spreadsheet.getSheetByName('absence_requests');
+            let employeesSheet = spreadsheet.getSheetByName('employees');
+            let requestsLastLow = requestsSheet.getLastRow();
+            let employeesLastLow = employeesSheet.getLastRow();
+            let requests = requestsSheet.getRange(`A2:J${requestsLastLow}`).getValues();
+            let employees = employeesSheet.getRange(`A2:C${employeesLastLow}`).getValues();
+            let fName, lName, fullName, eventStartTime, eventEndTime;
+
+            // Delete existing events - workaround for the same event added muliple times.
+            all_ = eventCal.getEvents(new Date(2020, 1, 1, 0, 0, 0), new Date(2030, 1, 1, 0, 0, 0));
+            if (all_.length > 0) {
+                for (let i = 0; i < all_.length; i++) {
+                    all_[i].deleteEvent();
+                }
+            }
+
+            // Loop through the absence requests worksheet.
+            for (let i = 0; i < requests.length; i++) {
+                let request = requests[i];
+                let employeeID = request[1];
+                let startDate = request[2];
+                let endDate = request[3];
+                let startTime = request[4];
+                let endTime = request[5];
+                let approved = request[8];
+                let cancelled = request[9];
+
+                // Format purpose
+                let fromdate = startDate.split('/');
+                let todate = endDate.split('/');
+                let startDay = parseInt(fromdate[0]);
+                let startMonth = parseInt(fromdate[1]);
+                let startYear = fromdate[2];
+                let endDay = parseInt(todate[0]);
+                let endMonth = parseInt(todate[1]);
+                let endYear = todate[2];
+
+                let eventStart = new Date(startYear, startMonth - 1, startDay);
+                let eventEnd = new Date(endYear, endMonth - 1, endDay);
+
+                // half day
+                if (startTime != '') {
+                    let startHours;
+                    if (startTime == '9:30') {
+                        startHours = '9';
+                    } else {
+                        startHours = '13';
+                    }
+                    let endHours = endTime.substring(0, 2);
+                    eventStartTime = new Date(startYear, startMonth - 1, startDay, startHours, 30);
+                    eventEndTime = new Date(endYear, endMonth - 1, endDay, endHours, 30);
+                }
+
+                // Get the employee's full name
+                for (let j = 0; j < employees.length; j++) {
+                    let employee = employees[j];
+                    if (employeeID == employee[0]) {
+                        fName = employee[1];
+                        lName = employee[2];
+                        fullName = `${fName} ${lName}`;
+                        break;
+                    }
+                }
+
+                if (startTime == '' && eventStart != eventEnd && approved == 'True' && cancelled == 'False') {
+                    // 2+ days off
+                    let multieventEnd = new Date(eventEnd);
+                    multieventEnd.setDate(eventEnd.getDate() + 1);
+                    eventCal.createAllDayEvent(fullName, eventStart, multieventEnd);
+                } else if (
+                startTime == '' &&
+                eventStart == eventEnd &&
+                approved == 'True' &&
+                cancelled == 'False'
+                ) {
+                    // 1 day off
+                    eventCal.createAllDayEvent(fullName, eventStart);
+                } else if (startTime != '' && approved == 'True' && cancelled == 'False') {
+                    // half day off
+                    eventCal.createEvent(fullName, eventStartTime, eventEndTime);
+                }
+            }
+        }
+    </details>
+
 - [Google Calendar](https://www.google.com/calendar/about/) was used to embed the calendar in `index.html`.
 - [Google Sheets](https://www.google.com/sheets/about/) was used to create/read/update/delete all data.
 - [Grammarly](https://app.grammarly.com/) was used to check for errors in the README.
@@ -568,16 +663,30 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
     - [x] I want to be able to review worked hours so that I can flag it to the manager immediately if it's inaccurate.
 
-        : The user can view their clock in and clock out times by typing 3 at the employee portal menu. The information displays a week at a time in a table and the default display is the current week. The user can type in a different date to view another week's clock cards.
+        : The user can view their clock in and clock out times by typing 3 at the employee portal menu. The information displays a week at a time in a table and the default display is the current week. The user can type in a different date to view another week's clock card.
 
         <details>
-            <summary>Clock cards Screenshot</summary>
+            <summary>Clock Card Screenshot</summary>
             <img src="documentation/testing/ux/user-attendance.png">
         </details>
 
     - [x] I want to be able to check who's out of the office at a glance so that I can arrange meetings / events on a day when the relevant members are in.
 
         : The calendar displays all employee's absence schedules that have been approved by the admin.
+
+## Code Validation
+
+- HTML Validation
+    - No errors or warnings were found when passing through the [W3C Markup Validator](https://validator.w3.org/).
+
+- CSS Validation
+    - No errors but 2 warnings were found when passing through the [W3C CSS Validator](https://jigsaw.w3.org/css-validator/).
+    - The warnings are caused by the use of vendor prefixes: `ms` and `webkit`. As these are for supporting cross-browser compatibility, I decided not to remove them.
+
+- Python Validation
+    - No errors or warnings were found when passing through the [PEP8 online](http://pep8online.com/).
+
+- [View screenshots](documentation/VALIDATION.md)
 
 ## Bugs
 
@@ -638,7 +747,6 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
     - Error: When submitting an absence request, the system did not calculate the number of weekdays correctly where an absence did not start on a Monday.
     - Cause: I didn't account for a situation where an absence did not start on Monday.
     - Fix: I used the timedelta and sum methods to generate a list of all dates between the two dates and then calculated the number  of weekdays in that time period.
-    View Commit: 
     - [Original code](https://github.com/sejungkwak/work-time/commit/f01e1e25d647c19a7e57773555be3f4edfe2ddc6) / [Fixed code](https://github.com/sejungkwak/work-time/commit/55ef15f84306da55fb36a1b59075d13357d0c684)
 
 - Incorrect Value in Review New Request Summary
@@ -658,6 +766,11 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
 - _Google API_ Quota Limit
 
+    <details>
+        <summary>Quota Limit Error Screenshot</summary>
+        <img src="documentation/testing/bugs/bug-quota-limit.png">
+    </details>
+
     - Error: An error code 429 was logged in the terminal.
     - Google Sheets API has a quota limit of 60 read requests per minute per user.
     - I refactored the code to reduce the number of API requests significantly. I also requested to increase the limit, but was not granted due to "the project having insufficient usage history" and I "still have a lot of headroom".
@@ -673,8 +786,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
     
         - I changed the code to get the whole worksheet and pass it to another function instead of getting it twice.
 
-            [View commit details](https://github.com/sejungkwak/work-time/commit/90715b9585179b8665e086bc2ae6fe05dfd6e20c)
-
+            [View commit details](https://github.com/sejungkwak/work-time/commit/90715b9585179b8665e086bc2ae6fe05dfd6e20c) /
             [View commit details](https://github.com/sejungkwak/work-time/commit/c73752dbf39b6e6891feab4c7f46730cb86bc42b)
 
 - _Google Calendar_ Events Duplication
