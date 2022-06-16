@@ -24,7 +24,7 @@ def get_employee_id():
     help_typed = False
 
     while True:
-        print("Please enter " + colour("CYAN", "Employee ID") + ".")
+        print("\nPlease enter " + colour("CYAN", "Employee ID") + ".")
         if not help_typed:
             print("For more information about Work Time,",
                   f"type {colour('CYAN', 'help')} and press enter.")

@@ -29,7 +29,7 @@ def validate_id(id_, ids):
         if id_ not in ids:
             raise ValueError()
     except ValueError:
-        print(colour("RED", "Invalid ID: " + id_ + "\n"))
+        print(colour("RED", "Invalid ID: " + id_))
         return False
     else:
         return True

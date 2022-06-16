@@ -29,7 +29,7 @@ def display_main_title():
  ▀▀▀▀▄▄▄▀▄▄▄▀▀▀▄▄▄▄▄▄▀▀▄▄▀▀▀▄▄▀▄▄▀▀▀▄▄▀▀▀▀▀▀▀▀▄▄▀▀▀▀▄▄▀▄▄▀▀▀▀▀▀▄▄▀▄▄▄▄▄▄▄▀▀▀▀▀▀
     """)
     print("\n" + "Time Management System".center(80))
-    print("\n" + "=" * 80 + "\n")
+    print("\n" + "=" * 80)
 
 
 def display_employee_title(id_):
