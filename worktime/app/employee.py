@@ -186,7 +186,7 @@ class ViewClockCard:
             print(f"Clock card for {text}.")
             utility.display_table(table, headers)
         else:
-            print(f"No clocking data found for {text}.\n")
+            print(f"No clocking data found for {text}.")
 
     def get_week_clockings(self, date_=None):
         """Iterate through the sheet to find week's values that match the date.
