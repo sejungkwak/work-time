@@ -79,7 +79,7 @@ small business owners, supervisors and their employees
 
 - As a user (employee),
     - I want a simple log-in process so that I can complete my task as quickly as possible.
-    - I want an easy to use system so that I can complete my task as quickly as possible.
+    - I want an easy-to-use system so that I can complete my task as quickly as possible.
     - I want to be able to check my absence entitlements so that I can plan my holidays as quickly as possible.
     - I want to be able to book and cancel my holidays on the system so that I don't have to email my manager or update it on the Excel spreadsheet.
     - I want to be able to review worked hours so that I can flag it to the manager immediately if it's inaccurate.
@@ -89,19 +89,34 @@ small business owners, supervisors and their employees
 
 The strategy table and diagram have been created to decide on what features should be implemented in this project. The listed features are based on the user stories. Each feature's importance and viability / feasibility were rated on a scale of 1 to 5 where 5 is the most important and the most viable / feasible.
 
-![Strategy Table and Diagram](documentation/ux/strategy-plane.png)
+<details>
+    <summary>View Strategy Table and Diagram</summary>
+    <img src="documentation/ux/strategy-plane.png">
+</details>
+
+<br>
 
 ## Application Structure
 
-Based on the strategy rating, I have decided to implement the following features: Log in(Feature ID 1), Clock in/out(3), Book/Cancel/Approve/Reject time-off(4), Review Clock in/out time(7), Review absence entitlements(8), Review group absence(9).
+Based on the strategy rating, I have decided to implement the following features: Login(Feature ID 1), Clock in/out(3), Book/Cancel/Approve/Reject time-off(4), Review Clock in/out time(7), Review absence entitlements(8), Review group absence(9).
 
 The application will be structured as shown in the following diagram.
 
-![Application Structure](documentation/ux/structure.png)
+<details>
+    <summary>View Diagram</summary>
+    <img src="documentation/ux/structure.png">
+</details>
+
+<br>
 
 ## Wireframe
 
-![Wireframe](documentation/ux/wireframe.png)
+<details>
+    <summary>View Wireframe</summary>
+    <img src="documentation/ux/wireframe.png">
+</details>
+
+<br>
 
 [Back To **Table of Contents**](#table-of-contents)
 
@@ -111,7 +126,12 @@ The application will be structured as shown in the following diagram.
 
 ## Flowchart
 
-![Flowchart](documentation/technical-design/flowchart.png)
+<details>
+    <summary>View Flowchart</summary>
+    <img src="documentation/technical-design/flowchart.png">
+</details>
+
+<br>
 
 ## Data Model
 
@@ -122,7 +142,10 @@ Each employee's login ID will be stored in the login_credentials sheet and will 
  
 I have created a diagram to visualise each sheet and its columns.
 
-![Data model](documentation/technical-design/data-model.png)
+<details>
+    <summary>View Diagram</summary>
+    <img src="documentation/technical-design/data-model.png">
+</details>
 
 The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUMfb2aVQdtDsvj2FyMLVSAgK2HFpPF_FO3ZXAN37s/edit?usp=sharing)
 
@@ -134,19 +157,19 @@ The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUM
 
 ## Implemented Features
 
-- The application layout splits functionality across 2 frames: a terminal and calendar. The application's main features are utilised via the terminal.
+- The application layout splits functionality across 2 frames: a terminal and a calendar. The application's main features are utilised via the terminal.
 
-- Each user input is validated, feedback is given if invalid and input prompt is repeated until the user enters valid input. The user can also type __menu__ or __quit__ if deciding to return to the menu or exit the application.
+- Each user input is validated, feedback is given if invalid and the input prompt is repeated until the user enters valid input. The user can also type __menu__ or __quit__ if deciding to return to the menu or exit the application.
 
 - Feedback is given when the user's request is processed and data is updated to _Google Sheets_. If the user decides not to continue further, a message shows that no changes are made.
 
-- Application commands are not case sensitive for convenience.
+- Application commands are not case-sensitive for convenience.
 
-__NOTE__: The application is set for a fictional company that is based in Ireland, has 10 employees and 1 manager, each employee works at 9:30-5:30 in weekdays and has 25 annual leave entitlements.
+__NOTE__: The application is set for a fictional company that is based in Ireland, has 10 employees and 1 manager, each employee works 9:30-5:30 on weekdays and has 25 annual leave entitlements.
 
 - Main Title and Login
 
-    - When starting the program, the title and login prompt displays for quick access to the system.
+    - When starting the program, the title and login prompt display for quick access to the system.
 
         <details>
             <summary>Main Title and Login Screenshot</summary>
@@ -219,7 +242,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
     - View Clock Card
 
-        - The logged-in employee's clock card of the current week is displayed by default. They can view another week's clock card by typing a date in the correct format.
+        - The logged-in employee's clock card for the current week is displayed by default. They can view another week's clock card by typing a date in the correct format.
 
             <details>
                 <summary>Clock Card Display Screenshot</summary>
@@ -228,7 +251,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
     - View Absence Entitlements
 
-        - The logged-in employee's annual absence entitlements is displayed in a table with total, taken, planned, pending and unallocated hours.
+        - The logged-in employee's annual absence entitlements are displayed in a table with total, taken, planned, pending and unallocated hours.
 
             <details>
                 <summary>Absence Entitlements Display Screenshot</summary>
@@ -321,7 +344,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
     - Add Absence
 
-        - By typing 3 at the admin menu, the admin can add an employee's absence for the current year. This feature allows the admin to update any unplanned absences taken in the the current year.
+        - By typing 3 at the admin menu, the admin can add an employee's absence for the current year. This feature allows the admin to update any unplanned absences taken in the current year.
 
         - The admin is asked to input an employee ID, absence type(paid or unpaid), time period and date step by step. Lastly, the summary of absence displays to confirm before the update.
 
@@ -354,7 +377,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
         - By typing 4 at the admin menu, the admin can update an employee's clock in/out time(s) for the current month.
 
-        - The admin is asked to input an employee ID, date, clock in or out time step by step. Lastly,  the summary of details displays to confirm the update.
+        - The admin is asked to input an employee ID, date, and clock in/out time step by step. Lastly, the summary of details displays to confirm the update.
 
             <details>
                 <summary>Update Clock Card Step 1 Employee ID Screenshot</summary>
@@ -378,7 +401,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
 - Exit
 
-    - When the user selects the __Exit__ option at the menu or types __quit__ at input prompt, the end title is displayed.
+    - When the user selects the __Exit__ option at the menu or types __quit__ at the input prompt, the end title is displayed.
 
         <details>
             <summary>End Title Screenshot</summary>
@@ -387,7 +410,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
 - Group Absence Calendar
 
-    - A _Google Calendar_ is embedded to help both employee and admin make decisions about absence requests more easily.
+    - A _Google Calendar_ is embedded to help both employees and admin make decisions about absence requests more easily.
 
         <details>
             <summary>Calendar Screenshot</summary>
@@ -408,7 +431,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
 - Flexible System
 
-    The current system is set for a specific situation such as a time zone(Ireland), working hours(9:30-5:30 weekdays only) and absence usage is restricted to the current year. It would be more usable if there are less restrictions.
+    The current system is set for a specific situation such as a time zone(Ireland), working hours(9:30-5:30 weekdays only) and absence usage is restricted to the current year. It would be more usable if there were fewer restrictions.
 
 - Password Reset / Forgot Password
 
@@ -416,7 +439,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
 - Calendar
 
-    As the calendar was embedded in the `html` file, the page needs to be reloaded to see the updated calendar by default. For a better user experience, I added some JavaScript code to auto-refresh every 20 seconds. However, when the calendar refreshes it is noticeable and a user cannot hold another month for more than 20 seconds. It would be better if the calendar event displays as the admin approves a request without refreshing it.
+    As the calendar was embedded in the HTML file, the page needs to be reloaded to see the updated calendar by default. For a better user experience, I added some JavaScript code to auto-refresh every 20 seconds. However, when the calendar refreshes it is noticeable and a user cannot hold another month for more than 20 seconds. It would be better if the calendar event displays as the admin approves a request without refreshing it.
 
 [Back To **Table of Contents**](#table-of-contents)
 
@@ -446,12 +469,12 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
 ### Third-party Packages
 
-- [colorama](https://pypi.org/project/colorama/) was used to highlight texts by printing in different colours. The Cyan colour was used for input format, green for successful result, yellow for texts that require action, red background for warning or error messages.
+- [colorama](https://pypi.org/project/colorama/) was used to highlight texts by printing in different colours. The Cyan colour was used for input format, green for successful results, yellow for texts that require action, and red background for warning or error messages.
 - [google-auth](https://google-auth.readthedocs.io/en/master/) was used to authenticate for the _Google_ APIs.
 - [gspread](https://docs.gspread.org/en/v5.3.2/#) was used to access and manipulate data in _Google Sheets_.
 - [passlib](https://passlib.readthedocs.io/en/stable/) was used to store users' passwords securely. As this package uses over 30 password hashing algorithms with randomly generated salt, it is more secure to store passwords using its method than plain texts.
 - [pytz](https://pypi.org/project/pytz/) was used to set a Timezone to Dublin, Ireland. This package solves the issue of ambiguous times at the end of DST which is mentioned in the Python official documentation.
-- [stdiomask](https://pypi.org/project/stdiomask/) was used for password masking. This package enhances security as it does not reveal the password on screen.
+- [stdiomask](https://pypi.org/project/stdiomask/) was used for password masking. This package enhances security as it does not reveal the password on the screen.
 - [tabulate](https://pypi.org/project/tabulate/) was used to display tables. This helps deliver information in a more efficient way.
 
 ## Programs
@@ -462,7 +485,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 - [Diagrams.net](https://app.diagrams.net/) was used to create the flowchart and diagrams.
 - [Favicon.io](https://favicon.io/) was used to create the favicon.
 - [Git](https://git-scm.com/) was used for version control.
-- [GitHub](https://github.com/) was used to store the project's code and link to Heroku for auto-deployment. Its project board was also used to organise the list of work separated into documentation(README), development and bug fix and prioritise the work.
+- [GitHub](https://github.com/) was used to store the project's code and link to Heroku for auto-deployment. Its project board was also used to organise the list of work separated into documentation(README), development and bug fixes and prioritise the work.
 - [Gitpod](https://www.gitpod.io/) was used to develop and test my code.
 - [Google Apps Script](https://developers.google.com/apps-script) was used to write code to enable updating the calendar from the absence_requests worksheet.
 
@@ -617,7 +640,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
     - [x] I want to be notified when there's a new request so that I can proceed as soon as possible.
 
-        : An email is sent to the admin automatically when a new row is appended in the `absence_requests` worksheet using [Zapier](https://zapier.com/) service.
+        : An email is sent to the admin automatically when a new row is appended in the `absence_requests` worksheet using [Zapier](https://zapier.com/).
 
         <details>
             <summary>Request Notification Email Screenshot</summary>
@@ -640,7 +663,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
         : The system only requires an employee ID and its associated password to log in.
 
-    - [x] I want an easy to use system so that I can complete my task as quickly as possible.
+    - [x] I want an easy-to-use system so that I can complete my task as quickly as possible.
 
         : The application offers clear menu options and guided questions with detailed instructions.
 
@@ -693,7 +716,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 ## Functionality Testing
 
 - I have tested the application's functionality manually.
-- All the test passed: [View details](documentation/FUNCTIONALITY.md)
+- All the tests passed: [View details](documentation/FUNCTIONALITY.md)
 
 ## Performance Testing
 
@@ -733,7 +756,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
     - Error: The right side of the table that displayed new requests at the admin portal went to the next line.
     - Cause: The table was too long for the terminal width.
-    - Fix: I changed the code to take out the employee's name from the table, and rewrote the code to  display the table for each employee and their name at the top of each table.
+    - Fix: I changed the code to take out the employee's name from the table and rewrote the code to  display the table for each employee and their name at the top of each table.
     - [View commit details](https://github.com/sejungkwak/work-time/commit/9cab3a5911269cfe37208e1ac46d074004c7f2ec)
 
 - Colorama
@@ -778,7 +801,7 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
     </details>
 
     - Error: Incorrect details were displayed in the confirmation summary of the admin portal review requests option.
-    - Cause: I used an if statement within a for loop to assign the required absence request details to a new variable. However, as the variable assignment was outside of the if statement, the assignment repeated at the end of the loop and so always returned the last value instead of the required one.
+    - Cause: I used an if statement within a for loop to assign the required absence request details to a new variable. However, as the variable assignment was outside of the if statement, the assignment was repeated at the end of the loop and so always returned the last value instead of the required one.
     - Fix: I moved the variable assignment to within the if statement to ensure the only absence request returned was the one that was changed.
     - [View commit details](https://github.com/sejungkwak/work-time/commit/6ec7925dd008d2b0044e36014f35e97aa471c5c3)
 
@@ -811,9 +834,9 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
 - _Google Calendar_ Events Duplication
 
-    - Error: The calendar events updated multiple times for the same absence occasionally.
+    - Error: The calendar events were updated multiple times for the same absence occasionally.
     - _Google Apps Script_ was used to update absences in the calendar from the `absence_requests` worksheets. The calendar needs to be updated as per the admin's approval/rejection and/or an employee's cancellation. When I first executed the code, the same events were added multiple times at the same time. I added some code to delete all events if there are any, before executing the code that adds events to the calendar. However, it does not delete future events sometimes.
-    - As this project is focused in Python and the calendar does not interrupt performance, I decided not to pursue it any further.
+    - As this project is focused on Python and the calendar does not interrupt the performance, I decided not to pursue it any further.
 
 [Back To **Table of Contents**](#table-of-contents)
 
@@ -1018,7 +1041,7 @@ These steps demonstrate how to make a copy of this repository on your _GitHub_ a
 
 - Clearing the terminal
     - Source: GeeksforGeeks's article [How to clear screen in python?](https://www.geeksforgeeks.org/clear-screen-python/)
-    - Method: Defining a function to clearing the terminal using the `os` module.
+    - Method: Defining a function to clear the terminal using the `os` module.
     - Usage: I used this method to clear the terminal after user input.
 
 - Sorting a list of lists by an index
