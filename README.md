@@ -24,6 +24,10 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 - [Flowchart](#flowchart)
 - [Data Model](#data-model)
 
+[Features](#features)
+- [Implemented Features](#implemented-features)
+- [Features Left to Implement](#features-left-to-implement)
+
 [Technologies Used](#technologies-used)
 - [Languages](#languages)
 - [Libraries](#libraries)
@@ -110,13 +114,305 @@ The application will be structured as shown in the following diagram.
 _Google Sheets_ was chosen to store and retrieve data as most small/start-up companies typically have this tool available and the volume of the data for this project will be small. The python implementation will be able to support a SQL or NoSQL database with minimal refactoring when the volume of data requires it.
 The spreadsheet has 5 worksheets: login_credentials, employees, clockings, absences_requests and entitlements.
  
-Each employee’s login id will be stored in the login_credentials sheet and will be the key to link to other worksheets to CRUD(create, read, update, delete) data when the user interacts with the application.
+Each employee's login id will be stored in the login_credentials sheet and will be the key to link to other worksheets to CRUD(create, read, update, delete) data when the user interacts with the application.
  
 I have created a diagram to visualise each sheet and its columns.
 
 ![Data model](documentation/technical-design/data-model.png)
 
 The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUMfb2aVQdtDsvj2FyMLVSAgK2HFpPF_FO3ZXAN37s/edit?usp=sharing)
+
+[Back To **Table of Contents**](#table-of-contents)
+
+<br>
+
+# Features
+
+## Implemented Features
+
+- The application layout splits functionality across 2 frames: a terminal and calendar. The application's main features are utilised via the terminal.
+
+- Each user input is validated, feedback is given if invalid and input prompt is repeated until the user enters valid input. The user can also type __menu__ or __quit__ if deciding to return to the menu or exit the application.
+
+- Feedback is given when the user's request is processed and data is updated to _Google Sheets_. If the user decides not to continue further, a message shows that no changes are made.
+
+- Application commands are not case sensitive for convenience.
+
+__NOTE__: The application is set for a fictional company that is based in Ireland, has 10 employees and 1 manager, each employee works at 9:30-5:30 in weekdays and has 25 annual leave entitlements.
+
+- Main Title and Login
+
+    - When starting the program, the title and login prompt displays for quick access to the system.
+
+        <details>
+            <summary>Main Title and Login Screenshot</summary>
+            <img src="documentation/features/main-login.png">
+        </details>
+
+    - At the employee ID prompt, the user can access a brief description of the application by typing __help__.
+
+        <details>
+            <summary>Help Screenshot</summary>
+            <img src="documentation/features/main-help.png">
+        </details>
+
+- Employee Portal
+
+    - Title
+
+        - When an employee logs into the system, they can see the employee portal title, welcome message with their first name and menu.
+
+            <details>
+                <summary>Employee Portal Title Screenshot</summary>
+                <img src="documentation/features/employee-title.png">
+            </details>
+
+    - Clock In
+
+        - As soon as the logged-in employee types 1 at the menu, the clock in time is added to the clock cards.
+
+            <details>
+                <summary>Clock In Screenshot</summary>
+                <img src="documentation/features/employee-1-clock-in.png">
+            </details>
+
+        - If the employee already clocked in that day, the alert displays to notify them and asks if they want to overwrite the time.
+
+            <details>
+                <summary>Clock In Alert 1 Screenshot</summary>
+                <img src="documentation/features/employee-1-clock-in_alert_overwrite.png">
+            </details>
+
+        - If the employee already clocked out that day, the alert displays to notify them. In that case, only the admin can update the time.
+
+            <details>
+                <summary>Clock In Alert 2 Screenshot</summary>
+                <img src="documentation/features/employee-1-clock-in_alert_already_clockout.png">
+            </details>
+
+    - Clock out
+
+        - As soon as the logged-in employee types 2 at the menu, the clock out time is added to the clock cards.
+
+            <details>
+                <summary>Clock Out Screenshot</summary>
+                <img src="documentation/features/employee-2-clock-out.png">
+            </details>
+
+        - If the employee did not clock in that day, the alert displays to notify them.
+
+            <details>
+                <summary>Clock Out Alert 1 Screenshot</summary>
+                <img src="documentation/features/employee-2-clock-out_no_clock_in.png">
+            </details>
+
+        - If the employee already clocked out that day, the alert displays to notify them. In this case, the clock out time is not updated.
+
+            <details>
+                <summary>Clock Out Alert 2 Screenshot</summary>
+                <img src="documentation/features/employee-2-clock-out_alert_already_clockout.png">
+            </details>
+
+    - View Clock Card
+
+        - The logged-in employee's clock card of the current week is displayed by default. They can view another week's clock card by typing a date in the correct format.
+
+            <details>
+                <summary>Clock Card Display Screenshot</summary>
+                <img src="documentation/features/employee-3-view-clock-card.png">
+            </details>
+
+    - View Absence Entitlements
+
+        - The logged-in employee's annual absence entitlements is displayed in a table with total, taken, planned, pending and unallocated hours.
+
+            <details>
+                <summary>Absence Entitlements Display Screenshot</summary>
+                <img src="documentation/features/employee-4-view-absence-entitlements.png">
+            </details>
+
+    - Book Absence
+
+        - By selecting this option, the logged-in employee's available paid time off hours and options for absence duration are displayed.
+
+            <details>
+                <summary>Book Absence Step 1 Screenshot</summary>
+                <img src="documentation/features/employee-5-book-absence.png">
+            </details>
+
+        - The employee is asked to enter a date for options 1-3, and a start and end date for option 4.
+
+            <details>
+                <summary>Book Absence Step 2 Screenshot</summary>
+                <img src="documentation/features/employee-5-book-absence_date_input.png">
+            </details>
+
+        - If the user enters a weekend date, the system alerts them and will not proceed. However, the system allows the user to input weekends for an end date for convenience. The system only uses weekdays for all calculations.
+
+            <details>
+                <summary>Book Absence Alert Screenshot</summary>
+                <img src="documentation/features/employee-5-book-absence_alert_weekends.png">
+            </details>
+
+        - Upon pressing the enter key after inputting the details, the request summary and confirmation message are displayed.
+
+            <details>
+                <summary>Book Absence Confirmation Screenshot</summary>
+                <img src="documentation/features/employee-5-book-absence_confirm.png">
+            </details>
+
+    - Cancel Absence
+
+        - Upon pressing 6, the logged-in employee's planned/pending absence displays in a table.
+
+            <details>
+                <summary>Cancel Absence Screenshot</summary>
+                <img src="documentation/features/employee-6-cancel-absence.png">
+            </details>
+
+        - When typing a request ID, a summary of the absence to be cancelled displays to ensure the employee is cancelling the correct absence.
+
+            <details>
+                <summary>Cancel Absence Confirmation Screenshot</summary>
+                <img src="documentation/features/employee-6-cancel-absence_confirm.png">
+            </details>
+
+- Admin Portal
+
+    - Title
+
+        - When the superuser logs into the system, they can see the admin portal title, new absence request notification alerts and the admin menu.
+
+            <details>
+                <summary>Cancel Absence Confirmation Screenshot</summary>
+                <img src="documentation/features/admin-title.png">
+            </details>
+
+    - Review Requests
+
+        - Upon pressing 1 at the admin menu, new absence requests display per employee.
+
+            <details>
+                <summary>Review Requests Screenshot</summary>
+                <img src="documentation/features/admin-1-review-requests.png">
+            </details>
+
+        - The details are displayed for confirmation.
+
+            <details>
+                <summary>Review Requests Confirmation Screenshot</summary>
+                <img src="documentation/features/admin-1-review-requests_confirm.png">
+            </details>
+
+        - The screen returns back to the Review Requests beginning screen as long as there are any pending  requests left.
+
+    - Review Attendance
+
+        - The admin can review employees' clock cards for a day at a time. Upon typing 2, the current day's clock cards are displayed and the admin can view another day's clock cards by typing another date.
+
+            <details>
+                <summary>Employees' Attendance Display Screenshot</summary>
+                <img src="documentation/features/admin-2-review-attendance.png">
+            </details>
+
+    - Add Absence
+
+        - By typing 3 at the admin menu, the admin can add an employee's absence for the current year. This feature allows the admin to update any unplanned absences taken in the the current year.
+
+        - The admin is asked to input an employee ID, absence type(paid or unpaid), time period and date step by step. Lastly, the summary of absence displays to confirm before the update.
+
+            <details>
+                <summary>Add Absence Step 1 Employee ID Screenshot</summary>
+                <img src="documentation/features/admin-3-add-absence_id_input.png">
+            </details>
+
+            <details>
+                <summary>Add Absence Step 2 Absence Type Screenshot</summary>
+                <img src="documentation/features/admin-3-add-absence_paid_input.png">
+            </details>
+
+            <details>
+                <summary>Add Absence Step 3 Time period Screenshot</summary>
+                <img src="documentation/features/admin-3-add-absence_period_input.png">
+            </details>
+
+            <details>
+                <summary>Add Absence Step 4 Date(s) Screenshot</summary>
+                <img src="documentation/features/admin-3-add-absence_date_input.png">
+            </details>
+
+            <details>
+                <summary>Add Absence Confirmation Screenshot</summary>
+                <img src="documentation/features/admin-3-add-absence_confirm.png">
+            </details>
+
+    - Update Clock Card
+
+        - By typing 4 at the admin menu, the admin can update an employee's clock in/out time(s) for the current month.
+
+        - The admin is asked to input an employee ID, date, clock in or out time step by step. Lastly,  the summary of details displays to confirm the update.
+
+            <details>
+                <summary>Update Clock Card Step 1 Employee ID Screenshot</summary>
+                <img src="documentation/features/admin-4-update-clock-card_id_input.png">
+            </details>
+
+            <details>
+                <summary>Update Clock Card Step 2 Date Screenshot</summary>
+                <img src="documentation/features/admin-4-update-clock-card_date_input.png">
+            </details>
+
+            <details>
+                <summary>Update Clock Card Step 3 Time Screenshot</summary>
+                <img src="documentation/features/admin-4-update-clock-card_time_input.png">
+            </details>
+
+            <details>
+                <summary>Update Clock Card Confirmation Screenshot</summary>
+                <img src="documentation/features/admin-4-update-clock-card_confirm.png">
+            </details>
+
+- Exit
+
+    - When the user selects the __Exit__ option at the menu or types __quit__ at input prompt, the end title is displayed.
+
+        <details>
+            <summary>End Title Screenshot</summary>
+            <img src="documentation/features/end-title.png">
+        </details>
+
+- Group Absence Calendar
+
+    - A Google Calendar is embedded to help both employee and admin make decisions about absence requests more easily.
+
+        <details>
+            <summary>Calendar Screenshot</summary>
+            <img src="documentation/features/calendar.png">
+        </details>
+
+## Features Left to Implement
+
+- This project was built to produce a minimum viable product and bigger scaled features were cut out.
+
+- Update Employee List
+
+    The current system requires a user to update the employee list directly via _Google Sheets_. It would be more convenient if the admin can add or delete an employee from the list via the application.
+
+- HR System
+
+    This project can expand to include a robust HR system that stores more employee details and generates payslips.
+
+- Flexible System
+
+    The current system is set for a specific situation such as a time zone(Ireland), working hours(9:30-5:30 weekdays only) and absence usage is restricted to the current year. It would be more usable if there are less restrictions.
+
+- Password Reset / Forgot Password
+
+    It would be more appropriate if a user can reset their own password by themselves.
+
+- Calendar
+
+    As the calendar was embedded in the `html` file, the page needs to be reloaded to see the updated calendar by default. For a better user experience, I added some JavaScript code to auto-refresh every 20 seconds. However, when the calendar refreshes it is noticeable and a user cannot hold another month for more than 20 seconds. It would be better if the calendar event displays as the admin approves a request without refreshing it.
 
 [Back To **Table of Contents**](#table-of-contents)
 
@@ -149,7 +445,7 @@ The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUM
 - [colorama](https://pypi.org/project/colorama/) was used to highlight texts by printing in different colours.
 - [google-auth](https://google-auth.readthedocs.io/en/master/) was used to authenticate for the Google APIs.
 - [gspread](https://docs.gspread.org/en/v5.3.2/#) was used to access and manipulate data in Google Sheets.
-- [passlib](https://passlib.readthedocs.io/en/stable/) was used to store users’ passwords securely.
+- [passlib](https://passlib.readthedocs.io/en/stable/) was used to store users' passwords securely.
 - [pytz](https://pypi.org/project/pytz/) was used to set a Timezone to Dublin, Ireland.
 - [stdiomask](https://pypi.org/project/stdiomask/) was used for password masking.
 - [tabulate](https://pypi.org/project/tabulate/) was used to display tables.
@@ -195,7 +491,7 @@ The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUM
 
     - [x] I want to be able to review each employee's attendance record so that I can manage the team more effectively.
 
-        : The admin can review all employee’s clock cards for the current day by typing 2 at the admin portal menu. They can type in another day to review them.
+        : The admin can review all employee's clock cards for the current day by typing 2 at the admin portal menu. They can type in another day to review them.
 
         <details>
             <summary>Attendance Review Screenshot</summary>
@@ -214,7 +510,7 @@ The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUM
 
     - [x] I want to be able to see the team's availability so that I can easily determine whether I can approve or reject new absence requests.
 
-        : The calendar displays all employees’ absence schedules that have been approved by the admin.
+        : The calendar displays all employees' absence schedules that have been approved by the admin.
 
         <details>
             <summary>Group Absence Calendar Screenshot</summary>
@@ -271,7 +567,7 @@ The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUM
 
     - [x] I want to be able to review worked hours so that I can flag it to the manager immediately if it's inaccurate.
 
-        : The user can view their clock in and clock out times by typing 3 at the employee portal menu. The information displays a week at a time in a table and the default display is the current week. The user can type in a different date to view another week’s clock cards.
+        : The user can view their clock in and clock out times by typing 3 at the employee portal menu. The information displays a week at a time in a table and the default display is the current week. The user can type in a different date to view another week's clock cards.
 
         <details>
             <summary>Clock cards Screenshot</summary>
@@ -280,7 +576,7 @@ The spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1yBUM
 
     - [x] I want to be able to check who's out of the office at a glance so that I can arrange meetings / events on a day when the relevant members are in.
 
-        : The calendar displays all employee’s absence schedules that have been approved by the admin.
+        : The calendar displays all employee's absence schedules that have been approved by the admin.
 
 [Back To **Table of Contents**](#table-of-contents)
 
@@ -480,11 +776,11 @@ These steps demonstrate how to make a copy of this repository on your _GitHub_ a
 
 ## Code
 
-- I highly relied upon the [Python documentation](https://docs.python.org/3/) for Python built-in modules’ usages and the [gspread documentation](https://docs.gspread.org/en/v5.4.0/) for _Google Sheets_ API’s usages.
+- I highly relied upon the [Python documentation](https://docs.python.org/3/) for Python built-in modules' usages and the [gspread documentation](https://docs.gspread.org/en/v5.4.0/) for _Google Sheets_ API's usages.
 - I referenced the [W3schools](https://www.w3schools.com/) and [Stack Overflow](https://stackoverflow.com/) to find appropriate modules or solutions for specific issues.
 
 - Clearing the terminal
-    - Source: GeeksforGeeks’s article [How to clear screen in python?](https://www.geeksforgeeks.org/clear-screen-python/)
+    - Source: GeeksforGeeks's article [How to clear screen in python?](https://www.geeksforgeeks.org/clear-screen-python/)
     - Method: Defining a function to clearing the terminal using the `os` module.
     - Usage: I used this method to clear the terminal after user input.
 
@@ -500,15 +796,15 @@ These steps demonstrate how to make a copy of this repository on your _GitHub_ a
 
 - Docstrings
     - Source: [_Google_ Python Style Guide](https://google.github.io/styleguide/pyguide.html)
-    - Usage: I used the _Google_’s docstring style. I found its format is the most readable style because of the indentation after I read daouzli’s answer on [Stack Overflow](https://stackoverflow.com/questions/3898572).
+    - Usage: I used the _Google_'s docstring style. I found its format is the most readable style because of the indentation after I read daouzli's answer on [Stack Overflow](https://stackoverflow.com/questions/3898572).
 
 - Auto-refresh iframe / JavaScript
     - Source: Vikas Sardana's answer on [Stack Overflow](https://stackoverflow.com/questions/43661695/)
-    - Method: Refresh the iframe automatically every certain time using `setInterval` and set the `src` attribute again inside the `setInterval`’s callback function.
+    - Method: Refresh the iframe automatically every certain time using `setInterval` and set the `src` attribute again inside the `setInterval`'s callback function.
     - Usage: I used this method to refresh the calendar every 20 seconds as otherwise the page needs to be reloaded to see the updated calendar.
 
 - Displaying a favicon / HTML
-    - Source: `layout.html` on MattBCoding’s repository [calico-jack](https://github.com/MattBCoding/calico-jack/blob/main/views/layout.html)
+    - Source: `layout.html` on MattBCoding's repository [calico-jack](https://github.com/MattBCoding/calico-jack/blob/main/views/layout.html)
     - Method: Using a web-hosted file enables the display of the favicon.
     - Usage: I used this method to fix an issue where the static favicon file did not display.
 
@@ -516,7 +812,7 @@ These steps demonstrate how to make a copy of this repository on your _GitHub_ a
 
 - Employee time management system
 
-    I developed the idea of building this project from a software company [Mitrefinch](https://www.mitrefinch.co.uk/)’s time management system that I use at work.
+    I developed the idea of building this project from a software company [Mitrefinch](https://www.mitrefinch.co.uk/)'s time management system that I use at work.
 
 ## Acknowledgements
 
