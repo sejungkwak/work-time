@@ -35,6 +35,7 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 
 [Testing](#testing)
 - [Testing User Stories](#testing-user-stories-from-the-user-experience-ux-section)
+- [Bugs](#bugs)
 
 [Deployment](#deployment)
 - [Heroku](#heroku)
@@ -577,6 +578,110 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
     - [x] I want to be able to check who's out of the office at a glance so that I can arrange meetings / events on a day when the relevant members are in.
 
         : The calendar displays all employee's absence schedules that have been approved by the admin.
+
+## Bugs
+
+### Fixed Bugs
+
+- Title Font
+
+    <details>
+        <summary>Title Font Error Screenshot</summary>
+        <img src="documentation/testing/bugs/bug-font.png">
+    </details>
+
+    - Error: A third-party package called art was used to print a big title text, but the text had gaps between lines. Even the same font was displayed differently depending on the text.
+    - Cause: I was not able to find the exact reason, but I believe it was something to do with the template mock terminal or _Heroku_ as the local terminal displayed without the gaps.
+    - Fix: I copied the text from [TAAG](https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type%20Something%20) and hardcoded it in the Python script.
+    - [View commit details](https://github.com/sejungkwak/work-time/commit/51a1c437cf5f8b7a843f5d3bc6606a1d5ab730f5)
+
+- Table Width
+
+    <details>
+        <summary>Table Width Error Screenshot</summary>
+        <img src="documentation/testing/bugs/bug-table.png">
+    </details>
+
+    - Error: The right side of the table that displayed new requests at the admin portal went to the next line.
+    - Cause: The table was too long for the terminal width.
+    - Fix: I changed the code to take out the employee's name from the table, and rewrote the code to  display the table for each employee and their name at the top of each table.
+    - [View commit details](https://github.com/sejungkwak/work-time/commit/9cab3a5911269cfe37208e1ac46d074004c7f2ec)
+
+- Colorama
+
+    <details>
+        <summary>Colorama Error Screenshot</summary>
+        <img src="documentation/testing/bugs/bug-colorama.png">
+    </details>
+
+    - Error: The text displayed with ANSI escape sequences instead of displaying the expected colour.
+    - Cause: The text was too long to write in a line, so I wrapped it with a parenthesis and passed it into the print method. And it parsed the whole text inside parenthesis as one string.
+    - Fix: I concatenated the strings instead of wrapping them with a parenthesis.
+    - [View commit details](https://github.com/sejungkwak/work-time/commit/61b0af00efcb7daa56a139ab452a814f67889843)
+
+- Time Not Reflecting DST
+
+    - Error: The clock in/out time was returned as a UTC time without reflecting the time zone.
+    - Cause: I did not know there were two types of time which are naive and aware. If the time is naive it does not reflect the time zone info.
+    - Fix: I imported a third-party package called pytz and set the time zone to Dublin and used the datetime module instead of the time module.
+    - [Original code](https://github.com/sejungkwak/work-time/commit/936e654db1f12208efc6cc041ff0933c8f140c6d) / [Fixed code](https://github.com/sejungkwak/work-time/commit/5769ff9ffcea431d6da3fc9aef2de5fe685b3d59)
+
+- Clock In Update
+
+    - Error: When a user tried to update today's clock in time on the worksheet, the updated time was for the oldest entry in the worksheet and not specifically today's date. This often resulted in the time being updated on another date.
+    - Cause: I used the find method passing the employee ID without the associated date.
+    - Fix: I used the enumerate function to find the index of the clocking list that matches the employee ID and the date.
+    - [View commit details](https://github.com/sejungkwak/work-time/commit/5a0bc3427a3d44b2632c9e0f997a790b46e1422e)
+
+- Number of Weekdays Calculation
+
+    - Error: When submitting an absence request, the system did not calculate the number of weekdays correctly where an absence did not start on a Monday.
+    - Cause: I didn't account for a situation where an absence did not start on Monday.
+    - Fix: I used the timedelta and sum methods to generate a list of all dates between the two dates and then calculated the number  of weekdays in that time period.
+    View Commit: 
+    - [Original code](https://github.com/sejungkwak/work-time/commit/f01e1e25d647c19a7e57773555be3f4edfe2ddc6) / [Fixed code](https://github.com/sejungkwak/work-time/commit/55ef15f84306da55fb36a1b59075d13357d0c684)
+
+- Incorrect Value in Review New Request Summary
+
+    <details>
+        <summary>Incorrect Value Error Screenshot</summary>
+        <img src="documentation/testing/bugs/bug-review-requests.png">
+        <img src="documentation/testing/bugs/bug-review-requests_confirm.png">
+    </details>
+
+    - Error: Incorrect details were displayed in the confirmation summary of the admin portal review requests option.
+    - Cause: I used an if statement within a for loop to assign the required absence request details to a new variable. However, as the variable assignment was outside of the if statement, the assignment repeated at the end of the loop and so always returned the last value instead of the required one.
+    - Fix: I moved the variable assignment to within the if statement to ensure the only absence request returned was the one that was changed.
+    - [View commit details](https://github.com/sejungkwak/work-time/commit/6ec7925dd008d2b0044e36014f35e97aa471c5c3)
+
+### Known Bugs
+
+- _Google API_ Quota Limit
+
+    - Error: An error code 429 was logged in the terminal.
+    - Google Sheets API has a quota limit of 60 read requests per minute per user.
+    - I refactored the code to reduce the number of API requests significantly. I also requested to increase the limit, but was not granted due to "the project having insufficient usage history" and I "still have a lot of headroom".
+    - I have not seen this error since I refactored the code, but I note this as a known bug since the limit might be reached if a user selects an option and returns to the menu right away many times in a very short period of time or more likely, with multiple concurrent users. However, in normal usage of the application, the error should not appear.
+    - Refactoring details
+        - I changed the method to get a value. Previously a value was read from a cell. I changed the code to get the whole worksheet, find the index and get the value at the index.
+
+            [View commit details](https://github.com/sejungkwak/work-time/commit/a14262c1d7f5bc971622bace3a800df5142e62f2)
+
+        - I changed the method to update values. Previously a value was updated one at a time by a cell. I changed the code to update the whole row.
+
+            [View commit details](https://github.com/sejungkwak/work-time/commit/0ecd1f4b3fa40ffebcd0b52aa344040313102070)
+    
+        - I changed the code to get the whole worksheet and pass it to another function instead of getting it twice.
+
+            [View commit details](https://github.com/sejungkwak/work-time/commit/90715b9585179b8665e086bc2ae6fe05dfd6e20c)
+
+            [View commit details](https://github.com/sejungkwak/work-time/commit/c73752dbf39b6e6891feab4c7f46730cb86bc42b)
+
+- _Google Calendar_ Events Duplication
+
+    - Error: The calendar events updated multiple times for the same absence occasionally.
+    - _Google Apps Script_ was used to update absences in the calendar from the `absence_requests` worksheets. The calendar needs to be updated as per the admin's approval/rejection and/or an employee's cancellation. When I first executed the code, the same events were added multiple times at the same time. I added some code to delete all events if there are any, before executing the code that adds events to the calendar. However, it does not delete future events sometimes.
+    - As this project is focused in Python and the calendar does not interrupt performance, I decided not to pursue it any further.
 
 [Back To **Table of Contents**](#table-of-contents)
 
