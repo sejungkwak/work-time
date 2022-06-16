@@ -36,8 +36,8 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 [Testing](#testing)
 - [Testing User Stories](#testing-user-stories-from-the-user-experience-ux-section)
 - [Code Validation](#code-validation)
-- [Performance Testing](#performance-testing)
 - [Functionality Testing](#functionality-testing)
+- [Performance Testing](#performance-testing)
 - [Bugs](#bugs)
 
 [Deployment](#deployment)
