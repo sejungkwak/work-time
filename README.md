@@ -36,6 +36,8 @@ __NOTE__: This application can only be operated properly on a desktop computer b
 [Testing](#testing)
 - [Testing User Stories](#testing-user-stories-from-the-user-experience-ux-section)
 - [Code Validation](#code-validation)
+- [Performance Testing](#performance-testing)
+- [Functionality Testing](#functionality-testing)
 - [Bugs](#bugs)
 
 [Deployment](#deployment)
@@ -444,13 +446,13 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
 
 ### Third-party Packages
 
-- [colorama](https://pypi.org/project/colorama/) was used to highlight texts by printing in different colours.
-- [google-auth](https://google-auth.readthedocs.io/en/master/) was used to authenticate for the Google APIs.
-- [gspread](https://docs.gspread.org/en/v5.3.2/#) was used to access and manipulate data in Google Sheets.
-- [passlib](https://passlib.readthedocs.io/en/stable/) was used to store users' passwords securely.
-- [pytz](https://pypi.org/project/pytz/) was used to set a Timezone to Dublin, Ireland.
-- [stdiomask](https://pypi.org/project/stdiomask/) was used for password masking.
-- [tabulate](https://pypi.org/project/tabulate/) was used to display tables.
+- [colorama](https://pypi.org/project/colorama/) was used to highlight texts by printing in different colours. The Cyan colour was used for input format, green for successful result, yellow for texts that require action, red background for warning or error messages.
+- [google-auth](https://google-auth.readthedocs.io/en/master/) was used to authenticate for the _Google_ APIs.
+- [gspread](https://docs.gspread.org/en/v5.3.2/#) was used to access and manipulate data in _Google Sheets_.
+- [passlib](https://passlib.readthedocs.io/en/stable/) was used to store users' passwords securely. As this package uses over 30 password hashing algorithms with randomly generated salt, it is more secure to store passwords using its method than plain texts.
+- [pytz](https://pypi.org/project/pytz/) was used to set a Timezone to Dublin, Ireland. This package solves the issue of ambiguous times at the end of DST which is mentioned in the Python official documentation.
+- [stdiomask](https://pypi.org/project/stdiomask/) was used for password masking. This package enhances security as it does not reveal the password on screen.
+- [tabulate](https://pypi.org/project/tabulate/) was used to display tables. This helps deliver information in a more efficient way.
 
 ## Programs
 
@@ -687,6 +689,24 @@ __NOTE__: The application is set for a fictional company that is based in Irelan
     - No errors or warnings were found when passing through the [PEP8 online](http://pep8online.com/).
 
 - [View screenshots](documentation/VALIDATION.md)
+
+## Functionality Testing
+
+- I have tested the application's functionality manually.
+- All the test passed: [View details](documentation/FUNCTIONALITY.md)
+
+## Performance Testing
+
+- I have measured the performance, accessibility, best practices and SEO using [Lighthouse](https://developers.google.com/web/tools/lighthouse) in Chrome DevTools in incognito mode.
+
+    | Performance | Accessibility | Best practices | SEO |
+    | :---------: | :-----------: | :------------: | :-: |
+    | 100 | 97 | 92 | 100 |
+
+    <details>
+        <summary>View Screenshot</summary>
+        <img src="documentation/testing/performance.png">
+    </details>
 
 ## Bugs
 
