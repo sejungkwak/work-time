@@ -119,7 +119,7 @@ def clock_out(id_):
             clocked_out_at = clocking["end_time"]
             print(colour("RED", id_ + " already clocked out at " +
                   clocked_out_at + '.'))
-            print("To update the clock out time contact a manager.\n")
+            print("To update the clock out time, contact a manager.\n")
         else:
             clock_sheet.update_clock_out(today, clock_out_at)
             print(colour("GREEN", "Successfully clocked out at " +
@@ -149,7 +149,7 @@ class ViewClockCard:
         self.get_attendance_date()
 
     def get_attendance_date(self):
-        """Ask the user input a date to review other weeks clock cards.
+        """Ask the user input a date to review other weeks clock card.
         Run a while loop until they input a valid answer.
         """
         while True:
@@ -182,7 +182,7 @@ class ViewClockCard:
         table = self.get_week_clockings(date_)
         utility.clear()
         if table:
-            print(f"Clock cards for {text}.")
+            print(f"Clock card for {text}.")
             utility.display_table(table, headers)
         else:
             print(f"No clocking data found for {text}.\n")
@@ -397,9 +397,9 @@ class BookAbsence:
         Returns:
             str: User input - Y or N.
         """
+        utility.clear()
         *_, period = self.generate_absence_summary()
         while True:
-            utility.clear()
             print(colour("YELLOW", "Please confirm the absence request."))
             print(f"Start date: {self.start_date}")
             print(f"End date: {self.end_date}")
