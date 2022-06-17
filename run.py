@@ -16,41 +16,32 @@ from worktime.app.utility import print_in_colour as colour
 from worktime.worksheets import credentials, entitlements, requests
 
 
-def get_employee_id():
-    """Request Employee ID and validate the user input.
-    Run a while loop until the user types "help" or a valid ID.
+def login():
+    """Request Employee ID and password. Validate the user input.
+    Run a while loop until the user enters a valid ID and password.
     """
-    ids = credentials.Credentials().ids()
     help_typed = False
+    all_creds = credentials.Credentials().credentials
+    all_ids = [id for id, pw in all_creds]
 
     while True:
         print("\nPlease enter " + colour("CYAN", "Employee ID") + ".")
         if not help_typed:
             print("For more information about Work Time,",
                   f"type {colour('CYAN', 'help')} and press enter.")
-        entered_id = input(colour("CYAN", ">>>\n")).upper().strip()
+        id_ = input(colour("CYAN", ">>>\n")).upper().strip()
 
-        if entered_id == "HELP":
+        if id_ == "HELP":
             help_()
+            print("\nPlease enter " + colour("CYAN", "Employee ID") + ".")
+            id_ = input(colour("CYAN", ">>>\n")).upper().strip()
             help_typed = True
-        elif validations.validate_id(entered_id, ids):
-            get_pw(entered_id)
-            break
 
-
-def get_pw(id_):
-    """Request password and validate the user input.
-    Run a while loop until the user types "help" or a correct password.
-
-    Args:
-        id_ str: Employee ID that was entered to log in.
-    """
-    pw_ = credentials.Credentials().pw(id_)
-    while True:
         print(f"\nPlease enter {colour('CYAN', 'Password')}.")
-        password = stdiomask.getpass(prompt=colour("CYAN", ">>>\n"))
+        pw_ = stdiomask.getpass(prompt=colour("CYAN", ">>>\n"))
+        correct_pw = get_pw(id_, all_creds)
 
-        if validations.validate_pw(password, pw_):
+        if validations.validate_login(id_, pw_, all_ids, correct_pw):
             if id_ == "ADMIN":
                 title.display_admin_title()
                 admin.ReviewRequests()
@@ -59,6 +50,22 @@ def get_pw(id_):
             title.display_employee_title(id_)
             employee.employee_main(id_)
             break
+
+
+def get_pw(id_, data):
+    """Returns a matching password for the ID.
+
+    Args:
+        id_ str: An employee ID.
+        data list: A list containing employee ID and password.
+    Returns:
+        str: The matching password for the ID.
+    """
+    for credential in data:
+        if id_ in credential:
+            index = data.index(credential)
+            password = data[index][1]
+            return password
 
 
 def help_():
@@ -86,7 +93,9 @@ additional help, please email me at kwak.sejung@gmail.com
 
 
 def calc_req_hours():
-    """Calculate absence request hours from absence_requests worksheet."""
+    """Calculate absence request hours from absence_requests worksheet.
+    This function is for updating taken hours.
+    """
     all_req = requests.Requests().requests
     all_req.sort(key=lambda req: req[1])
     groups = groupby(all_req, lambda req: req[1])
@@ -141,7 +150,7 @@ def main():
     try:
         update_entitlements()
         title.display_main_title()
-        get_employee_id()
+        login()
     except KeyboardInterrupt:
         title.display_goodbye()
         sys.exit()

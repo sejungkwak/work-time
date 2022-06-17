@@ -14,6 +14,38 @@ from worktime.app import utility
 from worktime.app.utility import print_in_colour as colour
 
 
+def validate_login(id_, pw_, all_ids, correct_pw):
+    """In the try block, compare the given ID and password
+    to the list of IDs and matching password.
+
+    Args:
+        id_ str: User input value for employee ID.
+        pw_ str: User input value for password.
+        all_ids: All employees' IDs.
+        correct_pw: The matching password.
+    Returns:
+        bool: True if the ID in the list, False otherwise.
+    Raises:
+        ValueError: If the ID is not in the ID list
+                    or the password does not match.
+        TypeError: If the input value is None.
+    """
+    try:
+        valid_pw = pbkdf2_sha256.verify(pw_, correct_pw)
+        if id_ not in all_ids:
+            raise ValueError()
+        if not valid_pw:
+            raise ValueError()
+    except ValueError:
+        print(colour("RED", "Invalid employee ID or password."))
+        return False
+    except TypeError:
+        print(colour("RED", "Invalid employee ID or password."))
+        return False
+    else:
+        return True
+
+
 def validate_id(id_, ids):
     """In the try block, compare the given ID to the list of IDs.
 
@@ -29,30 +61,7 @@ def validate_id(id_, ids):
         if id_ not in ids:
             raise ValueError()
     except ValueError:
-        print(colour("RED", "Invalid ID: " + id_))
-        return False
-    else:
-        return True
-
-
-def validate_pw(entered_pw, password):
-    """In the try block, check if the given password is correct
-    using passlib method.
-
-    Args:
-        entered_pw str: User input value.
-        password str: The correct password.
-    Returns:
-        bool: True if successful, False otherwise.
-    Raises:
-        ValueError: If the input password does not match.
-    """
-    try:
-        valid = pbkdf2_sha256.verify(entered_pw, password)
-        if not valid:
-            raise ValueError()
-    except ValueError:
-        print(colour("RED", "Incorrect password."))
+        print(colour("RED", "Invalid employee ID: " + id_))
         return False
     else:
         return True

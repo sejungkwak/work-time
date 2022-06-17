@@ -22,15 +22,3 @@ class Credentials:
         """Returns a list of employee IDs."""
         ids = [id for id, pw in self.credentials]
         return ids
-
-    def pw(self, id_):
-        """Returns a matching password for the ID.
-
-        Args:
-            :id_ str: An employee ID
-        """
-        for credential in self.credentials:
-            if id_ in credential:
-                index = self.credentials.index(credential)
-                password = self.credentials[index][1]
-                return password
