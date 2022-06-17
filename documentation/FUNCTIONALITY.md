@@ -13,8 +13,8 @@ Please refer to [this spreadsheet](https://docs.google.com/spreadsheets/d/1BLCJE
 | Input | Expected result | Actual result | Test result |
 | :--: | :--: | :--: | :--: |
 | Valid ID | Prompt for Password | Prompt for Password | Pass |
+| Invalid ID | Prompt for Password | Prompt for Password | Pass |
 | Type __help__ | Display application information | Display application information | Pass |
-| Invalid ID | Display error message | Display error message | Pass |
 | Valid Password | Log into the admin/employee portal | Log into the admin/employee portal | Pass |
 | Invalid Password | Display error message | Display error message | Pass |
 
