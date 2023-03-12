@@ -4,7 +4,7 @@ _WORK TIME_ is an employee time management system which runs in an SSH terminal 
 
 ![Main Title Screenshot](documentation/title-screen.png)
 
-### View the live project [here](https://work--time.herokuapp.com/)
+### View the live project [here](https://work-time.onrender.com)
 
 __NOTE__: This application can only be operated properly on a desktop computer browser.
 
